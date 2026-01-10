@@ -126,7 +126,7 @@
 <!-- DataTables Bootstrap 4 -->
 <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap4.min.js"></script>
 
-@yield('scripts')
+@stack('scripts')
 </body>
 </html>
 
