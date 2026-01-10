@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login | Portal Supplier - PT Krama Yudha Tiga Berlian</title>
+
+  <link rel="icon" href="{{ asset('img/logo.png') }}">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    /* Background sama dengan landing page */
+    body {
+      background: linear-gradient(
+        135deg,
+        rgba(180, 0, 0, 0.85),
+        rgba(0, 0, 0, 0.9)
+      ),
+      url('{{ asset("img/office-bg.jpg") }}') center / cover no-repeat;
+      background-attachment: fixed;
+    }
+
+    .login-container {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .login-card {
+      background: #ffffff;
+      width: 100%;
+      max-width: 420px;
+      padding: 35px 30px;
+      border-radius: 16px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
+      text-align: center;
+      animation: fadeInUp 0.9s ease;
+    }
+
+    .login-logo {
+      width: 140px;
+      margin-bottom: 15px;
+    }
+
+    .login-title {
+      font-weight: 700;
+      font-size: 1.2rem;
+      margin-bottom: 5px;
+      color: #b40000;
+    }
+
+    .login-subtitle {
+      font-size: 0.85rem;
+      color: #666;
+      margin-bottom: 25px;
+    }
+
+    .form-control {
+      border-radius: 30px;
+      padding: 10px 15px;
+      border: 1px solid #ddd;
+      font-size: 0.95rem;
+    }
+
+    .form-control:focus {
+      border-color: #b40000;
+      box-shadow: 0 0 0 0.2rem rgba(180, 0, 0, 0.25);
+    }
+
+    .input-group-text {
+      border-radius: 30px;
+      background: #f5f5f5;
+      border: 1px solid #ddd;
+      color: #666;
+    }
+
+    .btn-login {
+      width: 100%;
+      border-radius: 30px;
+      background: #b40000;
+      border: 2px solid #b40000;
+      color: #fff;
+      padding: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      transition: 0.3s;
+      margin-top: 10px;
+    }
+
+    .btn-login:hover {
+      background: #ffffff;
+      color: #b40000;
+      transform: translateY(-2px);
+    }
+
+    .password-toggle {
+      cursor: pointer;
+      border: none;
+      background: none;
+    }
+
+    .alert {
+      border-radius: 10px;
+      margin-bottom: 20px;
+      text-align: left;
+    }
+
+    .form-text {
+      font-size: 0.8rem;
+      color: #666;
+    }
+
+    .footer-text {
+      margin-top: 20px;
+      font-size: 0.75rem;
+      color: #999;
+    }
+
+    .error-text {
+      color: #b40000;
+      font-size: 0.85rem;
+      text-align: left;
+      margin-top: 5px;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(25px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 576px) {
+      .login-card {
+        padding: 25px 20px;
+      }
+
+      .login-logo {
+        width: 120px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="login-container">
+    <div class="login-card">
+
+      <!-- Logo KTB -->
+      <img src="{{ asset('img/ktb_fuso.png') }}" alt="PT Krama Yudha Tiga Berlian" class="login-logo">
+
+      <div class="login-title">PORTAL SUPPLIER</div>
+      <div class="login-subtitle">
+        PT Krama Yudha Tiga Berlian
+      </div>
+
+      <!-- Session Error -->
+      @if ($errors->any())
+        <div class="alert alert-danger">
+          @foreach ($errors->all() as $error)
+            <small class="d-block">{{ $error }}</small>
+          @endforeach
+        </div>
+      @endif
+
+      <form action="{{ route('login') }}" method="POST">
+        @csrf
+
+        <!-- Email Input -->
+        <div class="form-group">
+          <div class="input-group">
+            <span class="input-group-text">
+              <i class="bi bi-envelope-fill"></i>
+            </span>
+            <input 
+              type="email" 
+              name="email" 
+              class="form-control @error('email') is-invalid @enderror" 
+              placeholder="Email" 
+              value="{{ old('email') }}"
+              required 
+              autofocus
+            >
+          </div>
+          @error('email')
+            <div class="error-text">{{ $message }}</div>
+          @enderror
+        </div>
+
+        <!-- Password Input -->
+        <div class="form-group">
+          <div class="input-group">
+            <span class="input-group-text">
+              <i class="bi bi-lock-fill"></i>
+            </span>
+            <input 
+              type="password" 
+              name="password" 
+              id="password" 
+              class="form-control @error('password') is-invalid @enderror" 
+              placeholder="Password" 
+              required
+            >
+            <button 
+              type="button"
+              class="btn btn-outline-secondary password-toggle" 
+              onclick="togglePassword()"
+              style="border-radius: 30px; padding: 10px 15px;"
+            >
+              <i class="bi bi-eye-fill" id="toggle-icon"></i>
+            </button>
+          </div>
+          @error('password')
+            <div class="error-text">{{ $message }}</div>
+          @enderror
+        </div>
+
+        <!-- Remember Me -->
+        <div class="form-check text-start mb-3" style="padding-left: 0;">
+          <input 
+            class="form-check-input" 
+            type="checkbox" 
+            name="remember" 
+            id="remember"
+            {{ old('remember') ? 'checked' : '' }}
+          >
+          <label class="form-check-label" for="remember" style="font-size: 0.9rem;">
+            Ingat saya
+          </label>
+          <a href="{{ route('password.request') }}" style="float: right; color: #b40000; text-decoration: none; font-size: 0.9rem;">
+            Lupa password?
+          </a>
+        </div>
+
+        <button type="submit" class="btn btn-login">
+          <i class="bi bi-box-arrow-in-right"></i> Login
+        </button>
+
+        <!-- Register Link -->
+        <div style="margin-top: 15px;">
+          <span class="form-text">Belum punya akun? 
+            <a href="{{ route('register') }}" style="color: #b40000; text-decoration: none; font-weight: 600;">Daftar di sini</a>
+          </span>
+        </div>
+      </form>
+
+      <div class="footer-text">
+        © 2026 PT Krama Yudha Tiga Berlian
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    function togglePassword() {
+      const input = document.getElementById('password');
+      const icon = document.getElementById('toggle-icon');
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('bi-eye-fill', 'bi-eye-slash-fill');
+      } else {
+        input.type = 'password';
+        icon.classList.replace('bi-eye-slash-fill', 'bi-eye-fill');
+      }
+    }
+  </script>
+
+</body>
+</html>

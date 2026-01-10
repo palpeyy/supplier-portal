@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lupa Password | Portal Supplier - PT Krama Yudha Tiga Berlian</title>
+
+  <link rel="icon" href="{{ asset('img/logo.png') }}">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(
+        135deg,
+        rgba(180, 0, 0, 0.85),
+        rgba(0, 0, 0, 0.9)
+      ),
+      url('{{ asset("img/office-bg.jpg") }}') center / cover no-repeat;
+      background-attachment: fixed;
+    }
+
+    .login-container {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .login-card {
+      background: #ffffff;
+      width: 100%;
+      max-width: 420px;
+      padding: 35px 30px;
+      border-radius: 16px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
+      text-align: center;
+      animation: fadeInUp 0.9s ease;
+    }
+
+    .login-logo {
+      width: 140px;
+      margin-bottom: 15px;
+    }
+
+    .login-title {
+      font-weight: 700;
+      font-size: 1.2rem;
+      margin-bottom: 5px;
+      color: #b40000;
+    }
+
+    .login-subtitle {
+      font-size: 0.85rem;
+      color: #666;
+      margin-bottom: 25px;
+      line-height: 1.5;
+    }
+
+    .form-control {
+      border-radius: 30px;
+      padding: 10px 15px;
+      border: 1px solid #ddd;
+      font-size: 0.95rem;
+    }
+
+    .form-control:focus {
+      border-color: #b40000;
+      box-shadow: 0 0 0 0.2rem rgba(180, 0, 0, 0.25);
+    }
+
+    .input-group-text {
+      border-radius: 30px;
+      background: #f5f5f5;
+      border: 1px solid #ddd;
+      color: #666;
+    }
+
+    .btn-login {
+      width: 100%;
+      border-radius: 30px;
+      background: #b40000;
+      border: 2px solid #b40000;
+      color: #fff;
+      padding: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      transition: 0.3s;
+      margin-top: 10px;
+    }
+
+    .btn-login:hover {
+      background: #ffffff;
+      color: #b40000;
+      transform: translateY(-2px);
+    }
+
+    .alert {
+      border-radius: 10px;
+      margin-bottom: 20px;
+      text-align: left;
+    }
+
+    .form-text {
+      font-size: 0.8rem;
+      color: #666;
+    }
+
+    .footer-text {
+      margin-top: 20px;
+      font-size: 0.75rem;
+      color: #999;
+    }
+
+    .error-text {
+      color: #b40000;
+      font-size: 0.85rem;
+      text-align: left;
+      margin-top: 5px;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 15px;
+      color: #b40000;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(25px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 576px) {
+      .login-card {
+        padding: 25px 20px;
+      }
+
+      .login-logo {
+        width: 120px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="login-container">
+    <div class="login-card">
+
+      <!-- Logo KTB -->
+      <img src="{{ asset('img/ktb_fuso.png') }}" alt="PT Krama Yudha Tiga Berlian" class="login-logo">
+
+      <div class="login-title">PORTAL SUPPLIER</div>
+      <div class="login-subtitle">
+        Lupa Password
+      </div>
+
+      <!-- Session Error -->
+      @if ($errors->any())
+        <div class="alert alert-danger">
+          @foreach ($errors->all() as $error)
+            <small class="d-block">{{ $error }}</small>
+          @endforeach
+        </div>
+      @endif
+
+      @if (session('status'))
+        <div class="alert alert-success">
+          {{ session('status') }}
+        </div>
+      @endif
+
+      <form action="{{ route('password.email') }}" method="POST">
+        @csrf
+
+        <!-- Email Input -->
+        <div class="form-group">
+          <div class="input-group">
+            <span class="input-group-text">
+              <i class="bi bi-envelope-fill"></i>
+            </span>
+            <input 
+              type="email" 
+              name="email" 
+              class="form-control @error('email') is-invalid @enderror" 
+              placeholder="Masukkan Email Anda" 
+              value="{{ old('email') }}"
+              required 
+              autofocus
+            >
+          </div>
+          @error('email')
+            <div class="error-text">{{ $message }}</div>
+          @enderror
+        </div>
+
+        <p style="font-size: 0.85rem; color: #666; text-align: left; margin-bottom: 20px;">
+          Kami akan mengirimkan link reset password ke email Anda
+        </p>
+
+        <button type="submit" class="btn btn-login">
+          <i class="bi bi-send"></i> Kirim Link Reset
+        </button>
+
+        <a href="{{ route('login') }}" class="back-link">
+          Kembali ke Login
+        </a>
+      </form>
+
+      <div class="footer-text">
+        © 2026 PT Krama Yudha Tiga Berlian
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
