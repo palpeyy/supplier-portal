@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Role;
+use App\Models\Supplier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -14,9 +15,10 @@ class UserController extends Controller
      */
     public function index()
     {
-        $users = User::with('role')->paginate(10);
+        $users = User::with('role', 'supplier')->paginate(10);
         $roles = Role::all();
-        return view('users.index', compact('users', 'roles'), ['tittle' => 'Manajemen Users | Portal Supplier']);
+        $suppliers = Supplier::all();
+        return view('users.index', compact('users', 'roles', 'suppliers'), ['tittle' => 'Manajemen Users | Portal Supplier']);
     }
 
     /**

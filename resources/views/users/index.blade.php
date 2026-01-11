@@ -46,6 +46,7 @@ Manajemen Users
                         <th>Nama</th>
                         <th>Email</th>
                         <th>Role</th>
+                        <th>Supplier</th>
                         <th>Dibuat</th>
                         <th width="150">Aksi</th>
                     </tr>
@@ -63,6 +64,13 @@ Manajemen Users
                             <span class="badge badge-secondary">Tidak ada</span>
                             @endif
                         </td>
+                        <td>
+                            @if($user->supplier)
+                            <span class="badge badge-info">{{ $user->supplier->nama }}</span>
+                            @else
+                            <span class="text-muted">-</span>
+                            @endif
+                        </td>
                         <td>{{ $user->created_at->format('d/m/Y H:i') }}</td>
                         <td>
                             <a class="btn btn-warning btn-sm edit-user" href="#" data-id="{{ $user->id }}" title="Edit">
@@ -75,7 +83,7 @@ Manajemen Users
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="6" class="text-center">Tidak ada data users</td>
+                        <td colspan="7" class="text-center">Tidak ada data users</td>
                     </tr>
                     @endforelse
                 </tbody>
@@ -138,6 +146,19 @@ Manajemen Users
                         </div>
 
                         <div class="col-md-6">
+                            <div class="form-group" id="supplier_group">
+                                <label for="supplier_id">Supplier <span class="text-muted" id="supplier_required_label" style="display: none;">*</span></label>
+                                <select class="form-control" id="supplier_id" name="supplier_id">
+                                    <option value="">-- Pilih Supplier --</option>
+                                    @foreach($suppliers as $supplier)
+                                    <option value="{{ $supplier->id }}">{{ $supplier->nama }}</option>
+                                    @endforeach
+                                </select>
+                                <small class="form-text text-muted" id="supplier_help">Opsional, hanya diperlukan jika role adalah Supplier</small>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
                             <div class="form-group">
                                 <label for="password">Password</label>
                                 <input type="password" class="form-control" id="password" name="password" placeholder="Masukkan password" required>
@@ -167,10 +188,38 @@ Manajemen Users
 @push('scripts')
 <script>
     $(document).ready(function() {
+        // Toggle supplier field required based on role
+        function toggleSupplierField() {
+            let roleId = $('#role_id').val();
+            let roleText = $('#role_id option:selected').text().toLowerCase();
+            
+            if (roleText.includes('supplier')) {
+                $('#supplier_id').prop('required', true);
+                $('#supplier_required_label').show();
+                $('#supplier_help').text('Required untuk role Supplier');
+                $('#supplier_help').removeClass('text-muted').addClass('text-danger');
+            } else {
+                $('#supplier_id').prop('required', false);
+                $('#supplier_required_label').hide();
+                $('#supplier_help').text('Opsional, hanya diperlukan jika role adalah Supplier');
+                $('#supplier_help').removeClass('text-danger').addClass('text-muted');
+                // Optional: clear supplier_id if not supplier role
+                // $('#supplier_id').val('');
+            }
+        }
+
+        $('#role_id').on('change', function() {
+            toggleSupplierField();
+        });
+
+        // Store user data for edit
+        let currentUserData = null;
+
         // Reset form saat modal dibuka untuk tambah
         $('#modalUser').on('show.bs.modal', function(e) {
             let btnTambah = $(e.relatedTarget);
-            if (!btnTambah.hasClass('edit-user')) {
+            // Only reset if not editing (no currentUserData) and button is not edit-user
+            if (!currentUserData && (!btnTambah.length || !btnTambah.hasClass('edit-user'))) {
                 $('#formUser')[0].reset();
                 $('#formUser').attr('action', '{{ route("users.store") }}');
                 $('#formUser').find('input[name="_method"]').remove();
@@ -178,6 +227,30 @@ Manajemen Users
                 $('#password').prop('required', true);
                 $('#password_confirmation').prop('required', true);
                 $('#errorMessages').addClass('d-none');
+                $('#supplier_id').prop('required', false);
+                $('#supplier_required_label').hide();
+                $('#supplier_help').text('Opsional, hanya diperlukan jika role adalah Supplier');
+                $('#supplier_help').removeClass('text-danger').addClass('text-muted');
+            }
+        });
+
+        // Clear edit data when modal is hidden
+        $('#modalUser').on('hidden.bs.modal', function() {
+            currentUserData = null;
+        });
+
+        // Populate form when modal is fully shown (for edit)
+        $('#modalUser').on('shown.bs.modal', function() {
+            if (currentUserData) {
+                // Set values after modal is shown
+                $('#name').val(currentUserData.name || '');
+                $('#email').val(currentUserData.email || '');
+                $('#role_id').val(currentUserData.role_id || '').trigger('change');
+                // Wait a bit for role change to process, then set supplier
+                setTimeout(function() {
+                    $('#supplier_id').val(currentUserData.supplier_id || '');
+                    toggleSupplierField();
+                }, 100);
             }
         });
 
@@ -190,23 +263,30 @@ Manajemen Users
                 url: `/users/${userId}/edit`,
                 type: 'GET',
                 success: function(response) {
+                    console.log('User data:', response.user); // Debug
+                    
+                    // Store user data
+                    currentUserData = response.user;
+                    
+                    // Reset form first
                     $('#formUser')[0].reset();
-                    $('#name').val(response.user.name);
-                    $('#email').val(response.user.email);
-                    $('#role_id').val(response.user.role_id);
                     $('#password').prop('required', false);
                     $('#password_confirmation').prop('required', false);
 
+                    // Update form action and method
                     $('#formUser').attr('action', `/users/${userId}`);
-                    if ($('#formUser').find('input[name="_method"]').length === 0) {
-                        $('#formUser').prepend('<input type="hidden" name="_method" value="PUT">');
-                    }
+                    $('#formUser').find('input[name="_method"]').remove();
+                    $('#formUser').prepend('<input type="hidden" name="_method" value="PUT">');
 
                     $('#modalUserLabel').html('<i class="fas fa-edit"></i> Edit User');
                     $('#errorMessages').addClass('d-none');
+                    
+                    // Show modal - values will be set in 'shown.bs.modal' event
                     $('#modalUser').modal('show');
                 },
-                error: function() {
+                error: function(xhr) {
+                    console.error('Error loading user:', xhr);
+                    currentUserData = null;
                     alert('Gagal memuat data user');
                 }
             });

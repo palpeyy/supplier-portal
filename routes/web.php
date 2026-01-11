@@ -14,6 +14,7 @@ use App\Http\Controllers\SuratJalanController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\VendorController;
+use App\Http\Controllers\SupplierController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -62,8 +63,18 @@ Route::middleware('auth')->group(function () {
     Route::get('/material', [MaterialController::class, 'index']);
 
     Route::get('/purchase-request', [PurchaseRequestController::class, 'index']);
-    Route::get('/purchase-order', [PurchaseOrderController::class, 'index']);
+    Route::get('/purchase-order', [PurchaseOrderController::class, 'index'])->name('purchase-orders.index');
     Route::get('/purchase-order-approval', [PurchaseOrderController::class, 'approval']);
+    
+    // Purchase Order CRUD Routes
+    Route::resource('purchase-orders', PurchaseOrderController::class)->except(['create']);
+    Route::get('/purchase-orders/{purchaseOrder}/download', [PurchaseOrderController::class, 'download'])->name('purchase-orders.download');
+    Route::post('/purchase-orders/{purchaseOrder}/approve', [PurchaseOrderController::class, 'approve'])->name('purchase-orders.approve');
+    Route::post('/purchase-orders/{purchaseOrder}/reject', [PurchaseOrderController::class, 'reject'])->name('purchase-orders.reject');
+    Route::post('/purchase-orders/{purchaseOrder}/approve-supplier', [PurchaseOrderController::class, 'approveBySupplier'])->name('purchase-orders.approve-supplier');
+    Route::post('/purchase-orders/{purchaseOrder}/reject-supplier', [PurchaseOrderController::class, 'rejectBySupplier'])->name('purchase-orders.reject-supplier');
+    Route::get('/penerimaan-barang', [PurchaseOrderController::class, 'penerimaanBarang'])->name('purchase-orders.penerimaan-barang');
+    Route::post('/purchase-orders/{purchaseOrder}/confirm-received', [PurchaseOrderController::class, 'confirmReceived'])->name('purchase-orders.confirm-received');
 
     Route::get('/surat-jalan', [SuratJalanController::class, 'index']);
     Route::get('/surat-jalan-approval', [SuratJalanController::class, 'approval']);
@@ -77,4 +88,5 @@ Route::middleware('auth')->group(function () {
     // Manajemen User - CRUD Routes
     Route::resource('users', UserController::class);
     Route::resource('roles', RoleController::class);
+    Route::resource('suppliers', SupplierController::class);
 });

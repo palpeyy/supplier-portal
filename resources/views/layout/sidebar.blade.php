@@ -34,6 +34,8 @@
         </a>
       </li>
 
+      @if(auth()->check() && (auth()->user()->role->name ?? '') !== 'Supplier')
+      <!-- Master Data (tidak untuk Supplier) -->
       <li class="nav-item has-treeview">
         <a href="#" class="nav-link">
           <i class="nav-icon fas fa-database"></i>
@@ -44,29 +46,18 @@
         </a>
         <ul class="nav nav-treeview">
           <li class="nav-item">
-            <a href="/user" class="nav-link">
+            <a href="{{ route('suppliers.index') }}" class="nav-link">
               <i class="far fa-circle nav-icon"></i>
-              <p>Staff KTB</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="/vendor" class="nav-link">
-              <i class="far fa-circle nav-icon"></i>
-              <p>Vendor / Supplier</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="/material" class="nav-link">
-              <i class="far fa-circle nav-icon"></i>
-              <p>Material</p>
+              <p>Supplier</p>
             </a>
           </li>
         </ul>
       </li>
+      @endif
 
       <!-- Purchasing -->
       <li class="nav-item">
-        <a href="#" class="nav-link">
+        <a href="{{ route('purchase-orders.index') }}" class="nav-link">
           <i class="nav-icon fas fa-shopping-cart"></i>
           <p>
             Purchase Order
@@ -74,7 +65,19 @@
         </a>
       </li>
 
-      <!-- Surat Jalan -->
+      <!-- Penerimaan Barang (untuk Admin, Dept. Head, dan Supplier) -->
+      @if(auth()->check() && in_array(auth()->user()->role->name ?? '', ['Admin', 'Dept. Head']))
+      <li class="nav-item">
+        <a href="{{ route('purchase-orders.penerimaan-barang') }}" class="nav-link">
+          <i class="nav-icon fas fa-box-open"></i>
+          <p>
+            Penerimaan Barang
+          </p>
+        </a>
+      </li>
+      @endif
+
+      <!-- Surat Jalan
       <li class="nav-item has-treeview">
         <a href="#" class="nav-link">
           <i class="nav-icon fas fa-truck"></i>
@@ -97,10 +100,10 @@
             </a>
           </li>
         </ul>
-      </li>
+      </li> -->
 
       <!-- Penerimaan Barang -->
-      <li class="nav-item has-treeview">
+      <!-- <li class="nav-item has-treeview">
         <a href="#" class="nav-link">
           <i class="nav-icon fas fa-box-open"></i>
           <p>
@@ -122,11 +125,11 @@
             </a>
           </li>
         </ul>
-      </li>
+      </li> -->
 
 
       <!-- Purchase Invoice -->
-      <li class="nav-item has-treeview">
+      <!-- <li class="nav-item has-treeview">
         <a href="#" class="nav-link">
           <i class="nav-icon fas fa-box-open"></i>
           <p>
@@ -148,9 +151,10 @@
             </a>
           </li>
         </ul>
-      </li>
+      </li> -->
 
-      <!-- Manajemen User -->
+      @if(auth()->check() && (auth()->user()->role->name ?? '') !== 'Supplier')
+      <!-- Manajemen User (tidak untuk Supplier) -->
       <li class="nav-item has-treeview">
         <a href="#" class="nav-link">
           <i class="nav-icon fas fa-users-cog"></i>
@@ -174,6 +178,7 @@
           </li>
         </ul>
       </li>
+      @endif
 
   </nav>
   <!-- /.sidebar-menu -->

@@ -22,6 +22,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role_id',
+        'supplier_id',
     ];
 
     /**
@@ -50,5 +51,13 @@ class User extends Authenticatable
     public function role()
     {
         return $this->belongsTo(Role::class);
+    }
+
+    /**
+     * Get the supplier that the user belongs to.
+     */
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class);
     }
 }
