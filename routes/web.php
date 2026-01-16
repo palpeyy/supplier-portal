@@ -15,6 +15,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\VendorController;
 use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\InvoiceController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -75,6 +76,16 @@ Route::middleware('auth')->group(function () {
     Route::post('/purchase-orders/{purchaseOrder}/reject-supplier', [PurchaseOrderController::class, 'rejectBySupplier'])->name('purchase-orders.reject-supplier');
     Route::get('/penerimaan-barang', [PurchaseOrderController::class, 'penerimaanBarang'])->name('purchase-orders.penerimaan-barang');
     Route::post('/purchase-orders/{purchaseOrder}/confirm-received', [PurchaseOrderController::class, 'confirmReceived'])->name('purchase-orders.confirm-received');
+
+    // Invoice Routes
+    Route::resource('invoices', InvoiceController::class)->except(['create', 'edit', 'destroy']);
+    Route::post('/invoices/{purchaseOrder}/store', [InvoiceController::class, 'store'])->name('invoices.store');
+    Route::post('/invoices/{invoice}/approve', [InvoiceController::class, 'approve'])->name('invoices.approve');
+    Route::post('/invoices/{invoice}/reject', [InvoiceController::class, 'reject'])->name('invoices.reject');
+    Route::post('/invoices/{invoice}/revise', [InvoiceController::class, 'revise'])->name('invoices.revise');
+    Route::get('/invoices/{invoice}/download-invoice', [InvoiceController::class, 'downloadInvoice'])->name('invoices.download-invoice');
+    Route::get('/invoices/{invoice}/download-surat-jalan', [InvoiceController::class, 'downloadSuratJalan'])->name('invoices.download-surat-jalan');
+    Route::get('/invoices/{invoice}/download-faktur-pajak', [InvoiceController::class, 'downloadFakturPajak'])->name('invoices.download-faktur-pajak');
 
     Route::get('/surat-jalan', [SuratJalanController::class, 'index']);
     Route::get('/surat-jalan-approval', [SuratJalanController::class, 'approval']);

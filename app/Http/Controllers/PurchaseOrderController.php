@@ -4,12 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
+use App\Models\Supplier;
+use App\Models\Invoice;
 use App\Services\PdfExtractorService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class PurchaseOrderController extends Controller
 {
@@ -34,7 +37,13 @@ class PurchaseOrderController extends Controller
         
         $purchaseOrders = $query->paginate(10);
         
-        return view('purchase-orders.index', compact('purchaseOrders', 'userRole'), ['tittle' => 'Purchase Order | Portal Supplier']);
+        // Get suppliers for dropdown (only for Admin and Dept. Head)
+        $suppliers = null;
+        if (in_array($userRole, ['Admin', 'Dept. Head'])) {
+            $suppliers = Supplier::all();
+        }
+        
+        return view('purchase-orders.index', compact('purchaseOrders', 'userRole', 'suppliers'), ['tittle' => 'Purchase Order | Portal Supplier']);
     }
 
     /**
@@ -50,13 +59,42 @@ class PurchaseOrderController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'pdf_files.*' => 'required|mimes:pdf|max:10240', // Max 10MB per file
-        ], [
-            'pdf_files.*.required' => 'File PDF harus diisi',
-            'pdf_files.*.mimes' => 'File harus berformat PDF',
-            'pdf_files.*.max' => 'Ukuran file maksimal 10MB',
-        ]);
+        $user = auth()->user();
+        $userRole = $user->role->name ?? null;
+        
+        try {
+            $rules = [
+                'pdf_files' => 'required|array|min:1',
+                'pdf_files.*' => 'required|file|mimes:pdf|max:10240', // Max 10MB per file
+            ];
+            
+            $messages = [
+                'pdf_files.required' => 'File PDF harus diisi',
+                'pdf_files.array' => 'Format file tidak valid',
+                'pdf_files.min' => 'Minimal 1 file PDF harus diupload',
+                'pdf_files.*.required' => 'File PDF harus diisi',
+                'pdf_files.*.file' => 'File harus berupa file yang valid',
+                'pdf_files.*.mimes' => 'File harus berformat PDF',
+                'pdf_files.*.max' => 'Ukuran file maksimal 10MB',
+            ];
+            
+            // Validate supplier_id - wajib untuk Admin dan Dept. Head
+            if (in_array($userRole, ['Admin', 'Dept. Head'])) {
+                $rules['supplier_id'] = 'required|exists:suppliers,id';
+                $messages['supplier_id.required'] = 'Supplier harus dipilih';
+                $messages['supplier_id.exists'] = 'Supplier tidak valid';
+            }
+            
+            $request->validate($rules, $messages);
+        } catch (ValidationException $e) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'error' => 'Validasi gagal',
+                    'errors' => $e->errors()
+                ], 422);
+            }
+            return redirect()->back()->withErrors($e->errors())->withInput();
+        }
 
         if (!$request->hasFile('pdf_files')) {
             if ($request->ajax()) {
@@ -93,6 +131,9 @@ class PurchaseOrderController extends Controller
                         $counter++;
                     }
                     
+                    // Determine supplier_id: use from request first, then from extracted data
+                    $supplierId = $request->supplier_id ?? $extractedData['supplier_id'] ?? null;
+                    
                     // Set default values if not found
                     $poData = [
                         'po_number' => $extractedData['po_number'],
@@ -104,7 +145,7 @@ class PurchaseOrderController extends Controller
                         'pdf_path' => $path,
                         'status' => 'pending',
                         'keterangan' => 'Menunggu Approval Dept. Head',
-                        'supplier_id' => $extractedData['supplier_id'], // Auto-detected supplier
+                        'supplier_id' => $supplierId, // Use selected supplier or auto-detected supplier
                     ];
                     
                     // Create Purchase Order
@@ -163,22 +204,20 @@ class PurchaseOrderController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error in store Purchase Order: ' . $e->getMessage());
+            Log::error('Error trace: ' . $e->getTraceAsString());
+            
+            $errorMessage = 'Gagal memproses file PDF: ' . $e->getMessage();
             
             if ($request->ajax()) {
                 return response()->json([
-                    'error' => 'Gagal memproses file PDF: ' . $e->getMessage()
-                ], 422);
+                    'error' => $errorMessage,
+                    'message' => $e->getMessage()
+                ], 500);
             }
             
             return redirect()->back()
-                ->with('error', 'Gagal memproses file PDF: ' . $e->getMessage());
+                ->with('error', $errorMessage);
         }
-
-        if ($request->ajax()) {
-            return response()->json(['success' => count($uploadedFiles) . ' file PDF berhasil diupload']);
-        }
-
-        return redirect()->route('purchase-orders.index')->with('success', count($uploadedFiles) . ' file PDF berhasil diupload');
     }
 
     /**
@@ -375,10 +414,18 @@ class PurchaseOrderController extends Controller
 
         // Check if user has supplier_id
         if (!$user->supplier_id) {
+            Log::warning('User Supplier tidak memiliki supplier_id', [
+                'user_id' => $user->id,
+                'user_email' => $user->email,
+                'user_role' => $userRole
+            ]);
+            
             if ($request->ajax()) {
-                return response()->json(['error' => 'User tidak terkait dengan supplier'], 403);
+                return response()->json([
+                    'error' => 'User tidak terkait dengan supplier. Silakan hubungi admin untuk menghubungkan user dengan supplier.'
+                ], 403);
             }
-            return redirect()->back()->with('error', 'User tidak terkait dengan supplier');
+            return redirect()->back()->with('error', 'User tidak terkait dengan supplier. Silakan hubungi admin untuk menghubungkan user dengan supplier.');
         }
 
         // Check if PO belongs to this supplier

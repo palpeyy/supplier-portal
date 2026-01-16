@@ -46,4 +46,12 @@ class PurchaseOrder extends Model
     {
         return $this->belongsTo(Supplier::class);
     }
+
+    /**
+     * Get the invoice for the purchase order.
+     */
+    public function invoice()
+    {
+        return $this->hasOne(Invoice::class);
+    }
 }

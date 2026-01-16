@@ -159,6 +159,19 @@ Purchase Order
                         <ul id="errorList" class="mt-2 mb-0"></ul>
                     </div>
 
+                    @if(in_array($userRole ?? '', ['Admin', 'Dept. Head']) && isset($suppliers))
+                    <div class="form-group">
+                        <label for="supplier_id">Supplier <span class="text-danger">*</span></label>
+                        <select class="form-control" id="supplier_id" name="supplier_id" required>
+                            <option value="">-- Pilih Supplier --</option>
+                            @foreach($suppliers as $supplier)
+                            <option value="{{ $supplier->id }}">{{ $supplier->nama }}</option>
+                            @endforeach
+                        </select>
+                        <small class="form-text text-muted">Pilih supplier yang akan menerima purchase order ini</small>
+                    </div>
+                    @endif
+
                     <div class="form-group">
                         <label for="pdf_files">Upload File PDF Purchase Order</label>
                         <small class="form-text text-muted mb-2">Anda dapat mengupload beberapa file PDF sekaligus (Maksimal 10MB per file)</small>
@@ -479,6 +492,33 @@ Purchase Order
                             </div>
                         </div>
                     </div>
+
+                    <!-- ETD/ETA Form for Supplier -->
+                    <div id="supplierETDForm" style="display: none;">
+                        <div class="card mt-3">
+                            <div class="card-header bg-info">
+                                <h5 class="mb-0 text-white"><i class="fas fa-calendar-alt"></i> Informasi Pengiriman</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="etd">ETD (Estimated Time Delivery) <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="etd" name="etd" placeholder="DD/MM/YYYY" required>
+                                            <small class="form-text text-muted">Format: DD/MM/YYYY</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="eta">ETA (Estimated Time Arrive) <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="eta" name="eta" placeholder="DD/MM/YYYY" required>
+                                            <small class="form-text text-muted">Format: DD/MM/YYYY</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -534,6 +574,32 @@ Purchase Order
 @push('scripts')
 <script>
     $(document).ready(function() {
+        // Input mask for ETD/ETA format DD/MM/YYYY
+        function setupDateInputMask(input) {
+            $(input).on('input', function(e) {
+                let value = $(this).val().replace(/\D/g, '');
+                if (value.length >= 2) {
+                    value = value.substring(0, 2) + '/' + value.substring(2);
+                }
+                if (value.length >= 5) {
+                    value = value.substring(0, 5) + '/' + value.substring(5, 9);
+                }
+                $(this).val(value);
+            });
+            
+            $(input).on('keypress', function(e) {
+                let char = String.fromCharCode(e.which);
+                if (!/[0-9]/.test(char)) {
+                    e.preventDefault();
+                }
+            });
+        }
+        
+        // Initialize date input mask for ETD/ETA when modal opens
+        $('#modalApprovePurchaseOrder').on('shown.bs.modal', function() {
+            setupDateInputMask('#etd');
+            setupDateInputMask('#eta');
+        });
         // Reset form saat modal dibuka untuk tambah
         $('#modalPurchaseOrder').on('show.bs.modal', function(e) {
             let btnTambah = $(e.relatedTarget);
@@ -593,10 +659,11 @@ Purchase Order
                     location.reload();
                 },
                 error: function(xhr) {
+                    let errorList = $('#errorList');
+                    errorList.html('');
+                    
                     if (xhr.status === 422) {
                         let errors = xhr.responseJSON.errors || xhr.responseJSON.error;
-                        let errorList = $('#errorList');
-                        errorList.html('');
 
                         if (Array.isArray(errors)) {
                             errors.forEach(function(message) {
@@ -618,8 +685,26 @@ Purchase Order
 
                         $('#errorMessages').removeClass('d-none');
                     } else {
-                        let errorMsg = xhr.responseJSON?.error || 'Gagal upload file. Silakan coba lagi.';
-                        alert(errorMsg);
+                        // Handle other errors (500, 404, etc.)
+                        let errorMsg = 'Gagal upload file. ';
+                        
+                        if (xhr.responseJSON) {
+                            if (xhr.responseJSON.error) {
+                                errorMsg += xhr.responseJSON.error;
+                            } else if (xhr.responseJSON.message) {
+                                errorMsg += xhr.responseJSON.message;
+                            } else {
+                                errorMsg += 'Error: ' + xhr.status + ' ' + xhr.statusText;
+                            }
+                        } else {
+                            errorMsg += 'Error: ' + xhr.status + ' ' + xhr.statusText;
+                            if (xhr.responseText) {
+                                errorMsg += '. Detail: ' + xhr.responseText.substring(0, 200);
+                            }
+                        }
+                        
+                        errorList.append('<li>' + errorMsg + '</li>');
+                        $('#errorMessages').removeClass('d-none');
                     }
                 }
             });
@@ -1027,7 +1112,37 @@ Purchase Order
                             return;
                         }
                         
-                        if (new Date(eta) < new Date(etd)) {
+                        // Validate date format DD/MM/YYYY
+                        let dateRegex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+                        if (!dateRegex.test(etd) || !dateRegex.test(eta)) {
+                            alert('Format tanggal harus DD/MM/YYYY');
+                            return;
+                        }
+                        
+                        // Convert DD/MM/YYYY to YYYY-MM-DD for database
+                        function convertDateToDB(dateStr) {
+                            let parts = dateStr.split('/');
+                            if (parts.length === 3) {
+                                return parts[2] + '-' + parts[1] + '-' + parts[0];
+                            }
+                            return dateStr;
+                        }
+                        
+                        // Validate date values
+                        let etdParts = etd.split('/');
+                        let etaParts = eta.split('/');
+                        let etdDateObj = new Date(parseInt(etdParts[2]), parseInt(etdParts[1]) - 1, parseInt(etdParts[0]));
+                        let etaDateObj = new Date(parseInt(etaParts[2]), parseInt(etaParts[1]) - 1, parseInt(etaParts[0]));
+                        
+                        let etdDB = convertDateToDB(etd);
+                        let etaDB = convertDateToDB(eta);
+                        
+                        if (isNaN(etdDateObj.getTime()) || isNaN(etaDateObj.getTime())) {
+                            alert('Tanggal tidak valid');
+                            return;
+                        }
+                        
+                        if (etaDateObj < etdDateObj) {
                             alert('ETA harus sama atau setelah ETD');
                             return;
                         }
@@ -1038,8 +1153,8 @@ Purchase Order
                                 type: 'POST',
                                 data: {
                                     '_token': '{{ csrf_token() }}',
-                                    'etd': etd,
-                                    'eta': eta
+                                    'etd': etdDB,
+                                    'eta': etaDB
                                 },
                                 success: function(response) {
                                     $('#modalApprovePurchaseOrder').modal('hide');

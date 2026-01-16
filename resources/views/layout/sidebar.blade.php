@@ -77,6 +77,18 @@
       </li>
       @endif
 
+      <!-- Penagihan Invoice (untuk Admin dan Supplier) -->
+      @if(auth()->check() && in_array(auth()->user()->role->name ?? '', ['Admin', 'Supplier']))
+      <li class="nav-item">
+        <a href="{{ route('invoices.index') }}" class="nav-link">
+          <i class="nav-icon fas fa-file-invoice"></i>
+          <p>
+            Penagihan Invoice
+          </p>
+        </a>
+      </li>
+      @endif
+
       <!-- Surat Jalan
       <li class="nav-item has-treeview">
         <a href="#" class="nav-link">

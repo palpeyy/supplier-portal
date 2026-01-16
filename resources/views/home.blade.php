@@ -165,11 +165,8 @@
             <h1>Selamat Datang</h1>
             <h2>Portal Supplier PT Krama Yudha Tiga Berlian</h2>
             <p class="mb-4">
-              Sistem terintegrasi untuk pengelolaan
-              <strong>Purchase Order (PO)</strong>,
-              <strong>Surat Jalan</strong>,
-              dan <strong>Proforma Invoice (PI)</strong>
-              secara transparan, akurat, dan real-time.
+            Supplier Portal merupakan sistem berbasis aplikasi yang digunakan
+            sebagai media interaksi dan pertukaran informasi antara perusahaan dan supplier.
             </p>
             <a href="login" class="btn btn-login">
               <i class="bi bi-box-arrow-in-right"></i> Masuk Portal
