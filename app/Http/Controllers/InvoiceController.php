@@ -19,22 +19,21 @@ class InvoiceController extends Controller
         $user = auth()->user();
         $userRole = $user->role->name ?? null;
         
-        // Untuk Admin: tampilkan semua invoice dengan status pending atau revised
+        // Untuk Admin: tampilkan semua invoice
         if ($userRole === 'Admin') {
             $invoices = Invoice::with('purchaseOrder.supplier', 'purchaseOrder.items')
-                ->whereIn('status', ['pending', 'revised'])
                 ->latest()
                 ->paginate(10);
         } else {
             // Untuk Supplier: tampilkan invoice mereka
             $query = Invoice::with('purchaseOrder.supplier', 'purchaseOrder.items')->latest();
-            
+
             if ($userRole === 'Supplier' && $user->supplier_id) {
                 $query->whereHas('purchaseOrder', function($q) use ($user) {
                     $q->where('supplier_id', $user->supplier_id);
                 });
             }
-            
+
             $invoices = $query->paginate(10);
         }
         
@@ -452,7 +451,13 @@ class InvoiceController extends Controller
             return redirect()->back()->with('error', 'File invoice tidak ditemukan');
         }
 
-        return Storage::disk('public')->download($invoice->invoice_file);
+        $filePath = Storage::disk('public')->path($invoice->invoice_file);
+        $mimeType = Storage::disk('public')->mimeType($invoice->invoice_file);
+
+        return response()->file($filePath, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="' . basename($invoice->invoice_file) . '"'
+        ]);
     }
 
     /**
@@ -464,7 +469,13 @@ class InvoiceController extends Controller
             return redirect()->back()->with('error', 'File surat jalan tidak ditemukan');
         }
 
-        return Storage::disk('public')->download($invoice->surat_jalan_file);
+        $filePath = Storage::disk('public')->path($invoice->surat_jalan_file);
+        $mimeType = Storage::disk('public')->mimeType($invoice->surat_jalan_file);
+
+        return response()->file($filePath, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="' . basename($invoice->surat_jalan_file) . '"'
+        ]);
     }
 
     /**
@@ -476,6 +487,12 @@ class InvoiceController extends Controller
             return redirect()->back()->with('error', 'File faktur pajak tidak ditemukan');
         }
 
-        return Storage::disk('public')->download($invoice->faktur_pajak_file);
+        $filePath = Storage::disk('public')->path($invoice->faktur_pajak_file);
+        $mimeType = Storage::disk('public')->mimeType($invoice->faktur_pajak_file);
+
+        return response()->file($filePath, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="' . basename($invoice->faktur_pajak_file) . '"'
+        ]);
     }
 }

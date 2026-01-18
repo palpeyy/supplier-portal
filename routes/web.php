@@ -70,6 +70,7 @@ Route::middleware('auth')->group(function () {
     // Purchase Order CRUD Routes
     Route::resource('purchase-orders', PurchaseOrderController::class)->except(['create']);
     Route::get('/purchase-orders/{purchaseOrder}/download', [PurchaseOrderController::class, 'download'])->name('purchase-orders.download');
+    Route::get('/purchase-orders/{purchaseOrder}/print-surat-jalan', [PurchaseOrderController::class, 'printSuratJalan'])->name('purchase-orders.print-surat-jalan');
     Route::post('/purchase-orders/{purchaseOrder}/approve', [PurchaseOrderController::class, 'approve'])->name('purchase-orders.approve');
     Route::post('/purchase-orders/{purchaseOrder}/reject', [PurchaseOrderController::class, 'reject'])->name('purchase-orders.reject');
     Route::post('/purchase-orders/{purchaseOrder}/approve-supplier', [PurchaseOrderController::class, 'approveBySupplier'])->name('purchase-orders.approve-supplier');

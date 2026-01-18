@@ -52,11 +52,9 @@ Penerimaan Barang
                         <thead>
                             <tr>
                                 <th>#</th>
+                                <th>Surat Jalan</th>
                                 <th>PO Number</th>
-                                <th>Tanggal</th>
                                 <th>Supplier</th>
-                                <th>Jumlah Item</th>
-                                <th>Delivery Date</th>
                                 <th>ETD</th>
                                 <th>ETA</th>
                                 <th>Status</th>
@@ -68,8 +66,16 @@ Penerimaan Barang
                             @forelse($purchaseOrders as $po)
                             <tr>
                                 <td>{{ ($purchaseOrders->currentPage() - 1) * $purchaseOrders->perPage() + $loop->iteration }}</td>
+                                <td>
+                                    @if($po->no_surat_jalan)
+                                    <a href="{{ route('purchase-orders.print-surat-jalan', $po->id) }}" target="_blank" class="text-primary">
+                                        {{ $po->no_surat_jalan }}
+                                    </a>
+                                    @else
+                                    <span class="text-muted">-</span>
+                                    @endif
+                                </td>
                                 <td>{{ $po->po_number }}</td>
-                                <td>{{ $po->date ? $po->date->format('d/m/Y') : '-' }}</td>
                                 <td>
                                     @if($po->supplier)
                                     <span class="badge badge-info">{{ $po->supplier->nama }}</span>
@@ -77,10 +83,6 @@ Penerimaan Barang
                                     <span class="text-muted">-</span>
                                     @endif
                                 </td>
-                                <td>
-                                    <span class="badge badge-info">{{ $po->items_count }} item</span>
-                                </td>
-                                <td>{{ $po->delivery_date ? $po->delivery_date->format('d/m/Y') : '-' }}</td>
                                 <td>{{ $po->etd ? $po->etd->format('d/m/Y') : '-' }}</td>
                                 <td>{{ $po->eta ? $po->eta->format('d/m/Y') : '-' }}</td>
                                 <td>
@@ -111,7 +113,7 @@ Penerimaan Barang
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="11" class="text-center">Tidak ada data Penerimaan Barang</td>
+                                <td colspan="9" class="text-center">Tidak ada data Penerimaan Barang</td>
                             </tr>
                             @endforelse
                         </tbody>

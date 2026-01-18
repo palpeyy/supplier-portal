@@ -107,23 +107,17 @@ Penagihan Invoice
                                 <i class="fas fa-upload"></i> Revisi
                             </button>
                             @endif
-                            
+
                             @if($userRole === 'Admin' && in_array($invoice->status, ['pending', 'revised']))
-                            <button class="btn btn-success btn-sm approve-invoice" data-id="{{ $invoice->id }}" title="Approve">
-                                <i class="fas fa-check"></i>
-                            </button>
-                            <button class="btn btn-danger btn-sm reject-invoice" data-id="{{ $invoice->id }}" title="Reject">
-                                <i class="fas fa-times"></i>
-                            </button>
-                            <button class="btn btn-warning btn-sm revise-invoice" data-id="{{ $invoice->id }}" title="Revise">
-                                <i class="fas fa-edit"></i>
+                            <button class="btn btn-success btn-sm approve-invoice" data-id="{{ $invoice->id }}" title="Aksi">
+                                <i class="fas fa-tasks"></i> Aksi
                             </button>
                             @endif
-                            
-                            @if($invoice->invoice_file)
-                            <a class="btn btn-info btn-sm" href="{{ route('invoices.download-invoice', $invoice->id) }}" title="Download Invoice" target="_blank">
-                                <i class="fas fa-download"></i>
-                            </a>
+
+                            @if($invoice->invoice_file && $invoice->surat_jalan_file && $invoice->faktur_pajak_file)
+                            <button class="btn btn-primary btn-sm detail-invoice" data-id="{{ $invoice->id }}" title="Lihat Detail">
+                                <i class="fas fa-eye"></i> Detail
+                            </button>
                             @endif
                         </td>
                     </tr>
@@ -412,6 +406,162 @@ Penagihan Invoice
     </div>
 </div>
 
+<!-- MODAL DETAIL INVOICE -->
+<div class="modal fade" id="modalDetailInvoice" tabindex="-1" role="dialog" aria-labelledby="modalDetailInvoiceLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+                <h5 class="modal-title text-white" id="modalDetailInvoiceLabel">
+                    <i class="fas fa-eye"></i> Detail Invoice
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div id="invoiceDetailLoading" class="text-center py-5">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    <p class="mt-2">Memuat data...</p>
+                </div>
+
+                <div id="invoiceDetailContent" style="display: none;">
+                    <!-- Purchase Order Information -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0"><i class="fas fa-info-circle"></i> Informasi Purchase Order</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <table class="table table-borderless table-sm">
+                                        <tr>
+                                            <th width="40%">PO Number</th>
+                                            <td>:</td>
+                                            <td><strong id="invoice_detail_po_number">-</strong></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Tanggal PO</th>
+                                            <td>:</td>
+                                            <td id="invoice_detail_date">-</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Delivery Date</th>
+                                            <td>:</td>
+                                            <td id="invoice_detail_delivery_date">-</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Currency</th>
+                                            <td>:</td>
+                                            <td><span class="badge badge-info" id="invoice_detail_currency">-</span></td>
+                                        </tr>
+                                        <tr>
+                                            <th>Jumlah Item</th>
+                                            <td>:</td>
+                                            <td><span class="badge badge-primary" id="invoice_detail_item_count">-</span></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="col-md-6">
+                                    <table class="table table-borderless table-sm">
+                                        <tr>
+                                            <th width="40%">Supplier</th>
+                                            <td>:</td>
+                                            <td id="invoice_detail_supplier">-</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Status Invoice</th>
+                                            <td>:</td>
+                                            <td id="invoice_detail_status">-</td>
+                                        </tr>
+                                        <tr>
+                                            <th>Tanggal Upload</th>
+                                            <td>:</td>
+                                            <td id="invoice_detail_upload_date">-</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Purchase Order Items -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0"><i class="fas fa-list"></i> Daftar Items</h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-hover mb-0">
+                                    <thead class="thead-light">
+                                        <tr>
+                                            <th width="5%">#</th>
+                                            <th width="10%">Item Number</th>
+                                            <th width="12%">Material Code</th>
+                                            <th width="12%">Vendor Material</th>
+                                            <th>Description</th>
+                                            <th width="8%" class="text-center">Qty</th>
+                                            <th width="12%" class="text-right">Price Per Unit</th>
+                                            <th width="12%" class="text-right">Net Value</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="invoice_detail_items_body">
+                                        <tr>
+                                            <td colspan="8" class="text-center">Tidak ada data items</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dokumen Invoice -->
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0"><i class="fas fa-file-invoice"></i> Dokumen</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="text-center p-3 border rounded">
+                                        <i class="fas fa-file-invoice fa-3x text-primary mb-3"></i>
+                                        <h6>Invoice</h6>
+                                        <button class="btn btn-primary btn-sm mt-2" id="btn_open_invoice">
+                                            <i class="fas fa-external-link-alt"></i> Buka Dokumen
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="text-center p-3 border rounded">
+                                        <i class="fas fa-truck fa-3x text-success mb-3"></i>
+                                        <h6>Surat Jalan/ASN</h6>
+                                        <button class="btn btn-success btn-sm mt-2" id="btn_open_surat_jalan">
+                                            <i class="fas fa-external-link-alt"></i> Buka Dokumen
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="text-center p-3 border rounded">
+                                        <i class="fas fa-receipt fa-3x text-warning mb-3"></i>
+                                        <h6>Faktur Pajak</h6>
+                                        <button class="btn btn-warning btn-sm mt-2" id="btn_open_faktur_pajak">
+                                            <i class="fas fa-external-link-alt"></i> Buka Dokumen
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
@@ -661,6 +811,122 @@ $(document).ready(function() {
                 }
                 
                 $('#reviseErrorMessages').removeClass('d-none');
+            }
+        });
+    });
+
+    // Detail Invoice
+    $(document).on('click', '.detail-invoice', function(e) {
+        e.preventDefault();
+        let invoiceId = $(this).data('id');
+
+        // Reset modal
+        $('#invoiceDetailContent').hide();
+        $('#invoiceDetailLoading').show();
+        $('#modalDetailInvoice').modal('show');
+
+        $.ajax({
+            url: `/invoices/${invoiceId}`,
+            type: 'GET',
+            success: function(response) {
+                let invoice = response.invoice;
+                let po = invoice.purchase_order;
+
+                // Format date helper
+                function formatDate(dateString) {
+                    if (!dateString) return '-';
+                    let date = new Date(dateString);
+                    let day = String(date.getDate()).padStart(2, '0');
+                    let month = String(date.getMonth() + 1).padStart(2, '0');
+                    let year = date.getFullYear();
+                    return day + '/' + month + '/' + year;
+                }
+
+                function formatDateTime(dateString) {
+                    if (!dateString) return '-';
+                    let date = new Date(dateString);
+                    let day = String(date.getDate()).padStart(2, '0');
+                    let month = String(date.getMonth() + 1).padStart(2, '0');
+                    let year = date.getFullYear();
+                    let hours = String(date.getHours()).padStart(2, '0');
+                    let minutes = String(date.getMinutes()).padStart(2, '0');
+                    return day + '/' + month + '/' + year + ' ' + hours + ':' + minutes;
+                }
+
+                // Fill Purchase Order Information
+                $('#invoice_detail_po_number').text(po.po_number || '-');
+                $('#invoice_detail_date').text(formatDate(po.date));
+                $('#invoice_detail_delivery_date').text(formatDate(po.delivery_date));
+                $('#invoice_detail_currency').text(po.currency || '-');
+                $('#invoice_detail_item_count').text(po.items ? po.items.length : 0);
+                $('#invoice_detail_supplier').text(po.supplier ? po.supplier.nama : '-');
+
+                // Fill Invoice Information
+                let statusBadge = '';
+                if (invoice.status == 'pending') {
+                    statusBadge = '<span class="badge badge-warning">Pending</span>';
+                } else if (invoice.status == 'revised') {
+                    statusBadge = '<span class="badge badge-danger">Revised</span>';
+                } else if (invoice.status == 'approved') {
+                    statusBadge = '<span class="badge badge-success">Approved</span>';
+                } else if (invoice.status == 'rejected') {
+                    statusBadge = '<span class="badge badge-danger">Rejected</span>';
+                }
+                $('#invoice_detail_status').html(statusBadge);
+                $('#invoice_detail_upload_date').text(formatDateTime(invoice.created_at));
+
+                // Fill Items Table
+                let itemsBody = $('#invoice_detail_items_body');
+                itemsBody.html('');
+
+                if (po.items && po.items.length > 0) {
+                    po.items.forEach(function(item, index) {
+                        let pricePerUnit = item.price_per_unit ? parseFloat(item.price_per_unit).toLocaleString('id-ID', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        }) : '0.00';
+
+                        let netValue = item.net_value ? parseFloat(item.net_value).toLocaleString('id-ID', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        }) : '0.00';
+
+                        itemsBody.append(
+                            '<tr>' +
+                            '<td>' + (index + 1) + '</td>' +
+                            '<td>' + (item.item_number || '-') + '</td>' +
+                            '<td>' + (item.material_code || '-') + '</td>' +
+                            '<td>' + (item.vendor_material || '-') + '</td>' +
+                            '<td>' + (item.description || '-') + '</td>' +
+                            '<td class="text-center">' + (item.quantity || 0) + '</td>' +
+                            '<td class="text-right">' + pricePerUnit + '</td>' +
+                            '<td class="text-right">' + netValue + '</td>' +
+                            '</tr>'
+                        );
+                    });
+                } else {
+                    itemsBody.append('<tr><td colspan="8" class="text-center">Tidak ada data items</td></tr>');
+                }
+
+                // Set button click handlers for opening documents in new tab
+                $('#btn_open_invoice').off('click').on('click', function() {
+                    window.open(`/invoices/${invoiceId}/download-invoice`, '_blank');
+                });
+
+                $('#btn_open_surat_jalan').off('click').on('click', function() {
+                    window.open(`/invoices/${invoiceId}/download-surat-jalan`, '_blank');
+                });
+
+                $('#btn_open_faktur_pajak').off('click').on('click', function() {
+                    window.open(`/invoices/${invoiceId}/download-faktur-pajak`, '_blank');
+                });
+
+                // Show content
+                $('#invoiceDetailLoading').hide();
+                $('#invoiceDetailContent').show();
+            },
+            error: function() {
+                $('#invoiceDetailLoading').html('<div class="alert alert-danger">Gagal memuat data Invoice</div>');
             }
         });
     });

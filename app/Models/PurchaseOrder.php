@@ -22,6 +22,7 @@ class PurchaseOrder extends Model
         'supplier_id',
         'etd',
         'eta',
+        'no_surat_jalan',
     ];
 
     protected $casts = [

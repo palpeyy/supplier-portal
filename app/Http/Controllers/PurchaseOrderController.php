@@ -444,16 +444,19 @@ class PurchaseOrderController extends Controller
             return redirect()->back()->with('error', 'PO ini belum di-approve oleh Dept. Head');
         }
 
-        // Validate ETD and ETA
+        // Validate ETD, ETA, and No Surat Jalan
         $request->validate([
             'etd' => 'required|date',
             'eta' => 'required|date|after_or_equal:etd',
+            'no_surat_jalan' => 'required|string|max:255',
         ], [
             'etd.required' => 'ETD (Estimated Time Delivery) harus diisi',
             'etd.date' => 'ETD harus berupa tanggal yang valid',
             'eta.required' => 'ETA (Estimated Time Arrive) harus diisi',
             'eta.date' => 'ETA harus berupa tanggal yang valid',
             'eta.after_or_equal' => 'ETA harus sama atau setelah ETD',
+            'no_surat_jalan.required' => 'No Surat Jalan harus diisi',
+            'no_surat_jalan.max' => 'No Surat Jalan maksimal 255 karakter',
         ]);
 
         $purchaseOrder->update([
@@ -461,6 +464,7 @@ class PurchaseOrderController extends Controller
             'keterangan' => 'pesanan sedang diproses',
             'etd' => $request->etd,
             'eta' => $request->eta,
+            'no_surat_jalan' => $request->no_surat_jalan,
         ]);
 
         if ($request->ajax()) {
@@ -553,6 +557,22 @@ class PurchaseOrderController extends Controller
         $purchaseOrders = $query->latest()->paginate(10);
         
         return view('purchase-orders.penerimaan-barang', compact('purchaseOrders', 'userRole'), ['tittle' => 'Penerimaan Barang | Portal Supplier']);
+    }
+
+    /**
+     * Print Surat Jalan
+     */
+    public function printSuratJalan(PurchaseOrder $purchaseOrder)
+    {
+        // Check if no_surat_jalan exists
+        if (!$purchaseOrder->no_surat_jalan) {
+            return redirect()->back()->with('error', 'No Surat Jalan tidak tersedia');
+        }
+
+        // Load items and supplier
+        $purchaseOrder->load('items', 'supplier');
+
+        return view('purchase-orders.print-surat-jalan', compact('purchaseOrder'));
     }
 
     /**

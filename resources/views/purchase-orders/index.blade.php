@@ -114,6 +114,11 @@ Purchase Order
                                 <i class="fas fa-download"></i>
                             </a>
                             @endif
+                            @if($po->status == 'on_progress' && $po->no_surat_jalan)
+                            <a class="btn btn-secondary btn-sm" href="{{ route('purchase-orders.print-surat-jalan', $po->id) }}" title="Print Surat Jalan" target="_blank">
+                                <i class="fas fa-print"></i>
+                            </a>
+                            @endif
                             <a class="btn btn-warning btn-sm edit-po" href="#" data-id="{{ $po->id }}" title="Edit">
                                 <i class="fas fa-edit"></i>
                             </a>
@@ -403,6 +408,40 @@ Purchase Order
                 </div>
 
                 <div id="approveContent" style="display: none;">
+                    <!-- ETD/ETA/No Surat Jalan Form for Supplier -->
+                    <div id="supplierETDFormTop" style="display: none;">
+                        <div class="card mb-3">
+                            <div class="card-header bg-info">
+                                <h5 class="mb-0 text-white"><i class="fas fa-calendar-alt"></i> Informasi Pengiriman</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="etd">ETD (Estimated Time Delivery) <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="etd" name="etd" placeholder="DD/MM/YYYY" required>
+                                            <small class="form-text text-muted">Format: DD/MM/YYYY</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="eta">ETA (Estimated Time Arrive) <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="eta" name="eta" placeholder="DD/MM/YYYY" required>
+                                            <small class="form-text text-muted">Format: DD/MM/YYYY</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="no_surat_jalan">No Surat Jalan <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="no_surat_jalan" name="no_surat_jalan" placeholder="Masukkan No Surat Jalan" required>
+                                            <small class="form-text text-muted">Contoh: A3104/24</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Purchase Order Information -->
                     <div class="card mb-3">
                         <div class="card-header bg-light">
@@ -493,32 +532,6 @@ Purchase Order
                         </div>
                     </div>
 
-                    <!-- ETD/ETA Form for Supplier -->
-                    <div id="supplierETDForm" style="display: none;">
-                        <div class="card mt-3">
-                            <div class="card-header bg-info">
-                                <h5 class="mb-0 text-white"><i class="fas fa-calendar-alt"></i> Informasi Pengiriman</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label for="etd">ETD (Estimated Time Delivery) <span class="text-danger">*</span></label>
-                                            <input type="text" class="form-control" id="etd" name="etd" placeholder="DD/MM/YYYY" required>
-                                            <small class="form-text text-muted">Format: DD/MM/YYYY</small>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label for="eta">ETA (Estimated Time Arrive) <span class="text-danger">*</span></label>
-                                            <input type="text" class="form-control" id="eta" name="eta" placeholder="DD/MM/YYYY" required>
-                                            <small class="form-text text-muted">Format: DD/MM/YYYY</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
 
@@ -949,9 +962,9 @@ Purchase Order
                     // Show content
                     $('#approveLoading').hide();
                     $('#approveContent').show();
-                    
+
                     // Hide ETD/ETA form for Dept. Head
-                    $('#supplierETDForm').hide();
+                    $('#supplierETDFormTop').hide();
                 },
                 error: function() {
                     $('#approveLoading').html('<div class="alert alert-danger">Gagal memuat data Purchase Order</div>');
@@ -1032,6 +1045,7 @@ Purchase Order
             $('#approveLoading').show();
             $('#etd').val('');
             $('#eta').val('');
+            $('#no_surat_jalan').val('');
             $('#modalApprovePurchaseOrder').modal('show');
 
             $.ajax({
@@ -1095,20 +1109,21 @@ Purchase Order
                     // Show content
                     $('#approveLoading').hide();
                     $('#approveContent').show();
-                    
-                    // Show ETD/ETA form for Supplier
-                    $('#supplierETDForm').show();
+
+                    // Show ETD/ETA/No Surat Jalan form for Supplier
+                    $('#supplierETDFormTop').show();
                     
                     // Update button handlers for Supplier
                     $('#btnApprovePO').off('click').on('click', function() {
                         if (!currentPoId) return;
                         
-                        // Validate ETD and ETA
+                        // Validate ETD, ETA, and No Surat Jalan
                         let etd = $('#etd').val();
                         let eta = $('#eta').val();
-                        
-                        if (!etd || !eta) {
-                            alert('Mohon isi ETD dan ETA');
+                        let noSuratJalan = $('#no_surat_jalan').val();
+
+                        if (!etd || !eta || !noSuratJalan) {
+                            alert('Mohon isi ETD, ETA, dan No Surat Jalan');
                             return;
                         }
                         
@@ -1154,7 +1169,8 @@ Purchase Order
                                 data: {
                                     '_token': '{{ csrf_token() }}',
                                     'etd': etdDB,
-                                    'eta': etaDB
+                                    'eta': etaDB,
+                                    'no_surat_jalan': noSuratJalan
                                 },
                                 success: function(response) {
                                     $('#modalApprovePurchaseOrder').modal('hide');

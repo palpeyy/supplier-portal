@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php artisan migrate:*)",
+      "Bash(php artisan tinker:*)",
+      "Bash(php artisan db:table:*)",
+      "Bash(php check_po.php:*)",
+      "Bash(del check_po.php)",
+      "Bash(composer require:*)",
+      "Bash(timeout 30 tail:*)",
+      "Bash(composer show:*)"
+    ]
+  }
+}
