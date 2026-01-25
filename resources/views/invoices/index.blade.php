@@ -408,24 +408,24 @@ Penagihan Invoice
                                 <div class="col-md-4">
                                     <div class="text-center">
                                         <h6>Invoice</h6>
-                                        <a id="approve_download_invoice" href="#" class="btn btn-info btn-sm" target="_blank">
-                                            <i class="fas fa-download"></i> Download
+                                        <a id="approve_download_invoice" href="#" class="inline-flex items-center px-3 py-2 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-semibold rounded" target="_blank">
+                                            <i class="fas fa-download mr-2"></i> Download
                                         </a>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="text-center">
                                         <h6>Surat Jalan/ASN</h6>
-                                        <a id="approve_download_surat_jalan" href="#" class="btn btn-info btn-sm" target="_blank">
-                                            <i class="fas fa-download"></i> Download
+                                        <a id="approve_download_surat_jalan" href="#" class="inline-flex items-center px-3 py-2 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-semibold rounded" target="_blank">
+                                            <i class="fas fa-download mr-2"></i> Download
                                         </a>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="text-center">
                                         <h6>Faktur Pajak</h6>
-                                        <a id="approve_download_faktur_pajak" href="#" class="btn btn-info btn-sm" target="_blank">
-                                            <i class="fas fa-download"></i> Download
+                                        <a id="approve_download_faktur_pajak" href="#" class="inline-flex items-center px-3 py-2 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-semibold rounded" target="_blank">
+                                            <i class="fas fa-download mr-2"></i> Download
                                         </a>
                                     </div>
                                 </div>
@@ -436,15 +436,15 @@ Penagihan Invoice
             </div>
 
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                <button type="button" class="btn btn-success" id="btnApproveInvoice">
-                    <i class="fas fa-check"></i> Approve
+                <button type="button" class="inline-flex items-center px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded" data-dismiss="modal">Batal</button>
+                <button type="button" class="inline-flex items-center px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded" id="btnApproveInvoice">
+                    <i class="fas fa-check mr-2"></i> Approve
                 </button>
-                <button type="button" class="btn btn-danger" id="btnRejectInvoice">
-                    <i class="fas fa-times"></i> Reject
+                <button type="button" class="inline-flex items-center px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded" id="btnRejectInvoice">
+                    <i class="fas fa-times mr-2"></i> Reject
                 </button>
-                <button type="button" class="btn btn-warning" id="btnReviseInvoice">
-                    <i class="fas fa-edit"></i> Revise
+                <button type="button" class="inline-flex items-center px-3 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded" id="btnReviseInvoice">
+                    <i class="fas fa-edit mr-2"></i> Revise
                 </button>
             </div>
         </div>
@@ -475,9 +475,9 @@ Penagihan Invoice
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn" id="btnSubmitRejectRevise">
-                        <i class="fas fa-check"></i> Simpan
+                    <button type="button" class="inline-flex items-center px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded" data-dismiss="modal">Batal</button>
+                    <button type="submit" class="inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded" id="btnSubmitRejectRevise">
+                        <i class="fas fa-check mr-2"></i> Simpan
                     </button>
                 </div>
             </form>
@@ -605,8 +605,8 @@ Penagihan Invoice
                                     <div class="text-center p-3 border rounded">
                                         <i class="fas fa-file-invoice fa-3x text-primary mb-3"></i>
                                         <h6>Invoice</h6>
-                                        <button class="btn btn-primary btn-sm mt-2" id="btn_open_invoice">
-                                            <i class="fas fa-external-link-alt"></i> Buka Dokumen
+                                        <button class="inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded mt-2" id="btn_open_invoice">
+                                            <i class="fas fa-external-link-alt mr-2"></i> Buka Dokumen
                                         </button>
                                     </div>
                                 </div>
@@ -614,8 +614,8 @@ Penagihan Invoice
                                     <div class="text-center p-3 border rounded">
                                         <i class="fas fa-truck fa-3x text-success mb-3"></i>
                                         <h6>Surat Jalan/ASN</h6>
-                                        <button class="btn btn-success btn-sm mt-2" id="btn_open_surat_jalan">
-                                            <i class="fas fa-external-link-alt"></i> Buka Dokumen
+                                        <button class="inline-flex items-center px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded mt-2" id="btn_open_surat_jalan">
+                                            <i class="fas fa-external-link-alt mr-2"></i> Buka Dokumen
                                         </button>
                                     </div>
                                 </div>
@@ -623,8 +623,8 @@ Penagihan Invoice
                                     <div class="text-center p-3 border rounded">
                                         <i class="fas fa-receipt fa-3x text-warning mb-3"></i>
                                         <h6>Faktur Pajak</h6>
-                                        <button class="btn btn-warning btn-sm mt-2" id="btn_open_faktur_pajak">
-                                            <i class="fas fa-external-link-alt"></i> Buka Dokumen
+                                        <button class="inline-flex items-center px-3 py-2 bg-yellow-500 hover:bg-yellow-600 text-white text-sm rounded mt-2" id="btn_open_faktur_pajak">
+                                            <i class="fas fa-external-link-alt mr-2"></i> Buka Dokumen
                                         </button>
                                     </div>
                                 </div>
@@ -635,7 +635,7 @@ Penagihan Invoice
             </div>
 
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+                <button type="button" class="inline-flex items-center px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded" data-dismiss="modal">Tutup</button>
             </div>
         </div>
     </div>

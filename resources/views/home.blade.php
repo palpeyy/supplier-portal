@@ -168,8 +168,8 @@
             Supplier Portal merupakan sistem berbasis aplikasi yang digunakan
             sebagai media interaksi dan pertukaran informasi antara perusahaan dan supplier.
             </p>
-            <a href="login" class="btn btn-login">
-              <i class="bi bi-box-arrow-in-right"></i> Masuk Portal
+            <a href="login" class="inline-flex items-center px-4 py-2 bg-red-700 hover:bg-red-800 text-white rounded font-semibold">
+              <i class="bi bi-box-arrow-in-right mr-2"></i> Masuk Portal
             </a>
           </div>
 

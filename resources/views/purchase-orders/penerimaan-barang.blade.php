@@ -180,11 +180,11 @@ Penerimaan Barang
                                 </td>
                                 <td>{{ $po->keterangan ?? '-' }}</td>
                                 <td>
-                                    <a class="btn btn-primary btn-sm detail-po" href="#" data-id="{{ $po->id }}" title="Detail">
+                                    <a class="inline-flex items-center px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded detail-po" href="#" data-id="{{ $po->id }}" title="Detail">
                                         <i class="fas fa-eye"></i>
                                     </a>
                                     @if($po->pdf_path)
-                                    <a class="btn btn-info btn-sm" href="{{ route('purchase-orders.download', $po->id) }}" title="Download PDF" target="_blank">
+                                    <a class="inline-flex items-center px-2 py-1 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-semibold rounded" href="{{ route('purchase-orders.download', $po->id) }}" title="Download PDF" target="_blank">
                                         <i class="fas fa-download"></i>
                                     </a>
                                     @endif
@@ -329,7 +329,7 @@ Penerimaan Barang
             </div>
 
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+                <button type="button" class="inline-flex items-center px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded" data-dismiss="modal">Tutup</button>
             </div>
         </div>
     </div>

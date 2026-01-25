@@ -70,13 +70,13 @@
     <td>Purchasing</td>
     <td><span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded">Aktif</span></td>
     <td class="text-center">
-      <div class="dropdown">
-        <button class="btn btn-sm btn-light" data-toggle="dropdown">
+      <div class="relative inline-block text-left">
+        <button class="inline-flex items-center px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-sm" data-toggle="dropdown">
           <i class="fas fa-ellipsis-v"></i>
         </button>
         <div class="dropdown-menu dropdown-menu-right">
-          <a class="dropdown-item" href="#"><i class="fas fa-eye text-info"></i> Detail</a>
-          <a class="dropdown-item" href="#"><i class="fas fa-edit text-warning"></i> Edit</a>
+          <a class="dropdown-item" href="#"><i class="fas fa-eye text-blue-600 mr-2"></i> Detail</a>
+          <a class="dropdown-item" href="#"><i class="fas fa-edit text-yellow-500 mr-2"></i> Edit</a>
         </div>
       </div>
     </td>
@@ -89,13 +89,13 @@
     <td>Finance</td>
     <td><span class="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-0.5 rounded">Non Aktif</span></td>
     <td class="text-center">
-      <div class="dropdown">
-        <button class="btn btn-sm btn-light" data-toggle="dropdown">
+      <div class="relative inline-block text-left">
+        <button class="inline-flex items-center px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-sm" data-toggle="dropdown">
           <i class="fas fa-ellipsis-v"></i>
         </button>
         <div class="dropdown-menu dropdown-menu-right">
-          <a class="dropdown-item" href="#"><i class="fas fa-eye text-info"></i> Detail</a>
-          <a class="dropdown-item" href="#"><i class="fas fa-edit text-warning"></i> Edit</a>
+          <a class="dropdown-item" href="#"><i class="fas fa-eye text-blue-600 mr-2"></i> Detail</a>
+          <a class="dropdown-item" href="#"><i class="fas fa-edit text-yellow-500 mr-2"></i> Edit</a>
         </div>
       </div>
     </td>
@@ -108,13 +108,13 @@
     <td>Logistik</td>
     <td><span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded">Aktif</span></td>
     <td class="text-center">
-      <div class="dropdown">
-        <button class="btn btn-sm btn-light" data-toggle="dropdown">
+      <div class="relative inline-block text-left">
+        <button class="inline-flex items-center px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-sm" data-toggle="dropdown">
           <i class="fas fa-ellipsis-v"></i>
         </button>
         <div class="dropdown-menu dropdown-menu-right">
-          <a class="dropdown-item" href="#"><i class="fas fa-eye text-info"></i> Detail</a>
-          <a class="dropdown-item" href="#"><i class="fas fa-edit text-warning"></i> Edit</a>
+          <a class="dropdown-item" href="#"><i class="fas fa-eye text-blue-600 mr-2"></i> Detail</a>
+          <a class="dropdown-item" href="#"><i class="fas fa-edit text-yellow-500 mr-2"></i> Edit</a>
         </div>
       </div>
     </td>
@@ -127,13 +127,13 @@
     <td>Admin</td>
     <td><span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded">Aktif</span></td>
     <td class="text-center">
-      <div class="dropdown">
-        <button class="btn btn-sm btn-light" data-toggle="dropdown">
+      <div class="relative inline-block text-left">
+        <button class="inline-flex items-center px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-sm" data-toggle="dropdown">
           <i class="fas fa-ellipsis-v"></i>
         </button>
         <div class="dropdown-menu dropdown-menu-right">
-          <a class="dropdown-item" href="#"><i class="fas fa-eye text-info"></i> Detail</a>
-          <a class="dropdown-item" href="#"><i class="fas fa-edit text-warning"></i> Edit</a>
+          <a class="dropdown-item" href="#"><i class="fas fa-eye text-blue-600 mr-2"></i> Detail</a>
+          <a class="dropdown-item" href="#"><i class="fas fa-edit text-yellow-500 mr-2"></i> Edit</a>
         </div>
       </div>
     </td>
@@ -144,15 +144,15 @@
     <td>Doni Prasetyo</td>
     <td>doni@company.co.id</td>
     <td>Purchasing</td>
-    <td><span class="badge badge-secondary">Non Aktif</span></td>
+    <td><span class="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-0.5 rounded">Non Aktif</span></td>
     <td class="text-center">
-      <div class="dropdown">
-        <button class="btn btn-sm btn-light" data-toggle="dropdown">
+      <div class="relative inline-block text-left">
+        <button class="inline-flex items-center px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-sm" data-toggle="dropdown">
           <i class="fas fa-ellipsis-v"></i>
         </button>
         <div class="dropdown-menu dropdown-menu-right">
-          <a class="dropdown-item" href="#"><i class="fas fa-eye text-info"></i> Detail</a>
-          <a class="dropdown-item" href="#"><i class="fas fa-edit text-warning"></i> Edit</a>
+          <a class="dropdown-item" href="#"><i class="fas fa-eye text-blue-600 mr-2"></i> Detail</a>
+          <a class="dropdown-item" href="#"><i class="fas fa-edit text-yellow-500 mr-2"></i> Edit</a>
         </div>
       </div>
     </td>
@@ -163,15 +163,15 @@
     <td>Maya Putri</td>
     <td>maya@company.co.id</td>
     <td>Finance</td>
-    <td><span class="badge badge-success">Aktif</span></td>
+    <td><span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded">Aktif</span></td>
     <td class="text-center">
-      <div class="dropdown">
-        <button class="btn btn-sm btn-light" data-toggle="dropdown">
+      <div class="relative inline-block text-left">
+        <button class="inline-flex items-center px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-sm" data-toggle="dropdown">
           <i class="fas fa-ellipsis-v"></i>
         </button>
         <div class="dropdown-menu dropdown-menu-right">
-          <a class="dropdown-item" href="#"><i class="fas fa-eye text-info"></i> Detail</a>
-          <a class="dropdown-item" href="#"><i class="fas fa-edit text-warning"></i> Edit</a>
+          <a class="dropdown-item" href="#"><i class="fas fa-eye text-blue-600 mr-2"></i> Detail</a>
+          <a class="dropdown-item" href="#"><i class="fas fa-edit text-yellow-500 mr-2"></i> Edit</a>
         </div>
       </div>
     </td>

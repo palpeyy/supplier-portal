@@ -282,9 +282,8 @@
               required>
             <button
               type="button"
-              class="btn btn-outline-secondary password-toggle"
-              onclick="togglePassword('password', 'toggle-icon')"
-              style="border-radius: 30px; padding: 10px 15px;">
+              class="inline-flex items-center px-3 py-2 border border-gray-300 text-gray-700 rounded password-toggle"
+              onclick="togglePassword('password', 'toggle-icon')">
               <i class="bi bi-eye-fill" id="toggle-icon"></i>
             </button>
           </div>
@@ -311,9 +310,8 @@
               required>
             <button
               type="button"
-              class="btn btn-outline-secondary password-toggle"
-              onclick="togglePassword('password_confirmation', 'toggle-icon-confirm')"
-              style="border-radius: 30px; padding: 10px 15px;">
+              class="inline-flex items-center px-3 py-2 border border-gray-300 text-gray-700 rounded password-toggle"
+              onclick="togglePassword('password_confirmation', 'toggle-icon-confirm')">
               <i class="bi bi-eye-fill" id="toggle-icon-confirm"></i>
             </button>
           </div>
