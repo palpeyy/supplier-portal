@@ -42,8 +42,8 @@
   <div class="row mb-2">
     <div class="col-sm-6"></div>
     <div class="col-sm-6 text-right">
-      <a href="#" class="btn btn-primary" data-toggle="modal" data-target="#modalUserPT">
-        <i class="fas fa-plus"></i> Tambah User PT
+      <a href="#" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-lg transition duration-200" data-toggle="modal" data-target="#modalUserPT">
+        <i class="fas fa-plus mr-2"></i> Tambah User PT
       </a>
     </div>
   </div>
@@ -68,7 +68,7 @@
     <td>Naufal</td>
     <td>andi@company.co.id</td>
     <td>Purchasing</td>
-    <td><span class="badge badge-success">Aktif</span></td>
+    <td><span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded">Aktif</span></td>
     <td class="text-center">
       <div class="dropdown">
         <button class="btn btn-sm btn-light" data-toggle="dropdown">
@@ -87,7 +87,7 @@
     <td>Siti Rahma</td>
     <td>siti@company.co.id</td>
     <td>Finance</td>
-    <td><span class="badge badge-secondary">Non Aktif</span></td>
+    <td><span class="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-0.5 rounded">Non Aktif</span></td>
     <td class="text-center">
       <div class="dropdown">
         <button class="btn btn-sm btn-light" data-toggle="dropdown">
@@ -106,7 +106,7 @@
     <td>Budi Santoso</td>
     <td>budi@company.co.id</td>
     <td>Logistik</td>
-    <td><span class="badge badge-success">Aktif</span></td>
+    <td><span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded">Aktif</span></td>
     <td class="text-center">
       <div class="dropdown">
         <button class="btn btn-sm btn-light" data-toggle="dropdown">
@@ -125,7 +125,7 @@
     <td>Rina Oktaviani</td>
     <td>rina@company.co.id</td>
     <td>Admin</td>
-    <td><span class="badge badge-success">Aktif</span></td>
+    <td><span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded">Aktif</span></td>
     <td class="text-center">
       <div class="dropdown">
         <button class="btn btn-sm btn-light" data-toggle="dropdown">
@@ -272,12 +272,8 @@
         </div>
 
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">
-            Batal
-          </button>
-          <button type="submit" class="btn btn-primary">
-            Simpan
-          </button>
+          <button type="button" class="inline-flex items-center px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded" data-dismiss="modal">Batal</button>
+          <button type="submit" class="inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded">Simpan</button>
         </div>
       </form>
 

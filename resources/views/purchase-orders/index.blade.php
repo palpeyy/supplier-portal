@@ -21,16 +21,16 @@ Purchase Order
 
     <div class="card">
         <!-- Nav tabs -->
-        <div class="card-header p-0 pt-3" style="border-bottom: 0;">
-            <ul class="nav nav-tabs" id="purchaseOrderTabs" role="tablist">
-                <li class="nav-item">
-                    <a class="nav-link active" id="ongoing-tab" data-toggle="tab" href="#ongoing" role="tab" aria-controls="ongoing" aria-selected="true">
-                        <i class="fas fa-hourglass-half"></i> Sedang Diproses <span class="badge badge-warning">{{ $ongoingPurchaseOrders->total() }}</span>
+        <div class="bg-white p-0 pt-3 border-b border-gray-200">
+            <ul class="flex space-x-2 px-4" id="purchaseOrderTabs" role="tablist">
+                <li>
+                    <a class="inline-flex items-center px-3 py-2 rounded-md text-sm font-medium bg-yellow-100 text-yellow-800" id="ongoing-tab" data-toggle="tab" href="#ongoing" role="tab" aria-controls="ongoing" aria-selected="true">
+                        <i class="fas fa-hourglass-half mr-2"></i> Sedang Diproses <span class="ml-2 inline-block bg-yellow-500 text-white text-xs px-2 py-0.5 rounded">{{ $ongoingPurchaseOrders->total() }}</span>
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" id="completed-tab" data-toggle="tab" href="#completed" role="tab" aria-controls="completed" aria-selected="false">
-                        <i class="fas fa-check-circle"></i> Selesai <span class="badge badge-success">{{ $completedPurchaseOrders->total() }}</span>
+                <li>
+                    <a class="inline-flex items-center px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100" id="completed-tab" data-toggle="tab" href="#completed" role="tab" aria-controls="completed" aria-selected="false">
+                        <i class="fas fa-check-circle mr-2"></i> Selesai <span class="ml-2 inline-block bg-green-600 text-white text-xs px-2 py-0.5 rounded">{{ $completedPurchaseOrders->total() }}</span>
                     </a>
                 </li>
             </ul>
@@ -66,18 +66,19 @@ Purchase Order
             <div class="tab-content">
                 <!-- Ongoing Tab -->
                 <div class="tab-pane fade show active" id="ongoing" role="tabpanel" aria-labelledby="ongoing-tab">
-                    <table class="table table-hover text-nowrap">
-                        <thead>
+                    <div class="table-responsive">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
                             <tr>
-                                <th>#</th>
-                                <th>PO Number</th>
-                                <th>Tanggal</th>
-                                <th>Supplier</th>
-                                <th>Jumlah Item</th>
-                                <th>Delivery Date</th>
-                                <th>Status</th>
-                                <th>Keterangan</th>
-                                <th width="250">Aksi</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PO Number</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supplier</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jumlah Item</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Delivery Date</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Keterangan</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" width="250">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -115,36 +116,38 @@ Purchase Order
                                     @endif
                                 </td>
                                 <td>{{ $po->keterangan ?? '-' }}</td>
-                                <td>
+                                <td class="px-6 py-3">
+                                    <div class="flex items-center gap-2">
                                     @if($userRole == 'Dept. Head' && $po->status == 'pending')
-                                    <a class="btn btn-success btn-sm approve-po" href="#" data-id="{{ $po->id }}" title="Review & Approve">
+                                    <a class="inline-flex items-center px-2 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded" href="#" data-id="{{ $po->id }}" title="Review & Approve">
                                         <i class="fas fa-check"></i>
                                     </a>
                                     @endif
                                     @if($userRole == 'Supplier' && $po->status == 'approved')
-                                    <a class="btn btn-success btn-sm approve-po-supplier" href="#" data-id="{{ $po->id }}" title="Review & Confirm">
+                                    <a class="inline-flex items-center px-2 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded" href="#" data-id="{{ $po->id }}" title="Review & Confirm">
                                         <i class="fas fa-check"></i>
                                     </a>
                                     @endif
-                                    <a class="btn btn-primary btn-sm detail-po" href="#" data-id="{{ $po->id }}" title="Detail">
+                                    <a class="inline-flex items-center px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded" href="#" data-id="{{ $po->id }}" title="Detail">
                                         <i class="fas fa-eye"></i>
                                     </a>
                                     @if($po->pdf_path)
-                                    <a class="btn btn-info btn-sm" href="{{ route('purchase-orders.download', $po->id) }}" title="Download PDF" target="_blank">
+                                    <a class="inline-flex items-center px-2 py-1 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-semibold rounded" href="{{ route('purchase-orders.download', $po->id) }}" title="Download PDF" target="_blank">
                                         <i class="fas fa-download"></i>
                                     </a>
                                     @endif
                                     @if($po->status == 'on_progress' && $po->no_surat_jalan)
-                                    <a class="btn btn-secondary btn-sm" href="{{ route('purchase-orders.print-surat-jalan', $po->id) }}" title="Print Surat Jalan" target="_blank">
+                                    <a class="inline-flex items-center px-2 py-1 bg-gray-600 hover:bg-gray-700 text-white text-xs font-semibold rounded" href="{{ route('purchase-orders.print-surat-jalan', $po->id) }}" title="Print Surat Jalan" target="_blank">
                                         <i class="fas fa-print"></i>
                                     </a>
                                     @endif
-                                    <a class="btn btn-warning btn-sm edit-po" href="#" data-id="{{ $po->id }}" title="Edit">
+                                    <a class="inline-flex items-center px-2 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-semibold rounded" href="#" data-id="{{ $po->id }}" title="Edit">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <button class="btn btn-danger btn-sm delete-po" data-id="{{ $po->id }}" title="Hapus" type="button">
+                                    <button class="inline-flex items-center px-2 py-1 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded delete-po" data-id="{{ $po->id }}" title="Hapus" type="button">
                                         <i class="fas fa-trash"></i>
                                     </button>
+                                    </div>
                                 </td>
                             </tr>
                             @empty
@@ -208,16 +211,16 @@ Purchase Order
                                 </td>
                                 <td>{{ $po->keterangan ?? '-' }}</td>
                                 <td>
-                                    <a class="btn btn-primary btn-sm detail-po" href="#" data-id="{{ $po->id }}" title="Detail">
+                                    <a class="inline-flex items-center px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded detail-po" href="#" data-id="{{ $po->id }}" title="Detail">
                                         <i class="fas fa-eye"></i>
                                     </a>
                                     @if($po->pdf_path)
-                                    <a class="btn btn-info btn-sm" href="{{ route('purchase-orders.download', $po->id) }}" title="Download PDF" target="_blank">
+                                    <a class="inline-flex items-center px-2 py-1 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-semibold rounded" href="{{ route('purchase-orders.download', $po->id) }}" title="Download PDF" target="_blank">
                                         <i class="fas fa-download"></i>
                                     </a>
                                     @endif
                                     @if($po->status == 'on_progress' && $po->no_surat_jalan)
-                                    <a class="btn btn-secondary btn-sm" href="{{ route('purchase-orders.print-surat-jalan', $po->id) }}" title="Print Surat Jalan" target="_blank">
+                                    <a class="inline-flex items-center px-2 py-1 bg-gray-600 hover:bg-gray-700 text-white text-xs font-semibold rounded" href="{{ route('purchase-orders.print-surat-jalan', $po->id) }}" title="Print Surat Jalan" target="_blank">
                                         <i class="fas fa-print"></i>
                                     </a>
                                     @endif
@@ -293,9 +296,9 @@ Purchase Order
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-upload"></i> Upload
+                    <button type="button" class="inline-flex items-center px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded" data-dismiss="modal">Batal</button>
+                    <button type="submit" class="inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded">
+                        <i class="fas fa-upload mr-2"></i> Upload
                     </button>
                 </div>
             </form>
@@ -368,8 +371,8 @@ Purchase Order
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary">Simpan</button>
+                    <button type="button" class="inline-flex items-center px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded" data-dismiss="modal">Batal</button>
+                    <button type="submit" class="inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded">Simpan</button>
                 </div>
             </form>
         </div>
@@ -495,7 +498,7 @@ Purchase Order
             </div>
 
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+                <button type="button" class="inline-flex items-center px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded" data-dismiss="modal">Tutup</button>
             </div>
         </div>
     </div>
@@ -649,12 +652,12 @@ Purchase Order
             </div>
 
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                <button type="button" class="btn btn-danger" id="btnRejectPO">
-                    <i class="fas fa-times"></i> Reject
+                <button type="button" class="inline-flex items-center px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded" data-dismiss="modal">Batal</button>
+                <button type="button" class="inline-flex items-center px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded" id="btnRejectPO">
+                    <i class="fas fa-times mr-2"></i> Reject
                 </button>
-                <button type="button" class="btn btn-success" id="btnApprovePO">
-                    <i class="fas fa-check"></i> Approve
+                <button type="button" class="inline-flex items-center px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded" id="btnApprovePO">
+                    <i class="fas fa-check mr-2"></i> Approve
                 </button>
             </div>
         </div>
@@ -685,9 +688,9 @@ Purchase Order
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-danger">
-                        <i class="fas fa-times"></i> Reject
+                    <button type="button" class="inline-flex items-center px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded" data-dismiss="modal">Batal</button>
+                    <button type="submit" class="inline-flex items-center px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded">
+                        <i class="fas fa-times mr-2"></i> Reject
                     </button>
                 </div>
             </form>

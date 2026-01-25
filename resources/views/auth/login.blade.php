@@ -227,9 +227,8 @@
             >
             <button 
               type="button"
-              class="btn btn-outline-secondary password-toggle" 
+              class="inline-flex items-center px-3 py-2 border border-gray-300 text-gray-700 rounded password-toggle" 
               onclick="togglePassword()"
-              style="border-radius: 30px; padding: 10px 15px;"
             >
               <i class="bi bi-eye-fill" id="toggle-icon"></i>
             </button>
@@ -256,8 +255,8 @@
           </a>
         </div>
 
-        <button type="submit" class="btn btn-login">
-          <i class="bi bi-box-arrow-in-right"></i> Login
+        <button type="submit" class="inline-flex items-center px-4 py-2 bg-red-700 hover:bg-red-800 text-white rounded font-semibold">
+          <i class="bi bi-box-arrow-in-right mr-2"></i> Login
         </button>
 
         <!-- Register Link -->

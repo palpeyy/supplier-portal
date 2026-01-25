@@ -319,7 +319,7 @@
           </div>
         </div>
 
-        <button type="submit" class="btn btn-login">
+        <button type="submit" class="inline-flex items-center px-4 py-2 bg-red-700 hover:bg-red-800 text-white rounded font-semibold">
           <i class="bi bi-person-plus"></i> Daftar
         </button>
 

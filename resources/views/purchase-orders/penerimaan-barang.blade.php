@@ -12,16 +12,16 @@ Penerimaan Barang
 <div class="w-full max-w-full px-4 py-6">
     <div class="bg-white rounded-lg shadow-md overflow-hidden">
         <!-- Nav tabs -->
-        <div class="border-b border-gray-200 px-6 py-4">
-            <ul class="nav nav-tabs" id="penerimaanBarangTabs" role="tablist">
-                <li class="nav-item">
-                    <a class="nav-link active" id="ongoing-tab" data-toggle="tab" href="#ongoing" role="tab" aria-controls="ongoing" aria-selected="true">
-                        <i class="fas fa-hourglass-half"></i> Sedang Diproses <span class="badge badge-primary">{{ $ongoingPurchaseOrders->total() }}</span>
+        <div class="bg-white p-0 border-b border-gray-200">
+            <ul class="flex space-x-2 px-4 py-3" id="penerimaanBarangTabs" role="tablist">
+                <li>
+                    <a class="inline-flex items-center px-3 py-2 rounded-md text-sm font-medium bg-indigo-100 text-indigo-800" id="ongoing-tab" data-toggle="tab" href="#ongoing" role="tab" aria-controls="ongoing" aria-selected="true">
+                        <i class="fas fa-hourglass-half mr-2"></i> Sedang Diproses <span class="ml-2 inline-block bg-indigo-500 text-white text-xs px-2 py-0.5 rounded">{{ $ongoingPurchaseOrders->total() }}</span>
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" id="completed-tab" data-toggle="tab" href="#completed" role="tab" aria-controls="completed" aria-selected="false">
-                        <i class="fas fa-check-circle"></i> Selesai Diterima <span class="badge badge-success">{{ $completedPurchaseOrders->total() }}</span>
+                <li>
+                    <a class="inline-flex items-center px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100" id="completed-tab" data-toggle="tab" href="#completed" role="tab" aria-controls="completed" aria-selected="false">
+                        <i class="fas fa-check-circle mr-2"></i> Selesai Diterima <span class="ml-2 inline-block bg-green-600 text-white text-xs px-2 py-0.5 rounded">{{ $completedPurchaseOrders->total() }}</span>
                     </a>
                 </li>
             </ul>
@@ -101,28 +101,30 @@ Penerimaan Barang
                                 </td>
                                 <td>{{ $po->etd ? $po->etd->format('d/m/Y') : '-' }}</td>
                                 <td>{{ $po->eta ? $po->eta->format('d/m/Y') : '-' }}</td>
-                                <td>
+                                <td class="px-6 py-3">
                                     @if($po->status == 'on_progress')
-                                    <span class="badge badge-primary">On Progress</span>
+                                    <span class="inline-block bg-indigo-100 text-indigo-800 text-xs px-2 py-0.5 rounded">On Progress</span>
                                     @else
-                                    <span class="badge badge-secondary">{{ $po->status ?? '-' }}</span>
+                                    <span class="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-0.5 rounded">{{ $po->status ?? '-' }}</span>
                                     @endif
                                 </td>
                                 <td>{{ $po->keterangan ?? '-' }}</td>
                                 <td>
+                                    <div class="flex items-center gap-2">
                                     @if($userRole == 'Admin' && $po->status == 'on_progress')
-                                    <a class="btn btn-success btn-sm confirm-received" href="#" data-id="{{ $po->id }}" title="Konfirmasi Barang Diterima">
-                                        <i class="fas fa-check"></i> Konfirmasi
+                                    <a class="inline-flex items-center px-2 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded confirm-received" href="#" data-id="{{ $po->id }}" title="Konfirmasi Barang Diterima">
+                                        <i class="fas fa-check mr-2"></i> Konfirmasi
                                     </a>
                                     @endif
-                                    <a class="btn btn-primary btn-sm detail-po" href="#" data-id="{{ $po->id }}" title="Detail">
+                                    <a class="inline-flex items-center px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded detail-po" href="#" data-id="{{ $po->id }}" title="Detail">
                                         <i class="fas fa-eye"></i>
                                     </a>
                                     @if($po->pdf_path)
-                                    <a class="btn btn-info btn-sm" href="{{ route('purchase-orders.download', $po->id) }}" title="Download PDF" target="_blank">
+                                    <a class="inline-flex items-center px-2 py-1 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-semibold rounded" href="{{ route('purchase-orders.download', $po->id) }}" title="Download PDF" target="_blank">
                                         <i class="fas fa-download"></i>
                                     </a>
                                     @endif
+                                    </div>
                                 </td>
                             </tr>
                             @empty
@@ -174,7 +176,7 @@ Penerimaan Barang
                                 <td>{{ $po->etd ? $po->etd->format('d/m/Y') : '-' }}</td>
                                 <td>{{ $po->eta ? $po->eta->format('d/m/Y') : '-' }}</td>
                                 <td>
-                                    <span class="badge badge-success">Received</span>
+                                    <span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded">Received</span>
                                 </td>
                                 <td>{{ $po->keterangan ?? '-' }}</td>
                                 <td>

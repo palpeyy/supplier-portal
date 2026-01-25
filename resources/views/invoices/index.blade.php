@@ -12,16 +12,16 @@ Penagihan Invoice
 <div class="w-full max-w-full px-4 py-6">
     <div class="bg-white rounded-lg shadow-md overflow-hidden">
         <!-- Nav tabs -->
-        <div class="border-b border-gray-200 px-6 py-4">
-            <ul class="nav nav-tabs" id="invoiceTabs" role="tablist">
-                <li class="nav-item">
-                    <a class="nav-link active" id="ongoing-tab" data-toggle="tab" href="#ongoing" role="tab" aria-controls="ongoing" aria-selected="true">
-                        <i class="fas fa-hourglass-half"></i> Sedang Diproses <span class="badge badge-warning">{{ $ongoingInvoices->total() }}</span>
+        <div class="bg-white p-0 border-b border-gray-200">
+            <ul class="flex space-x-2 px-4 py-3" id="invoiceTabs" role="tablist">
+                <li>
+                    <a class="inline-flex items-center px-3 py-2 rounded-md text-sm font-medium bg-yellow-100 text-yellow-800" id="ongoing-tab" data-toggle="tab" href="#ongoing" role="tab" aria-controls="ongoing" aria-selected="true">
+                        <i class="fas fa-hourglass-half mr-2"></i> Sedang Diproses <span class="ml-2 inline-block bg-yellow-500 text-white text-xs px-2 py-0.5 rounded">{{ $ongoingInvoices->total() }}</span>
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" id="completed-tab" data-toggle="tab" href="#completed" role="tab" aria-controls="completed" aria-selected="false">
-                        <i class="fas fa-check-circle"></i> Selesai <span class="badge badge-success">{{ $completedInvoices->total() }}</span>
+                <li>
+                    <a class="inline-flex items-center px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100" id="completed-tab" data-toggle="tab" href="#completed" role="tab" aria-controls="completed" aria-selected="false">
+                        <i class="fas fa-check-circle mr-2"></i> Selesai <span class="ml-2 inline-block bg-green-600 text-white text-xs px-2 py-0.5 rounded">{{ $completedInvoices->total() }}</span>
                     </a>
                 </li>
             </ul>
@@ -65,22 +65,23 @@ Penagihan Invoice
                 <!-- Ongoing Tab -->
                 <div class="tab-pane fade show active" id="ongoing" role="tabpanel" aria-labelledby="ongoing-tab">
                     @if($userRole === 'Supplier' && $purchaseOrdersWithoutInvoice->count() > 0)
-                    <div class="alert alert-info m-3">
-                        <i class="fas fa-info-circle"></i> Terdapat {{ $purchaseOrdersWithoutInvoice->count() }} Purchase Order yang siap untuk di-invoice.
+                    <div class="bg-blue-50 text-blue-700 p-3 rounded m-3">
+                        <i class="fas fa-info-circle mr-2"></i> Terdapat {{ $purchaseOrdersWithoutInvoice->count() }} Purchase Order yang siap untuk di-invoice.
                     </div>
                     @endif
 
-                    <table class="table table-hover text-nowrap">
-                        <thead>
+                    <div class="table-responsive">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
                             <tr>
-                                <th>#</th>
-                                <th>PO Number</th>
-                                <th>Tanggal PO</th>
-                                <th>Supplier</th>
-                                <th>Status Invoice</th>
-                                <th>Catatan Revisi</th>
-                                <th>Tanggal Upload</th>
-                                <th width="250">Aksi</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PO Number</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal PO</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supplier</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status Invoice</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Catatan Revisi</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Upload</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" width="250">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -96,11 +97,11 @@ Penagihan Invoice
                                     <span class="text-muted">-</span>
                                     @endif
                                 </td>
-                                <td>
+                                <td class="px-6 py-3">
                                     @if($invoice->status == 'pending')
-                                    <span class="badge badge-warning">Pending</span>
+                                    <span class="inline-block bg-yellow-100 text-yellow-800 text-xs px-2 py-0.5 rounded">Pending</span>
                                     @elseif($invoice->status == 'revised')
-                                    <span class="badge badge-danger">Revised</span>
+                                    <span class="inline-block bg-red-100 text-red-800 text-xs px-2 py-0.5 rounded">Revised</span>
                                     @endif
                                 </td>
                                 <td>
@@ -115,20 +116,20 @@ Penagihan Invoice
                                 <td>{{ $invoice->created_at->format('d/m/Y H:i') }}</td>
                                 <td>
                                     @if($userRole === 'Supplier' && $invoice->status == 'revised')
-                                    <button class="btn btn-warning btn-sm revise-invoice-supplier" data-id="{{ $invoice->id }}" title="Upload Revisi">
-                                        <i class="fas fa-upload"></i> Revisi
+                                    <button class="inline-flex items-center px-2 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-semibold rounded revise-invoice-supplier" data-id="{{ $invoice->id }}" title="Upload Revisi">
+                                        <i class="fas fa-upload mr-2"></i> Revisi
                                     </button>
                                     @endif
 
                                     @if($userRole === 'Admin' && in_array($invoice->status, ['pending', 'revised']))
-                                    <button class="btn btn-success btn-sm approve-invoice" data-id="{{ $invoice->id }}" title="Aksi">
-                                        <i class="fas fa-tasks"></i> Aksi
+                                    <button class="inline-flex items-center px-2 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded approve-invoice" data-id="{{ $invoice->id }}" title="Aksi">
+                                        <i class="fas fa-tasks mr-2"></i> Aksi
                                     </button>
                                     @endif
 
                                     @if($invoice->invoice_file && $invoice->surat_jalan_file && $invoice->faktur_pajak_file)
-                                    <button class="btn btn-primary btn-sm detail-invoice" data-id="{{ $invoice->id }}" title="Lihat Detail">
-                                        <i class="fas fa-eye"></i> Detail
+                                    <button class="inline-flex items-center px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded detail-invoice" data-id="{{ $invoice->id }}" title="Lihat Detail">
+                                        <i class="fas fa-eye mr-2"></i> Detail
                                     </button>
                                     @endif
                                 </td>
@@ -138,6 +139,9 @@ Penagihan Invoice
                                 <td colspan="8" class="text-center text-muted py-4">Tidak ada Invoice yang sedang diproses</td>
                             </tr>
                             @endforelse
+                        </tbody>
+                    </table>
+                </div>
 
                             @if($userRole === 'Supplier')
                             @foreach($purchaseOrdersWithoutInvoice as $po)
@@ -158,8 +162,8 @@ Penagihan Invoice
                                 <td><span class="text-muted">-</span></td>
                                 <td><span class="text-muted">-</span></td>
                                 <td>
-                                    <button class="btn btn-primary btn-sm upload-invoice" data-po-id="{{ $po->id }}" title="Upload Invoice">
-                                        <i class="fas fa-upload"></i> Upload Invoice
+                                    <button class="inline-flex items-center px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded upload-invoice" data-po-id="{{ $po->id }}" title="Upload Invoice">
+                                        <i class="fas fa-upload mr-2"></i> Upload Invoice
                                     </button>
                                 </td>
                             </tr>
@@ -191,23 +195,23 @@ Penagihan Invoice
                                 <td>{{ $invoice->purchaseOrder->date ? $invoice->purchaseOrder->date->format('d/m/Y') : '-' }}</td>
                                 <td>
                                     @if($invoice->purchaseOrder->supplier)
-                                    <span class="badge badge-info">{{ $invoice->purchaseOrder->supplier->nama }}</span>
+                                    <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded">{{ $invoice->purchaseOrder->supplier->nama }}</span>
                                     @else
-                                    <span class="text-muted">-</span>
+                                    <span class="text-gray-400">-</span>
                                     @endif
                                 </td>
                                 <td>
                                     @if($invoice->status == 'approved')
-                                    <span class="badge badge-success">Approved</span>
+                                    <span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded">Approved</span>
                                     @elseif($invoice->status == 'rejected')
-                                    <span class="badge badge-danger">Rejected</span>
+                                    <span class="inline-block bg-red-100 text-red-800 text-xs px-2 py-0.5 rounded">Rejected</span>
                                     @endif
                                 </td>
                                 <td>{{ $invoice->updated_at->format('d/m/Y H:i') }}</td>
                                 <td>
                                     @if($invoice->invoice_file && $invoice->surat_jalan_file && $invoice->faktur_pajak_file)
-                                    <button class="btn btn-primary btn-sm detail-invoice" data-id="{{ $invoice->id }}" title="Lihat Detail">
-                                        <i class="fas fa-eye"></i> Detail
+                                    <button class="inline-flex items-center px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded detail-invoice" data-id="{{ $invoice->id }}" title="Lihat Detail">
+                                        <i class="fas fa-eye mr-2"></i> Detail
                                     </button>
                                     @endif
                                 </td>
@@ -279,8 +283,8 @@ Penagihan Invoice
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary">
+                    <button type="button" class="inline-flex items-center px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded" data-dismiss="modal">Batal</button>
+                    <button type="submit" class="inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded">
                         <i class="fas fa-upload"></i> Upload
                     </button>
                 </div>
@@ -336,8 +340,8 @@ Penagihan Invoice
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-warning">
+                    <button type="button" class="inline-flex items-center px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded" data-dismiss="modal">Batal</button>
+                    <button type="submit" class="inline-flex items-center px-3 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded">
                         <i class="fas fa-upload"></i> Upload Revisi
                     </button>
                 </div>
@@ -943,7 +947,7 @@ Penagihan Invoice
                     } else if (invoice.status == 'revised') {
                         statusBadge = '<span class="badge badge-danger">Revised</span>';
                     } else if (invoice.status == 'approved') {
-                        statusBadge = '<span class="badge badge-success">Approved</span>';
+                        statusBadge = '<span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded">Approved</span>'; 
                     } else if (invoice.status == 'rejected') {
                         statusBadge = '<span class="badge badge-danger">Rejected</span>';
                     }
