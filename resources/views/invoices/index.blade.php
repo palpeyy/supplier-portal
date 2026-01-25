@@ -9,15 +9,27 @@ Penagihan Invoice
 @endsection
 
 @section('isi')
-<div class="container-fluid">
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">Daftar Penagihan Invoice</h3>
+<div class="w-full max-w-full px-4 py-6">
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <!-- Nav tabs -->
+        <div class="border-b border-gray-200 px-6 py-4">
+            <ul class="nav nav-tabs" id="invoiceTabs" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="ongoing-tab" data-toggle="tab" href="#ongoing" role="tab" aria-controls="ongoing" aria-selected="true">
+                        <i class="fas fa-hourglass-half"></i> Sedang Diproses <span class="badge badge-warning">{{ $ongoingInvoices->total() }}</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="completed-tab" data-toggle="tab" href="#completed" role="tab" aria-controls="completed" aria-selected="false">
+                        <i class="fas fa-check-circle"></i> Selesai <span class="badge badge-success">{{ $completedInvoices->total() }}</span>
+                    </a>
+                </li>
+            </ul>
         </div>
 
-        <div class="card-body">
+        <div class="card-body table-responsive p-0">
             @if(session('success'))
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <div class="alert alert-success alert-dismissible fade show" role="alert" style="margin-bottom: 0; border-radius: 0;">
                 {{ session('success') }}
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -26,7 +38,7 @@ Penagihan Invoice
             @endif
 
             @if(session('error'))
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <div class="alert alert-danger alert-dismissible fade show" role="alert" style="margin-bottom: 0; border-radius: 0;">
                 {{ session('error') }}
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -35,7 +47,7 @@ Penagihan Invoice
             @endif
 
             @if($errors->any())
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <div class="alert alert-danger alert-dismissible fade show" role="alert" style="margin-bottom: 0; border-radius: 0;">
                 <strong>Terjadi Kesalahan!</strong>
                 <ul class="mt-2 mb-0">
                     @foreach($errors->all() as $error)
@@ -48,117 +60,180 @@ Penagihan Invoice
             </div>
             @endif
 
-            @if($userRole === 'Supplier' && $purchaseOrdersWithoutInvoice->count() > 0)
-            <div class="alert alert-info">
-                <i class="fas fa-info-circle"></i> Terdapat {{ $purchaseOrdersWithoutInvoice->count() }} Purchase Order yang siap untuk di-invoice.
-            </div>
-            @endif
-
-            <table class="table table-hover text-nowrap">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>PO Number</th>
-                        <th>Tanggal PO</th>
-                        <th>Supplier</th>
-                        <th>Status Invoice</th>
-                        <th>Catatan Revisi</th>
-                        <th>Tanggal Upload</th>
-                        <th width="250">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($invoices as $invoice)
-                    <tr>
-                        <td>{{ ($invoices->currentPage() - 1) * $invoices->perPage() + $loop->iteration }}</td>
-                        <td><strong>{{ $invoice->purchaseOrder->po_number }}</strong></td>
-                        <td>{{ $invoice->purchaseOrder->date ? $invoice->purchaseOrder->date->format('d/m/Y') : '-' }}</td>
-                        <td>
-                            @if($invoice->purchaseOrder->supplier)
-                            <span class="badge badge-info">{{ $invoice->purchaseOrder->supplier->nama }}</span>
-                            @else
-                            <span class="text-muted">-</span>
-                            @endif
-                        </td>
-                        <td>
-                            @if($invoice->status == 'pending')
-                                <span class="badge badge-warning">Pending</span>
-                            @elseif($invoice->status == 'revised')
-                                <span class="badge badge-danger">Revised</span>
-                            @elseif($invoice->status == 'approved')
-                                <span class="badge badge-success">Approved</span>
-                            @elseif($invoice->status == 'rejected')
-                                <span class="badge badge-danger">Rejected</span>
-                            @endif
-                        </td>
-                        <td>
-                            @if($invoice->catatan_revisi)
-                            <span class="text-danger" title="{{ $invoice->catatan_revisi }}">
-                                <i class="fas fa-exclamation-circle"></i> Ada catatan
-                            </span>
-                            @else
-                            <span class="text-muted">-</span>
-                            @endif
-                        </td>
-                        <td>{{ $invoice->created_at->format('d/m/Y H:i') }}</td>
-                        <td>
-                            @if($userRole === 'Supplier' && $invoice->status == 'revised')
-                            <button class="btn btn-warning btn-sm revise-invoice-supplier" data-id="{{ $invoice->id }}" title="Upload Revisi">
-                                <i class="fas fa-upload"></i> Revisi
-                            </button>
-                            @endif
-
-                            @if($userRole === 'Admin' && in_array($invoice->status, ['pending', 'revised']))
-                            <button class="btn btn-success btn-sm approve-invoice" data-id="{{ $invoice->id }}" title="Aksi">
-                                <i class="fas fa-tasks"></i> Aksi
-                            </button>
-                            @endif
-
-                            @if($invoice->invoice_file && $invoice->surat_jalan_file && $invoice->faktur_pajak_file)
-                            <button class="btn btn-primary btn-sm detail-invoice" data-id="{{ $invoice->id }}" title="Lihat Detail">
-                                <i class="fas fa-eye"></i> Detail
-                            </button>
-                            @endif
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="8" class="text-center">Tidak ada data Invoice</td>
-                    </tr>
-                    @endforelse
-                    
-                    @if($userRole === 'Supplier')
-                        @foreach($purchaseOrdersWithoutInvoice as $po)
-                        <tr>
-                            <td>-</td>
-                            <td><strong>{{ $po->po_number }}</strong></td>
-                            <td>{{ $po->date ? $po->date->format('d/m/Y') : '-' }}</td>
-                            <td>
-                                @if($po->supplier)
-                                <span class="badge badge-info">{{ $po->supplier->nama }}</span>
-                                @else
-                                <span class="text-muted">-</span>
-                                @endif
-                            </td>
-                            <td>
-                                <span class="badge badge-secondary">Belum Upload</span>
-                            </td>
-                            <td><span class="text-muted">-</span></td>
-                            <td><span class="text-muted">-</span></td>
-                            <td>
-                                <button class="btn btn-primary btn-sm upload-invoice" data-po-id="{{ $po->id }}" title="Upload Invoice">
-                                    <i class="fas fa-upload"></i> Upload Invoice
-                                </button>
-                            </td>
-                        </tr>
-                        @endforeach
+            <!-- Tab panes -->
+            <div class="tab-content">
+                <!-- Ongoing Tab -->
+                <div class="tab-pane fade show active" id="ongoing" role="tabpanel" aria-labelledby="ongoing-tab">
+                    @if($userRole === 'Supplier' && $purchaseOrdersWithoutInvoice->count() > 0)
+                    <div class="alert alert-info m-3">
+                        <i class="fas fa-info-circle"></i> Terdapat {{ $purchaseOrdersWithoutInvoice->count() }} Purchase Order yang siap untuk di-invoice.
+                    </div>
                     @endif
-                </tbody>
-            </table>
+
+                    <table class="table table-hover text-nowrap">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>PO Number</th>
+                                <th>Tanggal PO</th>
+                                <th>Supplier</th>
+                                <th>Status Invoice</th>
+                                <th>Catatan Revisi</th>
+                                <th>Tanggal Upload</th>
+                                <th width="250">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($ongoingInvoices as $invoice)
+                            <tr>
+                                <td>{{ ($ongoingInvoices->currentPage() - 1) * $ongoingInvoices->perPage() + $loop->iteration }}</td>
+                                <td><strong>{{ $invoice->purchaseOrder->po_number }}</strong></td>
+                                <td>{{ $invoice->purchaseOrder->date ? $invoice->purchaseOrder->date->format('d/m/Y') : '-' }}</td>
+                                <td>
+                                    @if($invoice->purchaseOrder->supplier)
+                                    <span class="badge badge-info">{{ $invoice->purchaseOrder->supplier->nama }}</span>
+                                    @else
+                                    <span class="text-muted">-</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($invoice->status == 'pending')
+                                    <span class="badge badge-warning">Pending</span>
+                                    @elseif($invoice->status == 'revised')
+                                    <span class="badge badge-danger">Revised</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($invoice->catatan_revisi)
+                                    <span class="text-danger" title="{{ $invoice->catatan_revisi }}">
+                                        <i class="fas fa-exclamation-circle"></i> Ada catatan
+                                    </span>
+                                    @else
+                                    <span class="text-muted">-</span>
+                                    @endif
+                                </td>
+                                <td>{{ $invoice->created_at->format('d/m/Y H:i') }}</td>
+                                <td>
+                                    @if($userRole === 'Supplier' && $invoice->status == 'revised')
+                                    <button class="btn btn-warning btn-sm revise-invoice-supplier" data-id="{{ $invoice->id }}" title="Upload Revisi">
+                                        <i class="fas fa-upload"></i> Revisi
+                                    </button>
+                                    @endif
+
+                                    @if($userRole === 'Admin' && in_array($invoice->status, ['pending', 'revised']))
+                                    <button class="btn btn-success btn-sm approve-invoice" data-id="{{ $invoice->id }}" title="Aksi">
+                                        <i class="fas fa-tasks"></i> Aksi
+                                    </button>
+                                    @endif
+
+                                    @if($invoice->invoice_file && $invoice->surat_jalan_file && $invoice->faktur_pajak_file)
+                                    <button class="btn btn-primary btn-sm detail-invoice" data-id="{{ $invoice->id }}" title="Lihat Detail">
+                                        <i class="fas fa-eye"></i> Detail
+                                    </button>
+                                    @endif
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="8" class="text-center text-muted py-4">Tidak ada Invoice yang sedang diproses</td>
+                            </tr>
+                            @endforelse
+
+                            @if($userRole === 'Supplier')
+                            @foreach($purchaseOrdersWithoutInvoice as $po)
+                            <tr style="background-color: #f9f9f9;">
+                                <td>-</td>
+                                <td><strong>{{ $po->po_number }}</strong></td>
+                                <td>{{ $po->date ? $po->date->format('d/m/Y') : '-' }}</td>
+                                <td>
+                                    @if($po->supplier)
+                                    <span class="badge badge-info">{{ $po->supplier->nama }}</span>
+                                    @else
+                                    <span class="text-muted">-</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <span class="badge badge-secondary">Belum Upload</span>
+                                </td>
+                                <td><span class="text-muted">-</span></td>
+                                <td><span class="text-muted">-</span></td>
+                                <td>
+                                    <button class="btn btn-primary btn-sm upload-invoice" data-po-id="{{ $po->id }}" title="Upload Invoice">
+                                        <i class="fas fa-upload"></i> Upload Invoice
+                                    </button>
+                                </td>
+                            </tr>
+                            @endforeach
+                            @endif
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Completed Tab -->
+                <div class="tab-pane fade" id="completed" role="tabpanel" aria-labelledby="completed-tab">
+                    <table class="table table-hover text-nowrap">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>PO Number</th>
+                                <th>Tanggal PO</th>
+                                <th>Supplier</th>
+                                <th>Status Invoice</th>
+                                <th>Tanggal Update</th>
+                                <th width="250">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($completedInvoices as $invoice)
+                            <tr>
+                                <td>{{ ($completedInvoices->currentPage() - 1) * $completedInvoices->perPage() + $loop->iteration }}</td>
+                                <td><strong>{{ $invoice->purchaseOrder->po_number }}</strong></td>
+                                <td>{{ $invoice->purchaseOrder->date ? $invoice->purchaseOrder->date->format('d/m/Y') : '-' }}</td>
+                                <td>
+                                    @if($invoice->purchaseOrder->supplier)
+                                    <span class="badge badge-info">{{ $invoice->purchaseOrder->supplier->nama }}</span>
+                                    @else
+                                    <span class="text-muted">-</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($invoice->status == 'approved')
+                                    <span class="badge badge-success">Approved</span>
+                                    @elseif($invoice->status == 'rejected')
+                                    <span class="badge badge-danger">Rejected</span>
+                                    @endif
+                                </td>
+                                <td>{{ $invoice->updated_at->format('d/m/Y H:i') }}</td>
+                                <td>
+                                    @if($invoice->invoice_file && $invoice->surat_jalan_file && $invoice->faktur_pajak_file)
+                                    <button class="btn btn-primary btn-sm detail-invoice" data-id="{{ $invoice->id }}" title="Lihat Detail">
+                                        <i class="fas fa-eye"></i> Detail
+                                    </button>
+                                    @endif
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-4">Tidak ada Invoice yang selesai</td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
 
         <div class="card-footer">
-            {{ $invoices->links() }}
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Sedang Diproses</h6>
+                    {{ $ongoingInvoices->render() }}
+                </div>
+                <div class="col-md-6">
+                    <h6>Selesai</h6>
+                    {{ $completedInvoices->render() }}
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -566,370 +641,370 @@ Penagihan Invoice
 
 @push('scripts')
 <script>
-$(document).ready(function() {
-    let currentInvoiceId = null;
-    let currentAction = null; // 'reject' or 'revise'
-    let currentPoId = null;
+    $(document).ready(function() {
+        let currentInvoiceId = null;
+        let currentAction = null; // 'reject' or 'revise'
+        let currentPoId = null;
 
-    // Upload Invoice (Supplier)
-    $(document).on('click', '.upload-invoice', function(e) {
-        e.preventDefault();
-        currentPoId = $(this).data('po-id');
-        
-        $('#formUploadInvoice').attr('action', `/invoices/${currentPoId}/store`);
-        $('#formUploadInvoice')[0].reset();
-        $('#errorMessages').addClass('d-none');
-        $('#modalUploadInvoice').modal('show');
-    });
+        // Upload Invoice (Supplier)
+        $(document).on('click', '.upload-invoice', function(e) {
+            e.preventDefault();
+            currentPoId = $(this).data('po-id');
 
-    // Submit Upload Invoice
-    $('#formUploadInvoice').on('submit', function(e) {
-        e.preventDefault();
-        
-        let formData = new FormData(this);
-        let action = $(this).attr('action');
-
-        $.ajax({
-            url: action,
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function(response) {
-                $('#modalUploadInvoice').modal('hide');
-                location.reload();
-            },
-            error: function(xhr) {
-                let errorList = $('#errorList');
-                errorList.html('');
-                
-                if (xhr.status === 422) {
-                    let errors = xhr.responseJSON.errors || xhr.responseJSON.error;
-                    if (typeof errors === 'object') {
-                        $.each(errors, function(key, value) {
-                            if (Array.isArray(value)) {
-                                $.each(value, function(index, message) {
-                                    errorList.append('<li>' + message + '</li>');
-                                });
-                            } else {
-                                errorList.append('<li>' + value + '</li>');
-                            }
-                        });
-                    } else {
-                        errorList.append('<li>' + (errors || 'Terjadi kesalahan') + '</li>');
-                    }
-                } else {
-                    errorList.append('<li>' + (xhr.responseJSON?.error || 'Gagal upload invoice') + '</li>');
-                }
-                
-                $('#errorMessages').removeClass('d-none');
-            }
+            $('#formUploadInvoice').attr('action', `/invoices/${currentPoId}/store`);
+            $('#formUploadInvoice')[0].reset();
+            $('#errorMessages').addClass('d-none');
+            $('#modalUploadInvoice').modal('show');
         });
-    });
 
-    // Approve/Reject/Revise Invoice (Admin)
-    $(document).on('click', '.approve-invoice, .reject-invoice, .revise-invoice', function(e) {
-        e.preventDefault();
-        currentInvoiceId = $(this).data('id');
-        
-        $('#approveContent').hide();
-        $('#approveLoading').show();
-        $('#modalApproveInvoice').modal('show');
+        // Submit Upload Invoice
+        $('#formUploadInvoice').on('submit', function(e) {
+            e.preventDefault();
 
-        $.ajax({
-            url: `/invoices/${currentInvoiceId}`,
-            type: 'GET',
-            success: function(response) {
-                let invoice = response.invoice;
-                let po = invoice.purchase_order;
-                
-                $('#approve_po_number').text(po.po_number);
-                $('#approve_supplier').html(po.supplier ? '<span class="badge badge-info">' + po.supplier.nama + '</span>' : '-');
-                $('#approve_po_date').text(po.date ? new Date(po.date).toLocaleDateString('id-ID') : '-');
-                
-                $('#approve_download_invoice').attr('href', `/invoices/${invoice.id}/download-invoice`);
-                $('#approve_download_surat_jalan').attr('href', `/invoices/${invoice.id}/download-surat-jalan`);
-                $('#approve_download_faktur_pajak').attr('href', `/invoices/${invoice.id}/download-faktur-pajak`);
-                
-                $('#approveLoading').hide();
-                $('#approveContent').show();
-            },
-            error: function(xhr) {
-                alert('Gagal memuat data invoice');
-                $('#modalApproveInvoice').modal('hide');
-            }
-        });
-    });
+            let formData = new FormData(this);
+            let action = $(this).attr('action');
 
-    // Approve Invoice
-    $('#btnApproveInvoice').on('click', function() {
-        if (!currentInvoiceId) return;
-        
-        if (!confirm('Apakah Anda yakin ingin approve invoice ini?')) return;
-        
-        $.ajax({
-            url: `/invoices/${currentInvoiceId}/approve`,
-            type: 'POST',
-            data: {
-                _token: '{{ csrf_token() }}'
-            },
-            success: function(response) {
-                $('#modalApproveInvoice').modal('hide');
-                location.reload();
-            },
-            error: function(xhr) {
-                alert(xhr.responseJSON?.error || 'Gagal approve invoice');
-            }
-        });
-    });
+            $.ajax({
+                url: action,
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    $('#modalUploadInvoice').modal('hide');
+                    location.reload();
+                },
+                error: function(xhr) {
+                    let errorList = $('#errorList');
+                    errorList.html('');
 
-    // Reject Invoice
-    $('#btnRejectInvoice').on('click', function() {
-        if (!currentInvoiceId) return;
-        
-        currentAction = 'reject';
-        $('#modalRejectReviseKeteranganLabel').html('<i class="fas fa-times-circle"></i> Reject Invoice');
-        $('#modalRejectReviseHeader').removeClass('bg-warning').addClass('bg-danger');
-        $('#labelKeterangan').html('Keterangan Reject <span class="text-danger">*</span>');
-        $('#helpKeterangan').text('Masukkan keterangan reject');
-        $('#keterangan').val('');
-        $('#btnSubmitRejectRevise').removeClass('btn-warning').addClass('btn-danger').html('<i class="fas fa-times"></i> Reject');
-        $('#formRejectReviseInvoice').attr('action', `/invoices/${currentInvoiceId}/reject`);
-        $('#modalRejectReviseKeterangan').modal('show');
-    });
-
-    // Revise Invoice
-    $('#btnReviseInvoice').on('click', function() {
-        if (!currentInvoiceId) return;
-        
-        currentAction = 'revise';
-        $('#modalRejectReviseKeteranganLabel').html('<i class="fas fa-edit"></i> Revise Invoice');
-        $('#modalRejectReviseHeader').removeClass('bg-danger').addClass('bg-warning');
-        $('#labelKeterangan').html('Catatan Revisi <span class="text-danger">*</span>');
-        $('#helpKeterangan').text('Masukkan catatan revisi (penjelasan apa yang salah dan apa yang harus direvisi)');
-        $('#keterangan').val('');
-        $('#btnSubmitRejectRevise').removeClass('btn-danger').addClass('btn-warning').html('<i class="fas fa-edit"></i> Revise');
-        $('#formRejectReviseInvoice').attr('action', `/invoices/${currentInvoiceId}/revise`);
-        $('#modalRejectReviseKeterangan').modal('show');
-    });
-
-    // Submit Reject/Revise
-    $('#formRejectReviseInvoice').on('submit', function(e) {
-        e.preventDefault();
-        
-        let formData = $(this).serialize();
-        let action = $(this).attr('action');
-
-        $.ajax({
-            url: action,
-            type: 'POST',
-            data: formData,
-            success: function(response) {
-                $('#modalRejectReviseKeterangan').modal('hide');
-                $('#modalApproveInvoice').modal('hide');
-                location.reload();
-            },
-            error: function(xhr) {
-                if (xhr.status === 422) {
-                    let errors = xhr.responseJSON.errors || {};
-                    let errorMsg = '';
-                    $.each(errors, function(key, value) {
-                        if (Array.isArray(value)) {
-                            errorMsg += value.join(', ') + '\n';
+                    if (xhr.status === 422) {
+                        let errors = xhr.responseJSON.errors || xhr.responseJSON.error;
+                        if (typeof errors === 'object') {
+                            $.each(errors, function(key, value) {
+                                if (Array.isArray(value)) {
+                                    $.each(value, function(index, message) {
+                                        errorList.append('<li>' + message + '</li>');
+                                    });
+                                } else {
+                                    errorList.append('<li>' + value + '</li>');
+                                }
+                            });
                         } else {
-                            errorMsg += value + '\n';
+                            errorList.append('<li>' + (errors || 'Terjadi kesalahan') + '</li>');
                         }
-                    });
-                    alert(errorMsg || 'Validasi gagal');
-                } else {
-                    alert(xhr.responseJSON?.error || 'Gagal memproses');
+                    } else {
+                        errorList.append('<li>' + (xhr.responseJSON?.error || 'Gagal upload invoice') + '</li>');
+                    }
+
+                    $('#errorMessages').removeClass('d-none');
                 }
-            }
+            });
         });
-    });
 
-    // Revise Invoice (Supplier) - untuk invoice yang statusnya revised
-    $(document).on('click', '.revise-invoice-supplier', function(e) {
-        e.preventDefault();
-        let invoiceId = $(this).data('id');
-        
-        // Load invoice data untuk revisi
-        $.ajax({
-            url: `/invoices/${invoiceId}`,
-            type: 'GET',
-            success: function(response) {
-                let invoice = response.invoice;
-                $('#catatanRevisiText').text(invoice.catatan_revisi || '-');
-                $('#formReviseInvoice').attr('action', `/invoices/${invoiceId}`);
-                $('#reviseErrorMessages').addClass('d-none');
-                $('#modalReviseInvoice').modal('show');
-            },
-            error: function(xhr) {
-                alert('Gagal memuat data invoice');
-            }
+        // Approve/Reject/Revise Invoice (Admin)
+        $(document).on('click', '.approve-invoice, .reject-invoice, .revise-invoice', function(e) {
+            e.preventDefault();
+            currentInvoiceId = $(this).data('id');
+
+            $('#approveContent').hide();
+            $('#approveLoading').show();
+            $('#modalApproveInvoice').modal('show');
+
+            $.ajax({
+                url: `/invoices/${currentInvoiceId}`,
+                type: 'GET',
+                success: function(response) {
+                    let invoice = response.invoice;
+                    let po = invoice.purchase_order;
+
+                    $('#approve_po_number').text(po.po_number);
+                    $('#approve_supplier').html(po.supplier ? '<span class="badge badge-info">' + po.supplier.nama + '</span>' : '-');
+                    $('#approve_po_date').text(po.date ? new Date(po.date).toLocaleDateString('id-ID') : '-');
+
+                    $('#approve_download_invoice').attr('href', `/invoices/${invoice.id}/download-invoice`);
+                    $('#approve_download_surat_jalan').attr('href', `/invoices/${invoice.id}/download-surat-jalan`);
+                    $('#approve_download_faktur_pajak').attr('href', `/invoices/${invoice.id}/download-faktur-pajak`);
+
+                    $('#approveLoading').hide();
+                    $('#approveContent').show();
+                },
+                error: function(xhr) {
+                    alert('Gagal memuat data invoice');
+                    $('#modalApproveInvoice').modal('hide');
+                }
+            });
         });
-    });
 
-    // Submit Revise Invoice
-    $('#formReviseInvoice').on('submit', function(e) {
-        e.preventDefault();
-        
-        let formData = new FormData(this);
-        let action = $(this).attr('action');
+        // Approve Invoice
+        $('#btnApproveInvoice').on('click', function() {
+            if (!currentInvoiceId) return;
 
-        $.ajax({
-            url: action,
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function(response) {
-                $('#modalReviseInvoice').modal('hide');
-                location.reload();
-            },
-            error: function(xhr) {
-                let errorList = $('#reviseErrorList');
-                errorList.html('');
-                
-                if (xhr.status === 422) {
-                    let errors = xhr.responseJSON.errors || xhr.responseJSON.error;
-                    if (typeof errors === 'object') {
+            if (!confirm('Apakah Anda yakin ingin approve invoice ini?')) return;
+
+            $.ajax({
+                url: `/invoices/${currentInvoiceId}/approve`,
+                type: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    $('#modalApproveInvoice').modal('hide');
+                    location.reload();
+                },
+                error: function(xhr) {
+                    alert(xhr.responseJSON?.error || 'Gagal approve invoice');
+                }
+            });
+        });
+
+        // Reject Invoice
+        $('#btnRejectInvoice').on('click', function() {
+            if (!currentInvoiceId) return;
+
+            currentAction = 'reject';
+            $('#modalRejectReviseKeteranganLabel').html('<i class="fas fa-times-circle"></i> Reject Invoice');
+            $('#modalRejectReviseHeader').removeClass('bg-warning').addClass('bg-danger');
+            $('#labelKeterangan').html('Keterangan Reject <span class="text-danger">*</span>');
+            $('#helpKeterangan').text('Masukkan keterangan reject');
+            $('#keterangan').val('');
+            $('#btnSubmitRejectRevise').removeClass('btn-warning').addClass('btn-danger').html('<i class="fas fa-times"></i> Reject');
+            $('#formRejectReviseInvoice').attr('action', `/invoices/${currentInvoiceId}/reject`);
+            $('#modalRejectReviseKeterangan').modal('show');
+        });
+
+        // Revise Invoice
+        $('#btnReviseInvoice').on('click', function() {
+            if (!currentInvoiceId) return;
+
+            currentAction = 'revise';
+            $('#modalRejectReviseKeteranganLabel').html('<i class="fas fa-edit"></i> Revise Invoice');
+            $('#modalRejectReviseHeader').removeClass('bg-danger').addClass('bg-warning');
+            $('#labelKeterangan').html('Catatan Revisi <span class="text-danger">*</span>');
+            $('#helpKeterangan').text('Masukkan catatan revisi (penjelasan apa yang salah dan apa yang harus direvisi)');
+            $('#keterangan').val('');
+            $('#btnSubmitRejectRevise').removeClass('btn-danger').addClass('btn-warning').html('<i class="fas fa-edit"></i> Revise');
+            $('#formRejectReviseInvoice').attr('action', `/invoices/${currentInvoiceId}/revise`);
+            $('#modalRejectReviseKeterangan').modal('show');
+        });
+
+        // Submit Reject/Revise
+        $('#formRejectReviseInvoice').on('submit', function(e) {
+            e.preventDefault();
+
+            let formData = $(this).serialize();
+            let action = $(this).attr('action');
+
+            $.ajax({
+                url: action,
+                type: 'POST',
+                data: formData,
+                success: function(response) {
+                    $('#modalRejectReviseKeterangan').modal('hide');
+                    $('#modalApproveInvoice').modal('hide');
+                    location.reload();
+                },
+                error: function(xhr) {
+                    if (xhr.status === 422) {
+                        let errors = xhr.responseJSON.errors || {};
+                        let errorMsg = '';
                         $.each(errors, function(key, value) {
                             if (Array.isArray(value)) {
-                                $.each(value, function(index, message) {
-                                    errorList.append('<li>' + message + '</li>');
-                                });
+                                errorMsg += value.join(', ') + '\n';
                             } else {
-                                errorList.append('<li>' + value + '</li>');
+                                errorMsg += value + '\n';
                             }
                         });
+                        alert(errorMsg || 'Validasi gagal');
                     } else {
-                        errorList.append('<li>' + (errors || 'Terjadi kesalahan') + '</li>');
+                        alert(xhr.responseJSON?.error || 'Gagal memproses');
                     }
-                } else {
-                    errorList.append('<li>' + (xhr.responseJSON?.error || 'Gagal revisi invoice') + '</li>');
                 }
-                
-                $('#reviseErrorMessages').removeClass('d-none');
-            }
+            });
         });
-    });
 
-    // Detail Invoice
-    $(document).on('click', '.detail-invoice', function(e) {
-        e.preventDefault();
-        let invoiceId = $(this).data('id');
+        // Revise Invoice (Supplier) - untuk invoice yang statusnya revised
+        $(document).on('click', '.revise-invoice-supplier', function(e) {
+            e.preventDefault();
+            let invoiceId = $(this).data('id');
 
-        // Reset modal
-        $('#invoiceDetailContent').hide();
-        $('#invoiceDetailLoading').show();
-        $('#modalDetailInvoice').modal('show');
-
-        $.ajax({
-            url: `/invoices/${invoiceId}`,
-            type: 'GET',
-            success: function(response) {
-                let invoice = response.invoice;
-                let po = invoice.purchase_order;
-
-                // Format date helper
-                function formatDate(dateString) {
-                    if (!dateString) return '-';
-                    let date = new Date(dateString);
-                    let day = String(date.getDate()).padStart(2, '0');
-                    let month = String(date.getMonth() + 1).padStart(2, '0');
-                    let year = date.getFullYear();
-                    return day + '/' + month + '/' + year;
+            // Load invoice data untuk revisi
+            $.ajax({
+                url: `/invoices/${invoiceId}`,
+                type: 'GET',
+                success: function(response) {
+                    let invoice = response.invoice;
+                    $('#catatanRevisiText').text(invoice.catatan_revisi || '-');
+                    $('#formReviseInvoice').attr('action', `/invoices/${invoiceId}`);
+                    $('#reviseErrorMessages').addClass('d-none');
+                    $('#modalReviseInvoice').modal('show');
+                },
+                error: function(xhr) {
+                    alert('Gagal memuat data invoice');
                 }
+            });
+        });
 
-                function formatDateTime(dateString) {
-                    if (!dateString) return '-';
-                    let date = new Date(dateString);
-                    let day = String(date.getDate()).padStart(2, '0');
-                    let month = String(date.getMonth() + 1).padStart(2, '0');
-                    let year = date.getFullYear();
-                    let hours = String(date.getHours()).padStart(2, '0');
-                    let minutes = String(date.getMinutes()).padStart(2, '0');
-                    return day + '/' + month + '/' + year + ' ' + hours + ':' + minutes;
+        // Submit Revise Invoice
+        $('#formReviseInvoice').on('submit', function(e) {
+            e.preventDefault();
+
+            let formData = new FormData(this);
+            let action = $(this).attr('action');
+
+            $.ajax({
+                url: action,
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    $('#modalReviseInvoice').modal('hide');
+                    location.reload();
+                },
+                error: function(xhr) {
+                    let errorList = $('#reviseErrorList');
+                    errorList.html('');
+
+                    if (xhr.status === 422) {
+                        let errors = xhr.responseJSON.errors || xhr.responseJSON.error;
+                        if (typeof errors === 'object') {
+                            $.each(errors, function(key, value) {
+                                if (Array.isArray(value)) {
+                                    $.each(value, function(index, message) {
+                                        errorList.append('<li>' + message + '</li>');
+                                    });
+                                } else {
+                                    errorList.append('<li>' + value + '</li>');
+                                }
+                            });
+                        } else {
+                            errorList.append('<li>' + (errors || 'Terjadi kesalahan') + '</li>');
+                        }
+                    } else {
+                        errorList.append('<li>' + (xhr.responseJSON?.error || 'Gagal revisi invoice') + '</li>');
+                    }
+
+                    $('#reviseErrorMessages').removeClass('d-none');
                 }
+            });
+        });
 
-                // Fill Purchase Order Information
-                $('#invoice_detail_po_number').text(po.po_number || '-');
-                $('#invoice_detail_date').text(formatDate(po.date));
-                $('#invoice_detail_delivery_date').text(formatDate(po.delivery_date));
-                $('#invoice_detail_currency').text(po.currency || '-');
-                $('#invoice_detail_item_count').text(po.items ? po.items.length : 0);
-                $('#invoice_detail_supplier').text(po.supplier ? po.supplier.nama : '-');
+        // Detail Invoice
+        $(document).on('click', '.detail-invoice', function(e) {
+            e.preventDefault();
+            let invoiceId = $(this).data('id');
 
-                // Fill Invoice Information
-                let statusBadge = '';
-                if (invoice.status == 'pending') {
-                    statusBadge = '<span class="badge badge-warning">Pending</span>';
-                } else if (invoice.status == 'revised') {
-                    statusBadge = '<span class="badge badge-danger">Revised</span>';
-                } else if (invoice.status == 'approved') {
-                    statusBadge = '<span class="badge badge-success">Approved</span>';
-                } else if (invoice.status == 'rejected') {
-                    statusBadge = '<span class="badge badge-danger">Rejected</span>';
-                }
-                $('#invoice_detail_status').html(statusBadge);
-                $('#invoice_detail_upload_date').text(formatDateTime(invoice.created_at));
+            // Reset modal
+            $('#invoiceDetailContent').hide();
+            $('#invoiceDetailLoading').show();
+            $('#modalDetailInvoice').modal('show');
 
-                // Fill Items Table
-                let itemsBody = $('#invoice_detail_items_body');
-                itemsBody.html('');
+            $.ajax({
+                url: `/invoices/${invoiceId}`,
+                type: 'GET',
+                success: function(response) {
+                    let invoice = response.invoice;
+                    let po = invoice.purchase_order;
 
-                if (po.items && po.items.length > 0) {
-                    po.items.forEach(function(item, index) {
-                        let pricePerUnit = item.price_per_unit ? parseFloat(item.price_per_unit).toLocaleString('id-ID', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        }) : '0.00';
+                    // Format date helper
+                    function formatDate(dateString) {
+                        if (!dateString) return '-';
+                        let date = new Date(dateString);
+                        let day = String(date.getDate()).padStart(2, '0');
+                        let month = String(date.getMonth() + 1).padStart(2, '0');
+                        let year = date.getFullYear();
+                        return day + '/' + month + '/' + year;
+                    }
 
-                        let netValue = item.net_value ? parseFloat(item.net_value).toLocaleString('id-ID', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        }) : '0.00';
+                    function formatDateTime(dateString) {
+                        if (!dateString) return '-';
+                        let date = new Date(dateString);
+                        let day = String(date.getDate()).padStart(2, '0');
+                        let month = String(date.getMonth() + 1).padStart(2, '0');
+                        let year = date.getFullYear();
+                        let hours = String(date.getHours()).padStart(2, '0');
+                        let minutes = String(date.getMinutes()).padStart(2, '0');
+                        return day + '/' + month + '/' + year + ' ' + hours + ':' + minutes;
+                    }
 
-                        itemsBody.append(
-                            '<tr>' +
-                            '<td>' + (index + 1) + '</td>' +
-                            '<td>' + (item.item_number || '-') + '</td>' +
-                            '<td>' + (item.material_code || '-') + '</td>' +
-                            '<td>' + (item.vendor_material || '-') + '</td>' +
-                            '<td>' + (item.description || '-') + '</td>' +
-                            '<td class="text-center">' + (item.quantity || 0) + '</td>' +
-                            '<td class="text-right">' + pricePerUnit + '</td>' +
-                            '<td class="text-right">' + netValue + '</td>' +
-                            '</tr>'
-                        );
+                    // Fill Purchase Order Information
+                    $('#invoice_detail_po_number').text(po.po_number || '-');
+                    $('#invoice_detail_date').text(formatDate(po.date));
+                    $('#invoice_detail_delivery_date').text(formatDate(po.delivery_date));
+                    $('#invoice_detail_currency').text(po.currency || '-');
+                    $('#invoice_detail_item_count').text(po.items ? po.items.length : 0);
+                    $('#invoice_detail_supplier').text(po.supplier ? po.supplier.nama : '-');
+
+                    // Fill Invoice Information
+                    let statusBadge = '';
+                    if (invoice.status == 'pending') {
+                        statusBadge = '<span class="badge badge-warning">Pending</span>';
+                    } else if (invoice.status == 'revised') {
+                        statusBadge = '<span class="badge badge-danger">Revised</span>';
+                    } else if (invoice.status == 'approved') {
+                        statusBadge = '<span class="badge badge-success">Approved</span>';
+                    } else if (invoice.status == 'rejected') {
+                        statusBadge = '<span class="badge badge-danger">Rejected</span>';
+                    }
+                    $('#invoice_detail_status').html(statusBadge);
+                    $('#invoice_detail_upload_date').text(formatDateTime(invoice.created_at));
+
+                    // Fill Items Table
+                    let itemsBody = $('#invoice_detail_items_body');
+                    itemsBody.html('');
+
+                    if (po.items && po.items.length > 0) {
+                        po.items.forEach(function(item, index) {
+                            let pricePerUnit = item.price_per_unit ? parseFloat(item.price_per_unit).toLocaleString('id-ID', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }) : '0.00';
+
+                            let netValue = item.net_value ? parseFloat(item.net_value).toLocaleString('id-ID', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }) : '0.00';
+
+                            itemsBody.append(
+                                '<tr>' +
+                                '<td>' + (index + 1) + '</td>' +
+                                '<td>' + (item.item_number || '-') + '</td>' +
+                                '<td>' + (item.material_code || '-') + '</td>' +
+                                '<td>' + (item.vendor_material || '-') + '</td>' +
+                                '<td>' + (item.description || '-') + '</td>' +
+                                '<td class="text-center">' + (item.quantity || 0) + '</td>' +
+                                '<td class="text-right">' + pricePerUnit + '</td>' +
+                                '<td class="text-right">' + netValue + '</td>' +
+                                '</tr>'
+                            );
+                        });
+                    } else {
+                        itemsBody.append('<tr><td colspan="8" class="text-center">Tidak ada data items</td></tr>');
+                    }
+
+                    // Set button click handlers for opening documents in new tab
+                    $('#btn_open_invoice').off('click').on('click', function() {
+                        window.open(`/invoices/${invoiceId}/download-invoice`, '_blank');
                     });
-                } else {
-                    itemsBody.append('<tr><td colspan="8" class="text-center">Tidak ada data items</td></tr>');
+
+                    $('#btn_open_surat_jalan').off('click').on('click', function() {
+                        window.open(`/invoices/${invoiceId}/download-surat-jalan`, '_blank');
+                    });
+
+                    $('#btn_open_faktur_pajak').off('click').on('click', function() {
+                        window.open(`/invoices/${invoiceId}/download-faktur-pajak`, '_blank');
+                    });
+
+                    // Show content
+                    $('#invoiceDetailLoading').hide();
+                    $('#invoiceDetailContent').show();
+                },
+                error: function() {
+                    $('#invoiceDetailLoading').html('<div class="alert alert-danger">Gagal memuat data Invoice</div>');
                 }
-
-                // Set button click handlers for opening documents in new tab
-                $('#btn_open_invoice').off('click').on('click', function() {
-                    window.open(`/invoices/${invoiceId}/download-invoice`, '_blank');
-                });
-
-                $('#btn_open_surat_jalan').off('click').on('click', function() {
-                    window.open(`/invoices/${invoiceId}/download-surat-jalan`, '_blank');
-                });
-
-                $('#btn_open_faktur_pajak').off('click').on('click', function() {
-                    window.open(`/invoices/${invoiceId}/download-faktur-pajak`, '_blank');
-                });
-
-                // Show content
-                $('#invoiceDetailLoading').hide();
-                $('#invoiceDetailContent').show();
-            },
-            error: function() {
-                $('#invoiceDetailLoading').html('<div class="alert alert-danger">Gagal memuat data Invoice</div>');
-            }
+            });
         });
     });
-});
 </script>
 @endpush

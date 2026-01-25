@@ -1,0 +1,125 @@
+/* Custom Tailwind CSS Utilities */
+
+/* Typography */
+.text-gradient {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-blue-800;
+}
+
+/* Cards */
+.card-tailwind {
+  @apply bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300;
+}
+
+.card-header-tailwind {
+  @apply bg-gradient-to-r from-blue-50 to-blue-100 border-b border-blue-200 px-6 py-4 flex items-center;
+}
+
+.card-body-tailwind {
+  @apply p-6;
+}
+
+/* Buttons */
+.btn-primary-tailwind {
+  @apply px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium;
+}
+
+.btn-secondary-tailwind {
+  @apply px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-200 font-medium;
+}
+
+.btn-success-tailwind {
+  @apply px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 font-medium;
+}
+
+.btn-danger-tailwind {
+  @apply px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 font-medium;
+}
+
+.btn-warning-tailwind {
+  @apply px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors duration-200 font-medium;
+}
+
+.btn-sm-tailwind {
+  @apply px-2 py-1 text-sm rounded;
+}
+
+/* Badges */
+.badge-primary-tailwind {
+  @apply inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium;
+}
+
+.badge-success-tailwind {
+  @apply inline-block px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium;
+}
+
+.badge-danger-tailwind {
+  @apply inline-block px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium;
+}
+
+.badge-warning-tailwind {
+  @apply inline-block px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium;
+}
+
+.badge-info-tailwind {
+  @apply inline-block px-3 py-1 bg-cyan-100 text-cyan-800 rounded-full text-sm font-medium;
+}
+
+/* Tables */
+.table-tailwind {
+  @apply w-full border-collapse;
+}
+
+.table-tailwind thead tr {
+  @apply bg-gradient-to-r from-gray-100 to-gray-50 border-b-2 border-gray-300;
+}
+
+.table-tailwind tbody tr {
+  @apply border-b border-gray-200 hover:bg-gray-50 transition-colors duration-200;
+}
+
+.table-tailwind th {
+  @apply px-6 py-3 text-left font-semibold text-gray-700;
+}
+
+.table-tailwind td {
+  @apply px-6 py-3;
+}
+
+/* Forms */
+.input-tailwind {
+  @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200;
+}
+
+.textarea-tailwind {
+  @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none;
+}
+
+.select-tailwind {
+  @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200;
+}
+
+/* Alerts */
+.alert-success-tailwind {
+  @apply bg-green-50 border-l-4 border-green-600 p-4 rounded text-green-700;
+}
+
+.alert-danger-tailwind {
+  @apply bg-red-50 border-l-4 border-red-600 p-4 rounded text-red-700;
+}
+
+.alert-warning-tailwind {
+  @apply bg-yellow-50 border-l-4 border-yellow-600 p-4 rounded text-yellow-700;
+}
+
+.alert-info-tailwind {
+  @apply bg-blue-50 border-l-4 border-blue-600 p-4 rounded text-blue-700;
+}
+
+/* Utility Classes */
+.shadow-smooth {
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 5px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.transition-smooth {
+  @apply transition-all duration-300 ease-in-out;
+}

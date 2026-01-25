@@ -18,25 +18,42 @@ class InvoiceController extends Controller
     {
         $user = auth()->user();
         $userRole = $user->role->name ?? null;
-        
-        // Untuk Admin: tampilkan semua invoice
+
+        // Query untuk invoice yang pending/revised (belum selesai)
         if ($userRole === 'Admin') {
-            $invoices = Invoice::with('purchaseOrder.supplier', 'purchaseOrder.items')
+            $ongoingInvoices = Invoice::with('purchaseOrder.supplier', 'purchaseOrder.items')
+                ->whereIn('status', ['pending', 'revised'])
                 ->latest()
-                ->paginate(10);
+                ->paginate(10, ['*'], 'ongoing_page');
+
+            $completedInvoices = Invoice::with('purchaseOrder.supplier', 'purchaseOrder.items')
+                ->whereIn('status', ['approved', 'rejected'])
+                ->latest()
+                ->paginate(10, ['*'], 'completed_page');
         } else {
             // Untuk Supplier: tampilkan invoice mereka
-            $query = Invoice::with('purchaseOrder.supplier', 'purchaseOrder.items')->latest();
+            $ongoingQuery = Invoice::with('purchaseOrder.supplier', 'purchaseOrder.items')
+                ->whereIn('status', ['pending', 'revised'])
+                ->latest();
+
+            $completedQuery = Invoice::with('purchaseOrder.supplier', 'purchaseOrder.items')
+                ->whereIn('status', ['approved', 'rejected'])
+                ->latest();
 
             if ($userRole === 'Supplier' && $user->supplier_id) {
-                $query->whereHas('purchaseOrder', function($q) use ($user) {
+                $ongoingQuery->whereHas('purchaseOrder', function ($q) use ($user) {
+                    $q->where('supplier_id', $user->supplier_id);
+                });
+
+                $completedQuery->whereHas('purchaseOrder', function ($q) use ($user) {
                     $q->where('supplier_id', $user->supplier_id);
                 });
             }
 
-            $invoices = $query->paginate(10);
+            $ongoingInvoices = $ongoingQuery->paginate(10, ['*'], 'ongoing_page');
+            $completedInvoices = $completedQuery->paginate(10, ['*'], 'completed_page');
         }
-        
+
         // Untuk Supplier: ambil juga PO received yang belum ada invoice
         $purchaseOrdersWithoutInvoice = collect();
         if ($userRole === 'Supplier' && $user->supplier_id) {
@@ -47,8 +64,8 @@ class InvoiceController extends Controller
                 ->latest()
                 ->get();
         }
-        
-        return view('invoices.index', compact('invoices', 'userRole', 'purchaseOrdersWithoutInvoice'), ['tittle' => 'Penagihan Invoice | Portal Supplier']);
+
+        return view('invoices.index', compact('ongoingInvoices', 'completedInvoices', 'userRole', 'purchaseOrdersWithoutInvoice'), ['tittle' => 'Penagihan Invoice | Portal Supplier']);
     }
 
     /**
@@ -66,7 +83,7 @@ class InvoiceController extends Controller
     {
         $user = auth()->user();
         $userRole = $user->role->name ?? null;
-        
+
         // Check if user is Supplier
         if ($userRole !== 'Supplier') {
             if ($request->ajax()) {
@@ -147,7 +164,7 @@ class InvoiceController extends Controller
             if ($purchaseOrder->invoice && $purchaseOrder->invoice->status === 'revised') {
                 // Update existing invoice (revision)
                 $invoice = $purchaseOrder->invoice;
-                
+
                 // Delete old files
                 if ($invoice->invoice_file && Storage::disk('public')->exists($invoice->invoice_file)) {
                     Storage::disk('public')->delete($invoice->invoice_file);
@@ -158,7 +175,7 @@ class InvoiceController extends Controller
                 if ($invoice->faktur_pajak_file && Storage::disk('public')->exists($invoice->faktur_pajak_file)) {
                     Storage::disk('public')->delete($invoice->faktur_pajak_file);
                 }
-                
+
                 $invoice->update([
                     'invoice_file' => $invoicePath,
                     'surat_jalan_file' => $suratJalanPath,
@@ -186,7 +203,7 @@ class InvoiceController extends Controller
             return redirect()->route('invoices.index')->with('success', 'Invoice berhasil diupload');
         } catch (\Exception $e) {
             DB::rollBack();
-            
+
             // Delete uploaded files if transaction fails
             if (isset($invoicePath) && Storage::disk('public')->exists($invoicePath)) {
                 Storage::disk('public')->delete($invoicePath);
@@ -212,11 +229,11 @@ class InvoiceController extends Controller
     public function show(Invoice $invoice)
     {
         $invoice->load('purchaseOrder.supplier', 'purchaseOrder.items');
-        
+
         if (request()->ajax()) {
             return response()->json(['invoice' => $invoice]);
         }
-        
+
         return view('invoices.show', compact('invoice'), ['tittle' => 'Detail Invoice | Portal Supplier']);
     }
 
@@ -227,7 +244,7 @@ class InvoiceController extends Controller
     {
         $user = auth()->user();
         $userRole = $user->role->name ?? null;
-        
+
         // Check if user is Supplier
         if ($userRole !== 'Supplier') {
             if ($request->ajax()) {
@@ -313,7 +330,7 @@ class InvoiceController extends Controller
             return redirect()->route('invoices.index')->with('success', 'Invoice berhasil direvisi');
         } catch (\Exception $e) {
             DB::rollBack();
-            
+
             if ($request->ajax()) {
                 return response()->json(['error' => 'Gagal revisi invoice: ' . $e->getMessage()], 500);
             }
@@ -329,7 +346,7 @@ class InvoiceController extends Controller
     {
         $user = auth()->user();
         $userRole = $user->role->name ?? null;
-        
+
         // Check if user is Admin
         if ($userRole !== 'Admin') {
             if ($request->ajax()) {
@@ -365,7 +382,7 @@ class InvoiceController extends Controller
     {
         $user = auth()->user();
         $userRole = $user->role->name ?? null;
-        
+
         // Check if user is Admin
         if ($userRole !== 'Admin') {
             if ($request->ajax()) {
@@ -407,7 +424,7 @@ class InvoiceController extends Controller
     {
         $user = auth()->user();
         $userRole = $user->role->name ?? null;
-        
+
         // Check if user is Admin
         if ($userRole !== 'Admin') {
             if ($request->ajax()) {

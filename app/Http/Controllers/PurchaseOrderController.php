@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use setasign\Fpdi\Fpdi;
 
 class PurchaseOrderController extends Controller
 {
@@ -23,27 +24,40 @@ class PurchaseOrderController extends Controller
     {
         $user = auth()->user();
         $userRole = $user->role->name ?? null;
-        
-        $query = PurchaseOrder::with('supplier')->withCount('items')->latest();
-        
-        // Jika user adalah Supplier, hanya tampilkan PO yang supplier_id nya sesuai
-        if ($userRole === 'Supplier' && $user->supplier_id) {
-            $query->where('supplier_id', $user->supplier_id);
-            // Supplier melihat semua status (tidak filter on_progress)
-        } else {
-            // Admin dan Dept. Head: exclude status on_progress dan received (masuk ke menu Penerimaan Barang)
-            $query->whereNotIn('status', ['on_progress', 'received']);
-        }
-        
-        $purchaseOrders = $query->paginate(10);
-        
+
         // Get suppliers for dropdown (only for Admin and Dept. Head)
         $suppliers = null;
         if (in_array($userRole, ['Admin', 'Dept. Head'])) {
             $suppliers = Supplier::all();
         }
-        
-        return view('purchase-orders.index', compact('purchaseOrders', 'userRole', 'suppliers'), ['tittle' => 'Purchase Order | Portal Supplier']);
+
+        // Jika user adalah Supplier, hanya tampilkan PO yang supplier_id nya sesuai
+        if ($userRole === 'Supplier' && $user->supplier_id) {
+            // Supplier melihat semua status (tidak filter on_progress)
+            $ongoingQuery = PurchaseOrder::with('supplier')->withCount('items')
+                ->where('supplier_id', $user->supplier_id)
+                ->whereNotIn('status', ['on_progress', 'received'])
+                ->latest();
+
+            $completedQuery = PurchaseOrder::with('supplier')->withCount('items')
+                ->where('supplier_id', $user->supplier_id)
+                ->whereIn('status', ['on_progress', 'received'])
+                ->latest();
+        } else {
+            // Admin dan Dept. Head: split between ongoing dan completed
+            $ongoingQuery = PurchaseOrder::with('supplier')->withCount('items')
+                ->whereNotIn('status', ['on_progress', 'received'])
+                ->latest();
+
+            $completedQuery = PurchaseOrder::with('supplier')->withCount('items')
+                ->whereIn('status', ['on_progress', 'received'])
+                ->latest();
+        }
+
+        $ongoingPurchaseOrders = $ongoingQuery->paginate(10, ['*'], 'ongoing_page');
+        $completedPurchaseOrders = $completedQuery->paginate(10, ['*'], 'completed_page');
+
+        return view('purchase-orders.index', compact('ongoingPurchaseOrders', 'completedPurchaseOrders', 'userRole', 'suppliers'), ['tittle' => 'Purchase Order | Portal Supplier']);
     }
 
     /**
@@ -61,13 +75,13 @@ class PurchaseOrderController extends Controller
     {
         $user = auth()->user();
         $userRole = $user->role->name ?? null;
-        
+
         try {
             $rules = [
                 'pdf_files' => 'required|array|min:1',
                 'pdf_files.*' => 'required|file|mimes:pdf|max:10240', // Max 10MB per file
             ];
-            
+
             $messages = [
                 'pdf_files.required' => 'File PDF harus diisi',
                 'pdf_files.array' => 'Format file tidak valid',
@@ -77,14 +91,14 @@ class PurchaseOrderController extends Controller
                 'pdf_files.*.mimes' => 'File harus berformat PDF',
                 'pdf_files.*.max' => 'Ukuran file maksimal 10MB',
             ];
-            
+
             // Validate supplier_id - wajib untuk Admin dan Dept. Head
             if (in_array($userRole, ['Admin', 'Dept. Head'])) {
                 $rules['supplier_id'] = 'required|exists:suppliers,id';
                 $messages['supplier_id.required'] = 'Supplier harus dipilih';
                 $messages['supplier_id.exists'] = 'Supplier tidak valid';
             }
-            
+
             $request->validate($rules, $messages);
         } catch (ValidationException $e) {
             if ($request->ajax()) {
@@ -114,15 +128,15 @@ class PurchaseOrderController extends Controller
                     // Simpan file PDF
                     $filename = time() . '_' . Str::random(10) . '.' . $pdfFile->getClientOriginalExtension();
                     $path = $pdfFile->storeAs('purchase-orders', $filename, 'public');
-                    
+
                     // Extract data dari PDF
                     $extractedData = $pdfExtractor->extractPurchaseOrderData($path);
-                    
+
                     // Generate PO number jika tidak ditemukan dari PDF
                     if (empty($extractedData['po_number'])) {
                         $extractedData['po_number'] = 'PO-' . time() . '-' . Str::random(6);
                     }
-                    
+
                     // Ensure PO number is unique
                     $originalPoNumber = $extractedData['po_number'];
                     $counter = 1;
@@ -130,10 +144,10 @@ class PurchaseOrderController extends Controller
                         $extractedData['po_number'] = $originalPoNumber . '-' . $counter;
                         $counter++;
                     }
-                    
+
                     // Determine supplier_id: use from request first, then from extracted data
                     $supplierId = $request->supplier_id ?? $extractedData['supplier_id'] ?? null;
-                    
+
                     // Set default values if not found
                     $poData = [
                         'po_number' => $extractedData['po_number'],
@@ -147,10 +161,10 @@ class PurchaseOrderController extends Controller
                         'keterangan' => 'Menunggu Approval Dept. Head',
                         'supplier_id' => $supplierId, // Use selected supplier or auto-detected supplier
                     ];
-                    
+
                     // Create Purchase Order
                     $purchaseOrder = PurchaseOrder::create($poData);
-                    
+
                     // Create Purchase Order Items
                     if (!empty($extractedData['items']) && is_array($extractedData['items'])) {
                         foreach ($extractedData['items'] as $itemData) {
@@ -165,30 +179,30 @@ class PurchaseOrderController extends Controller
                                 'net_value' => $itemData['net_value'] ?? 0,
                             ]);
                         }
-                        
+
                         // Update item count
                         $purchaseOrder->update(['item_count' => count($extractedData['items'])]);
                     }
-                    
+
                     $successCount++;
                 } catch (\Exception $e) {
                     Log::error('Error processing PDF file: ' . $pdfFile->getClientOriginalName() . ' - ' . $e->getMessage());
                     $errorMessages[] = $pdfFile->getClientOriginalName() . ': ' . $e->getMessage();
-                    
+
                     // Delete the uploaded file if processing failed
                     if (isset($path) && Storage::disk('public')->exists($path)) {
                         Storage::disk('public')->delete($path);
                     }
                 }
             }
-            
+
             DB::commit();
-            
+
             $message = $successCount . ' file PDF berhasil diupload dan diextract';
             if (!empty($errorMessages)) {
                 $message .= '. Beberapa file gagal: ' . implode(', ', $errorMessages);
             }
-            
+
             if ($request->ajax()) {
                 return response()->json([
                     'success' => $message,
@@ -196,25 +210,24 @@ class PurchaseOrderController extends Controller
                     'errors' => $errorMessages
                 ]);
             }
-            
+
             return redirect()->route('purchase-orders.index')
                 ->with('success', $message)
                 ->with('errors', $errorMessages);
-                
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error in store Purchase Order: ' . $e->getMessage());
             Log::error('Error trace: ' . $e->getTraceAsString());
-            
+
             $errorMessage = 'Gagal memproses file PDF: ' . $e->getMessage();
-            
+
             if ($request->ajax()) {
                 return response()->json([
                     'error' => $errorMessage,
                     'message' => $e->getMessage()
                 ], 500);
             }
-            
+
             return redirect()->back()
                 ->with('error', $errorMessage);
         }
@@ -226,11 +239,11 @@ class PurchaseOrderController extends Controller
     public function show(PurchaseOrder $purchaseOrder)
     {
         $purchaseOrder->load('items', 'supplier');
-        
+
         if (request()->ajax()) {
             return response()->json(['purchase_order' => $purchaseOrder]);
         }
-        
+
         return view('purchase-orders.show', compact('purchaseOrder'), ['tittle' => 'Detail Purchase Order | Portal Supplier']);
     }
 
@@ -307,6 +320,57 @@ class PurchaseOrderController extends Controller
     {
         if (!$purchaseOrder->pdf_path || !Storage::disk('public')->exists($purchaseOrder->pdf_path)) {
             return redirect()->back()->with('error', 'File PDF tidak ditemukan');
+        }
+
+        // Jika status approved, tambahkan watermark
+        if ($purchaseOrder->status === 'approved') {
+            try {
+                // Get the PDF file
+                $pdfPath = Storage::disk('public')->path($purchaseOrder->pdf_path);
+
+                // Create a new PDF instance with watermark
+                $pdf = new Fpdi();
+
+                // Get the number of pages
+                $pageCount = $pdf->setSourceFile($pdfPath);
+
+                // Process each page
+                for ($pageNum = 1; $pageNum <= $pageCount; $pageNum++) {
+                    $templateId = $pdf->importPage($pageNum);
+                    $pdf->addPage();
+                    $pdf->useTemplate($templateId);
+
+                    // Add watermark on bottom right
+                    // Using lighter color to simulate transparency effect
+                    $pdf->SetFont('Arial', 'B', 24);
+                    $pdf->SetTextColor(144, 200, 154); // Lighter green for transparency effect
+
+                    // Get page dimensions
+                    $pageWidth = $pdf->GetPageWidth();
+                    $pageHeight = $pdf->GetPageHeight();
+
+                    // Position text at bottom right
+                    $pdf->SetXY($pageWidth - 70, $pageHeight - 50);
+                    $pdf->Write(10, 'APPROVED');
+
+                    // Add second line
+                    $pdf->SetFont('Arial', '', 10);
+                    $pdf->SetXY($pageWidth - 65, $pageHeight - 35);
+                    $pdf->Write(5, 'by Dept Head');
+                }
+
+                // Output the PDF
+                $filename = basename($purchaseOrder->pdf_path, '.pdf') . '_approved.pdf';
+                return response()->streamDownload(function () use ($pdf) {
+                    echo $pdf->Output('S');
+                }, $filename, [
+                    'Content-Type' => 'application/pdf',
+                ]);
+            } catch (\Exception $e) {
+                Log::error('Error adding watermark to PDF: ' . $e->getMessage());
+                // Fall back to download original PDF if watermark fails
+                return Storage::disk('public')->download($purchaseOrder->pdf_path);
+            }
         }
 
         return Storage::disk('public')->download($purchaseOrder->pdf_path);
@@ -403,7 +467,7 @@ class PurchaseOrderController extends Controller
     {
         $user = auth()->user();
         $userRole = $user->role->name ?? null;
-        
+
         // Check if user is Supplier
         if ($userRole !== 'Supplier') {
             if ($request->ajax()) {
@@ -419,7 +483,7 @@ class PurchaseOrderController extends Controller
                 'user_email' => $user->email,
                 'user_role' => $userRole
             ]);
-            
+
             if ($request->ajax()) {
                 return response()->json([
                     'error' => 'User tidak terkait dengan supplier. Silakan hubungi admin untuk menghubungkan user dengan supplier.'
@@ -487,7 +551,7 @@ class PurchaseOrderController extends Controller
 
         $user = auth()->user();
         $userRole = $user->role->name ?? null;
-        
+
         // Check if user is Supplier
         if ($userRole !== 'Supplier') {
             if ($request->ajax()) {
@@ -533,30 +597,38 @@ class PurchaseOrderController extends Controller
     }
 
     /**
-     * Display Penerimaan Barang (PO dengan status on_progress)
+     * Display Penerimaan Barang (PO dengan status on_progress dan received)
      */
     public function penerimaanBarang()
     {
         $user = auth()->user();
         $userRole = $user->role->name ?? null;
-        
+
         // Check if user is Admin, Dept. Head, or Supplier
         if (!in_array($userRole, ['Admin', 'Dept. Head', 'Supplier'])) {
             return redirect()->back()->with('error', 'Anda tidak memiliki hak akses');
         }
-        
-        $query = PurchaseOrder::with('supplier')
+
+        // Ongoing query (on_progress)
+        $ongoingQuery = PurchaseOrder::with('supplier')
             ->withCount('items')
-            ->whereIn('status', ['on_progress', 'received']);
-        
+            ->where('status', 'on_progress');
+
+        // Completed query (received)
+        $completedQuery = PurchaseOrder::with('supplier')
+            ->withCount('items')
+            ->where('status', 'received');
+
         // Jika user adalah Supplier, hanya tampilkan PO yang supplier_id nya sesuai
         if ($userRole === 'Supplier' && $user->supplier_id) {
-            $query->where('supplier_id', $user->supplier_id);
+            $ongoingQuery->where('supplier_id', $user->supplier_id);
+            $completedQuery->where('supplier_id', $user->supplier_id);
         }
-        
-        $purchaseOrders = $query->latest()->paginate(10);
-        
-        return view('purchase-orders.penerimaan-barang', compact('purchaseOrders', 'userRole'), ['tittle' => 'Penerimaan Barang | Portal Supplier']);
+
+        $ongoingPurchaseOrders = $ongoingQuery->latest()->paginate(10, ['*'], 'ongoing_page');
+        $completedPurchaseOrders = $completedQuery->latest()->paginate(10, ['*'], 'completed_page');
+
+        return view('purchase-orders.penerimaan-barang', compact('ongoingPurchaseOrders', 'completedPurchaseOrders', 'userRole'), ['tittle' => 'Penerimaan Barang | Portal Supplier']);
     }
 
     /**
@@ -582,7 +654,7 @@ class PurchaseOrderController extends Controller
     {
         $user = auth()->user();
         $userRole = $user->role->name ?? null;
-        
+
         // Check if user is Admin
         if ($userRole !== 'Admin') {
             if ($request->ajax()) {

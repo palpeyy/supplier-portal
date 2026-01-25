@@ -9,45 +9,61 @@ Penerimaan Barang
 @endsection
 
 @section('isi')
-<div class="container-fluid">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Daftar Purchase Order - Pesanan Sedang Diproses</h3>
-                </div>
+<div class="w-full max-w-full px-4 py-6">
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <!-- Nav tabs -->
+        <div class="border-b border-gray-200 px-6 py-4">
+            <ul class="nav nav-tabs" id="penerimaanBarangTabs" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="ongoing-tab" data-toggle="tab" href="#ongoing" role="tab" aria-controls="ongoing" aria-selected="true">
+                        <i class="fas fa-hourglass-half"></i> Sedang Diproses <span class="badge badge-primary">{{ $ongoingPurchaseOrders->total() }}</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="completed-tab" data-toggle="tab" href="#completed" role="tab" aria-controls="completed" aria-selected="false">
+                        <i class="fas fa-check-circle"></i> Selesai Diterima <span class="badge badge-success">{{ $completedPurchaseOrders->total() }}</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
 
-                <div class="card-body">
-                    @if(session('success'))
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        {{ session('success') }}
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    @endif
+        <div class="card-body table-responsive p-0">
+            @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert" style="margin-bottom: 0; border-radius: 0;">
+                {{ session('success') }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            @endif
 
-                    @if(session('error'))
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        {{ session('error') }}
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    @endif
+            @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show" role="alert" style="margin-bottom: 0; border-radius: 0;">
+                {{ session('error') }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            @endif
 
-                    @if($errors->any())
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <strong>Terjadi Kesalahan!</strong>
-                        <ul class="mt-2 mb-0">
-                            @foreach($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    @endif
+            @if($errors->any())
+            <div class="alert alert-danger alert-dismissible fade show" role="alert" style="margin-bottom: 0; border-radius: 0;">
+                <strong>Terjadi Kesalahan!</strong>
+                <ul class="mt-2 mb-0">
+                    @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            @endif
 
+            <!-- Tab panes -->
+            <div class="tab-content">
+                <!-- Ongoing Tab -->
+                <div class="tab-pane fade show active" id="ongoing" role="tabpanel" aria-labelledby="ongoing-tab">
                     <table class="table table-hover text-nowrap">
                         <thead>
                             <tr>
@@ -63,9 +79,9 @@ Penerimaan Barang
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($purchaseOrders as $po)
+                            @forelse($ongoingPurchaseOrders as $po)
                             <tr>
-                                <td>{{ ($purchaseOrders->currentPage() - 1) * $purchaseOrders->perPage() + $loop->iteration }}</td>
+                                <td>{{ ($ongoingPurchaseOrders->currentPage() - 1) * $ongoingPurchaseOrders->perPage() + $loop->iteration }}</td>
                                 <td>
                                     @if($po->no_surat_jalan)
                                     <a href="{{ route('purchase-orders.print-surat-jalan', $po->id) }}" target="_blank" class="text-primary">
@@ -87,11 +103,9 @@ Penerimaan Barang
                                 <td>{{ $po->eta ? $po->eta->format('d/m/Y') : '-' }}</td>
                                 <td>
                                     @if($po->status == 'on_progress')
-                                        <span class="badge badge-primary">On Progress</span>
-                                    @elseif($po->status == 'received')
-                                        <span class="badge badge-success">Received</span>
+                                    <span class="badge badge-primary">On Progress</span>
                                     @else
-                                        <span class="badge badge-secondary">{{ $po->status ?? '-' }}</span>
+                                    <span class="badge badge-secondary">{{ $po->status ?? '-' }}</span>
                                     @endif
                                 </td>
                                 <td>{{ $po->keterangan ?? '-' }}</td>
@@ -113,15 +127,87 @@ Penerimaan Barang
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="9" class="text-center">Tidak ada data Penerimaan Barang</td>
+                                <td colspan="9" class="text-center text-muted py-4">Tidak ada data pesanan sedang diproses</td>
                             </tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
 
-                <div class="card-footer">
-                    {{ $purchaseOrders->links() }}
+                <!-- Completed Tab -->
+                <div class="tab-pane fade" id="completed" role="tabpanel" aria-labelledby="completed-tab">
+                    <table class="table table-hover text-nowrap">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Surat Jalan</th>
+                                <th>PO Number</th>
+                                <th>Supplier</th>
+                                <th>ETD</th>
+                                <th>ETA</th>
+                                <th>Status</th>
+                                <th>Keterangan</th>
+                                <th width="200">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($completedPurchaseOrders as $po)
+                            <tr>
+                                <td>{{ ($completedPurchaseOrders->currentPage() - 1) * $completedPurchaseOrders->perPage() + $loop->iteration }}</td>
+                                <td>
+                                    @if($po->no_surat_jalan)
+                                    <a href="{{ route('purchase-orders.print-surat-jalan', $po->id) }}" target="_blank" class="text-primary">
+                                        {{ $po->no_surat_jalan }}
+                                    </a>
+                                    @else
+                                    <span class="text-muted">-</span>
+                                    @endif
+                                </td>
+                                <td>{{ $po->po_number }}</td>
+                                <td>
+                                    @if($po->supplier)
+                                    <span class="badge badge-info">{{ $po->supplier->nama }}</span>
+                                    @else
+                                    <span class="text-muted">-</span>
+                                    @endif
+                                </td>
+                                <td>{{ $po->etd ? $po->etd->format('d/m/Y') : '-' }}</td>
+                                <td>{{ $po->eta ? $po->eta->format('d/m/Y') : '-' }}</td>
+                                <td>
+                                    <span class="badge badge-success">Received</span>
+                                </td>
+                                <td>{{ $po->keterangan ?? '-' }}</td>
+                                <td>
+                                    <a class="btn btn-primary btn-sm detail-po" href="#" data-id="{{ $po->id }}" title="Detail">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    @if($po->pdf_path)
+                                    <a class="btn btn-info btn-sm" href="{{ route('purchase-orders.download', $po->id) }}" title="Download PDF" target="_blank">
+                                        <i class="fas fa-download"></i>
+                                    </a>
+                                    @endif
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="9" class="text-center text-muted py-4">Tidak ada data barang yang selesai diterima</td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-footer">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Sedang Diproses</h6>
+                    {{ $ongoingPurchaseOrders->render() }}
+                </div>
+                <div class="col-md-6">
+                    <h6>Selesai Diterima</h6>
+                    {{ $completedPurchaseOrders->render() }}
                 </div>
             </div>
         </div>
@@ -266,7 +352,7 @@ Penerimaan Barang
                 type: 'GET',
                 success: function(response) {
                     let po = response.purchase_order;
-                    
+
                     // Format date helper
                     function formatDate(dateString) {
                         if (!dateString) return '-';
@@ -296,7 +382,7 @@ Penerimaan Barang
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             }) : '0.00';
-                            
+
                             let netValue = item.net_value ? parseFloat(item.net_value).toLocaleString('id-ID', {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
@@ -354,4 +440,3 @@ Penerimaan Barang
     });
 </script>
 @endpush
-

@@ -3,271 +3,213 @@
 @section('page_title', 'Master Vendor')
 
 @section('breadcrumb')
-  <li class="breadcrumb-item"><a href="{{ url('/dashboard') }}">Home</a></li>
-  <li class="breadcrumb-item">Master Data</li>
-  <li class="breadcrumb-item active">Vendor</li>
+<li class="flex items-center"><span class="text-gray-500">/</span></li>
+<li class="flex items-center"><a href="#" class="text-blue-600 hover:text-blue-800 ml-2">Master Data</a></li>
+<li class="flex items-center"><span class="text-gray-500 mx-2">/</span></li>
+<li class="flex items-center"><span class="text-gray-700 ml-2">Vendor</span></li>
 @endsection
 
 @section('isi')
-<div class="container-fluid">
-
+<div class="w-full max-w-full px-4 py-6">
   <!-- HEADER -->
-  <div class="row mb-2">
-    <div class="col-sm-6">
-      {{-- <h1>Master Vendor</h1> --}}
-    </div>
-    <div class="col-sm-6 text-right">
-<a href="#" class="btn btn-primary" data-toggle="modal" data-target="#modalVendor">
-  <i class="fas fa-plus"></i> Tambah Vendor
-</a>
-
+  <div class="flex flex-wrap -mx-2 mb-4">
+    <div class="flex-1 px-2 w-full sm:w-1/2"></div>
+    <div class="flex-1 px-2 w-full sm:w-1/2 text-right">
+      <button class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-lg transition duration-200 transform hover:-translate-y-0.5" data-toggle="modal" data-target="#modalVendor">
+        <i class="fas fa-plus mr-2"></i> Tambah Vendor
+      </button>
     </div>
   </div>
 
   <!-- TABLE -->
-  <div class="card">
-    <div class="card-body table-responsive p-0">
-      <table class="table table-hover text-nowrap">
-        <thead>
+  <div class="bg-white rounded-lg shadow-md overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full border-collapse">
+        <thead class="bg-gray-100 border-b border-gray-200">
           <tr>
-            <th>Kode Vendor</th>
-            <th>Nama Vendor</th>
-            <th>Alamat</th>
-            <th>Kontak</th>
-            <th>Status</th>
-            <th width="120">Aksi</th>
+            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Kode Vendor</th>
+            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Nama Vendor</th>
+            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Alamat</th>
+            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Kontak</th>
+            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Status</th>
+            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700 w-24">Aksi</th>
           </tr>
         </thead>
         <tbody>
-  <!-- Baris Vendor lama -->
-  <tr>
-    <td>VND-001</td>
-    <td>PT Braja Mukti Cakra</td>
-    <td>Bekasi</td>
-    <td>021-8899-xxxx</td>
-    <td><span class="badge badge-success">Aktif</span></td>
-    <td class="text-center">
-      <div class="dropdown">
-        <button class="btn btn-sm btn-light" type="button" data-toggle="dropdown">
-          <i class="fas fa-ellipsis-v"></i>
-        </button>
-        <div class="dropdown-menu dropdown-menu-right">
-          <a class="dropdown-item" href="#"><i class="fas fa-eye text-info"></i> Detail</a>
-          <a class="dropdown-item" href="#"><i class="fas fa-edit text-warning"></i> Edit</a>
-        </div>
-      </div>
-    </td>
-  </tr>
+          <!-- Baris Vendor lama -->
+          <tr class="border-b border-gray-200 hover:bg-gray-50 transition duration-200">
+            <td class="px-6 py-3 text-sm text-gray-600">VND-001</td>
+            <td class="px-6 py-3 text-sm text-gray-600 font-medium">PT Braja Mukti Cakra</td>
+            <td class="px-6 py-3 text-sm text-gray-600">Bekasi</td>
+            <td class="px-6 py-3 text-sm text-gray-600">021-8899-xxxx</td>
+            <td class="px-6 py-3 text-sm"><span class="inline-block bg-green-600 text-white px-3 py-1 rounded-full text-xs font-semibold">Aktif</span></td>
+            <td class="px-6 py-3 text-sm flex gap-1">
+              <a class="inline-flex items-center px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded transition duration-200" href="#" title="Detail">
+                <i class="fas fa-eye"></i>
+              </a>
+              <a class="inline-flex items-center px-2 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-semibold rounded transition duration-200" href="#" title="Edit">
+                <i class="fas fa-edit"></i>
+              </a>
+            </td>
+          </tr>
 
-  {{-- <tr>
-    <td>VND-002</td>
-    <td>PT Krama Yudha Tiga Berlian Motors</td>
-    <td>Jakarta</td>
-    <td>021-4602-xxx</td>
-    <td><span class="badge badge-secondary">Non Aktif</span></td>
-    <td class="text-center">
-      <div class="dropdown">
-        <button class="btn btn-sm btn-light" type="button" data-toggle="dropdown">
-          <i class="fas fa-ellipsis-v"></i>
-        </button>
-        <div class="dropdown-menu dropdown-menu-right">
-          <a class="dropdown-item" href="#"><i class="fas fa-eye text-info"></i> Detail</a>
-          <a class="dropdown-item" href="#"><i class="fas fa-edit text-warning"></i> Edit</a>
-        </div>
-      </div>
-    </td>
-  </tr> --}}
+          <!-- Baris Vendor tambahan sesuai PO -->
+          <tr class="border-b border-gray-200 hover:bg-gray-50 transition duration-200">
+            <td class="px-6 py-3 text-sm text-gray-600">VND-003</td>
+            <td class="px-6 py-3 text-sm text-gray-600 font-medium">PT. ABC</td>
+            <td class="px-6 py-3 text-sm text-gray-600">Jakarta</td>
+            <td class="px-6 py-3 text-sm text-gray-600">021-8899-0001</td>
+            <td class="px-6 py-3 text-sm"><span class="inline-block bg-green-600 text-white px-3 py-1 rounded-full text-xs font-semibold">Aktif</span></td>
+            <td class="px-6 py-3 text-sm flex gap-1">
+              <a class="inline-flex items-center px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded transition duration-200" href="#" title="Detail">
+                <i class="fas fa-eye"></i>
+              </a>
+              <a class="inline-flex items-center px-2 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-semibold rounded transition duration-200" href="#" title="Edit">
+                <i class="fas fa-edit"></i>
+              </a>
+            </td>
+          </tr>
 
-  <!-- Baris Vendor tambahan sesuai PO -->
-  <tr>
-    <td>VND-003</td>
-    <td>PT. ABC</td>
-    <td>Jakarta</td>
-    <td>021-8899-0001</td>
-    <td><span class="badge badge-success">Aktif</span></td>
-    <td class="text-center">
-      <div class="dropdown">
-        <button class="btn btn-sm btn-light" type="button" data-toggle="dropdown">
-          <i class="fas fa-ellipsis-v"></i>
-        </button>
-        <div class="dropdown-menu dropdown-menu-right">
-          <a class="dropdown-item" href="#"><i class="fas fa-eye text-info"></i> Detail</a>
-          <a class="dropdown-item" href="#"><i class="fas fa-edit text-warning"></i> Edit</a>
-        </div>
-      </div>
-    </td>
-  </tr>
+          <tr class="border-b border-gray-200 hover:bg-gray-50 transition duration-200">
+            <td class="px-6 py-3 text-sm text-gray-600">VND-004</td>
+            <td class="px-6 py-3 text-sm text-gray-600 font-medium">PT. XYZ</td>
+            <td class="px-6 py-3 text-sm text-gray-600">Jakarta</td>
+            <td class="px-6 py-3 text-sm text-gray-600">021-8899-0002</td>
+            <td class="px-6 py-3 text-sm"><span class="inline-block bg-green-600 text-white px-3 py-1 rounded-full text-xs font-semibold">Aktif</span></td>
+            <td class="px-6 py-3 text-sm flex gap-1">
+              <a class="inline-flex items-center px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded transition duration-200" href="#" title="Detail">
+                <i class="fas fa-eye"></i>
+              </a>
+              <a class="inline-flex items-center px-2 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-semibold rounded transition duration-200" href="#" title="Edit">
+                <i class="fas fa-edit"></i>
+              </a>
+            </td>
+          </tr>
 
-  <tr>
-    <td>VND-004</td>
-    <td>PT. XYZ</td>
-    <td>Jakarta</td>
-    <td>021-8899-0002</td>
-    <td><span class="badge badge-success">Aktif</span></td>
-    <td class="text-center">
-      <div class="dropdown">
-        <button class="btn btn-sm btn-light" type="button" data-toggle="dropdown">
-          <i class="fas fa-ellipsis-v"></i>
-        </button>
-        <div class="dropdown-menu dropdown-menu-right">
-          <a class="dropdown-item" href="#"><i class="fas fa-eye text-info"></i> Detail</a>
-          <a class="dropdown-item" href="#"><i class="fas fa-edit text-warning"></i> Edit</a>
-        </div>
-      </div>
-    </td>
-  </tr>
+          <tr class="border-b border-gray-200 hover:bg-gray-50 transition duration-200">
+            <td class="px-6 py-3 text-sm text-gray-600">VND-005</td>
+            <td class="px-6 py-3 text-sm text-gray-600 font-medium">PT. LMN</td>
+            <td class="px-6 py-3 text-sm text-gray-600">Bandung</td>
+            <td class="px-6 py-3 text-sm text-gray-600">022-8899-0003</td>
+            <td class="px-6 py-3 text-sm"><span class="inline-block bg-yellow-600 text-white px-3 py-1 rounded-full text-xs font-semibold">Non Aktif</span></td>
+            <td class="px-6 py-3 text-sm flex gap-1">
+              <a class="inline-flex items-center px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded transition duration-200" href="#" title="Detail">
+                <i class="fas fa-eye"></i>
+              </a>
+              <a class="inline-flex items-center px-2 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-semibold rounded transition duration-200" href="#" title="Edit">
+                <i class="fas fa-edit"></i>
+              </a>
+            </td>
+          </tr>
 
-  <tr>
-    <td>VND-005</td>
-    <td>PT. LMN</td>
-    <td>Bandung</td>
-    <td>022-8899-0003</td>
-    <td><span class="badge badge-warning">Non Aktif</span></td>
-    <td class="text-center">
-      <div class="dropdown">
-        <button class="btn btn-sm btn-light" type="button" data-toggle="dropdown">
-          <i class="fas fa-ellipsis-v"></i>
-        </button>
-        <div class="dropdown-menu dropdown-menu-right">
-          <a class="dropdown-item" href="#"><i class="fas fa-eye text-info"></i> Detail</a>
-          <a class="dropdown-item" href="#"><i class="fas fa-edit text-warning"></i> Edit</a>
-        </div>
-      </div>
-    </td>
-  </tr>
+          <tr class="border-b border-gray-200 hover:bg-gray-50 transition duration-200">
+            <td class="px-6 py-3 text-sm text-gray-600">VND-006</td>
+            <td class="px-6 py-3 text-sm text-gray-600 font-medium">PT. DEF</td>
+            <td class="px-6 py-3 text-sm text-gray-600">Surabaya</td>
+            <td class="px-6 py-3 text-sm text-gray-600">031-8899-0004</td>
+            <td class="px-6 py-3 text-sm"><span class="inline-block bg-green-600 text-white px-3 py-1 rounded-full text-xs font-semibold">Aktif</span></td>
+            <td class="px-6 py-3 text-sm flex gap-1">
+              <a class="inline-flex items-center px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded transition duration-200" href="#" title="Detail">
+                <i class="fas fa-eye"></i>
+              </a>
+              <a class="inline-flex items-center px-2 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-semibold rounded transition duration-200" href="#" title="Edit">
+                <i class="fas fa-edit"></i>
+              </a>
+            </td>
+          </tr>
 
-  <tr>
-    <td>VND-006</td>
-    <td>PT. DEF</td>
-    <td>Surabaya</td>
-    <td>031-8899-0004</td>
-    <td><span class="badge badge-success">Aktif</span></td>
-    <td class="text-center">
-      <div class="dropdown">
-        <button class="btn btn-sm btn-light" type="button" data-toggle="dropdown">
-          <i class="fas fa-ellipsis-v"></i>
-        </button>
-        <div class="dropdown-menu dropdown-menu-right">
-          <a class="dropdown-item" href="#"><i class="fas fa-eye text-info"></i> Detail</a>
-          <a class="dropdown-item" href="#"><i class="fas fa-edit text-warning"></i> Edit</a>
-        </div>
-      </div>
-    </td>
-  </tr>
-
-  <tr>
-    <td>VND-007</td>
-    <td>PT. GHI</td>
-    <td>Medan</td>
-    <td>061-8899-0005</td>
-    <td><span class="badge badge-warning">Non Aktif</span></td>
-    <td class="text-center">
-      <div class="dropdown">
-        <button class="btn btn-sm btn-light" type="button" data-toggle="dropdown">
-          <i class="fas fa-ellipsis-v"></i>
-        </button>
-        <div class="dropdown-menu dropdown-menu-right">
-          <a class="dropdown-item" href="#"><i class="fas fa-eye text-info"></i> Detail</a>
-          <a class="dropdown-item" href="#"><i class="fas fa-edit text-warning"></i> Edit</a>
-        </div>
-      </div>
-    </td>
-  </tr>
-</tbody>
-
+          <tr class="border-b border-gray-200 hover:bg-gray-50 transition duration-200">
+            <td class="px-6 py-3 text-sm text-gray-600">VND-007</td>
+            <td class="px-6 py-3 text-sm text-gray-600 font-medium">PT. GHI</td>
+            <td class="px-6 py-3 text-sm text-gray-600">Medan</td>
+            <td class="px-6 py-3 text-sm text-gray-600">061-8899-0005</td>
+            <td class="px-6 py-3 text-sm"><span class="inline-block bg-yellow-600 text-white px-3 py-1 rounded-full text-xs font-semibold">Non Aktif</span></td>
+            <td class="px-6 py-3 text-sm flex gap-1">
+              <a class="inline-flex items-center px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded transition duration-200" href="#" title="Detail">
+                <i class="fas fa-eye"></i>
+              </a>
+              <a class="inline-flex items-center px-2 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-semibold rounded transition duration-200" href="#" title="Edit">
+                <i class="fas fa-edit"></i>
+              </a>
+            </td>
+          </tr>
+        </tbody>
       </table>
     </div>
   </div>
-
 </div>
 
 
 <!-- MODAL TAMBAH VENDOR -->
 <div class="modal fade" id="modalVendor" tabindex="-1" role="dialog" aria-labelledby="modalVendorLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg" role="document">
-    <div class="modal-content">
+    <div class="modal-content bg-white rounded-lg shadow-lg">
 
-      <div class="modal-header">
-        <h5 class="modal-title" id="modalVendorLabel">
-          <i class="fas fa-building"></i> Tambah Vendor
+      <div class="bg-blue-600 text-white px-6 py-4 rounded-t-lg border-b border-blue-700">
+        <h5 class="font-semibold text-lg" id="modalVendorLabel">
+          <i class="fas fa-building mr-2"></i> Tambah Vendor
         </h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <button type="button" class="absolute right-4 top-3 text-white hover:text-gray-200 text-2xl" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
 
       <form action="#" method="post">
-        <div class="modal-body">
+        <div class="px-6 py-4">
 
-          <div class="row">
-            <div class="col-md-6">
-              <div class="form-group">
-                <label>Kode Vendor</label>
-                <input type="text" class="form-control" placeholder="VND-001">
-              </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-gray-700 font-semibold mb-2">Kode Vendor</label>
+              <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-600" placeholder="VND-001">
             </div>
 
-            <div class="col-md-6">
-              <div class="form-group">
-                <label>Nama Vendor</label>
-                <input type="text" class="form-control" placeholder="Nama Vendor">
-              </div>
+            <div>
+              <label class="block text-gray-700 font-semibold mb-2">Nama Vendor</label>
+              <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-600" placeholder="Nama Vendor">
             </div>
 
-            <div class="col-md-12">
-              <div class="form-group">
-                <label>Alamat</label>
-                <textarea class="form-control" rows="2" placeholder="Alamat lengkap"></textarea>
-              </div>
+            <div class="md:col-span-2">
+              <label class="block text-gray-700 font-semibold mb-2">Alamat</label>
+              <textarea class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-600" rows="2" placeholder="Alamat lengkap"></textarea>
             </div>
 
-            <div class="col-md-4">
-              <div class="form-group">
-                <label>Kota</label>
-                <input type="text" class="form-control" placeholder="Jakarta">
-              </div>
+            <div>
+              <label class="block text-gray-700 font-semibold mb-2">Kota</label>
+              <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-600" placeholder="Jakarta">
             </div>
 
-            <div class="col-md-4">
-              <div class="form-group">
-                <label>Telepon</label>
-                <input type="text" class="form-control" placeholder="021-xxxxxxx">
-              </div>
+            <div>
+              <label class="block text-gray-700 font-semibold mb-2">Telepon</label>
+              <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-600" placeholder="021-xxxxxxx">
             </div>
 
-            <div class="col-md-4">
-              <div class="form-group">
-                <label>Email</label>
-                <input type="email" class="form-control" placeholder="vendor@email.com">
-              </div>
+            <div class="md:col-span-2">
+              <label class="block text-gray-700 font-semibold mb-2">Email</label>
+              <input type="email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-600" placeholder="vendor@email.com">
             </div>
 
-            <div class="col-md-6">
-              <div class="form-group">
-                <label>Contact Person</label>
-                <input type="text" class="form-control" placeholder="Nama PIC">
-              </div>
+            <div>
+              <label class="block text-gray-700 font-semibold mb-2">Contact Person</label>
+              <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-600" placeholder="Nama PIC">
             </div>
 
-            <div class="col-md-6">
-              <div class="form-group">
-                <label>Status</label>
-                <select class="form-control">
-                  <option>Aktif</option>
-                  <option>Non Aktif</option>
-                </select>
-              </div>
+            <div>
+              <label class="block text-gray-700 font-semibold mb-2">Status</label>
+              <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-600">
+                <option>Aktif</option>
+                <option>Non Aktif</option>
+              </select>
             </div>
 
           </div>
 
         </div>
 
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">
+        <div class="border-t border-gray-200 px-6 py-4 flex gap-2 justify-end">
+          <button type="button" class="px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white font-semibold rounded-lg transition duration-200" data-dismiss="modal">
             Batal
           </button>
-          <button type="submit" class="btn btn-primary">
+          <button type="submit" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition duration-200">
             Simpan
           </button>
         </div>

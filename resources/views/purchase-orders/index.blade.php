@@ -9,20 +9,36 @@ Purchase Order
 @endsection
 
 @section('isi')
-<div class="container-fluid">
-    <div class="row mb-2">
-        <div class="col-sm-6"></div>
-        <div class="col-sm-6 text-right">
-            <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#modalPurchaseOrder">
-                <i class="fas fa-plus"></i> Tambah Purchase Order
+<div class="w-full max-w-full px-4 py-6">
+    <div class="flex flex-wrap -mx-2 mb-4">
+        <div class="flex-1 px-2 w-full sm:w-1/2"></div>
+        <div class="flex-1 px-2 w-full sm:w-1/2 text-right">
+            <button class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-lg transition duration-200 transform hover:-translate-y-0.5" data-toggle="modal" data-target="#modalPurchaseOrder">
+                <i class="fas fa-plus mr-2"></i> Tambah Purchase Order
             </button>
         </div>
     </div>
 
     <div class="card">
+        <!-- Nav tabs -->
+        <div class="card-header p-0 pt-3" style="border-bottom: 0;">
+            <ul class="nav nav-tabs" id="purchaseOrderTabs" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="ongoing-tab" data-toggle="tab" href="#ongoing" role="tab" aria-controls="ongoing" aria-selected="true">
+                        <i class="fas fa-hourglass-half"></i> Sedang Diproses <span class="badge badge-warning">{{ $ongoingPurchaseOrders->total() }}</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="completed-tab" data-toggle="tab" href="#completed" role="tab" aria-controls="completed" aria-selected="false">
+                        <i class="fas fa-check-circle"></i> Selesai <span class="badge badge-success">{{ $completedPurchaseOrders->total() }}</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
         <div class="card-body table-responsive p-0">
             @if ($message = Session::get('success'))
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <div class="alert alert-success alert-dismissible fade show" role="alert" style="margin-bottom: 0; border-radius: 0;">
                 {{ $message }}
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -31,14 +47,14 @@ Purchase Order
             @endif
 
             @if ($message = Session::get('error'))
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <div class="alert alert-danger alert-dismissible fade show" role="alert" style="margin-bottom: 0; border-radius: 0;">
                 {{ $message }}
                 @if($errors = Session::get('errors'))
-                    <ul class="mt-2 mb-0">
-                        @foreach($errors as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
+                <ul class="mt-2 mb-0">
+                    @foreach($errors as $error)
+                    <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
                 @endif
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -46,99 +62,190 @@ Purchase Order
             </div>
             @endif
 
-            <table class="table table-hover text-nowrap">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>PO Number</th>
-                        <th>Tanggal</th>
-                        <th>Supplier</th>
-                        <th>Jumlah Item</th>
-                        <th>Delivery Date</th>
-                        <th>Status</th>
-                        <th>Keterangan</th>
-                        <th width="250">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($purchaseOrders as $po)
-                    <tr>
-                        <td>{{ ($purchaseOrders->currentPage() - 1) * $purchaseOrders->perPage() + $loop->iteration }}</td>
-                        <td>{{ $po->po_number }}</td>
-                        <td>{{ $po->date ? $po->date->format('d/m/Y') : '-' }}</td>
-                        <td>
-                            @if($po->supplier)
-                            <span class="badge badge-info">{{ $po->supplier->nama }}</span>
-                            @else
-                            <span class="text-muted">-</span>
-                            @endif
-                        </td>
-                        <td>
-                            <span class="badge badge-info">{{ $po->items_count }} item</span>
-                        </td>
-                        <td>{{ $po->delivery_date ? $po->delivery_date->format('d/m/Y') : '-' }}</td>
-                        <td>
-                            @if($po->status == 'pending')
-                                <span class="badge badge-warning">Pending</span>
-                            @elseif($po->status == 'approved')
-                                <span class="badge badge-info">Approved</span>
-                            @elseif($po->status == 'on_progress')
-                                <span class="badge badge-primary">On Progress</span>
-                            @elseif($po->status == 'received')
-                                <span class="badge badge-success">Received</span>
-                            @elseif($po->status == 'rejected')
-                                <span class="badge badge-danger">Rejected</span>
-                            @elseif($po->status == 'supplier_rejected')
-                                <span class="badge badge-danger">Rejected by Supplier</span>
-                            @else
-                                <span class="badge badge-secondary">{{ $po->status ?? '-' }}</span>
-                            @endif
-                        </td>
-                        <td>{{ $po->keterangan ?? '-' }}</td>
-                        <td>
-                            @if($userRole == 'Dept. Head' && $po->status == 'pending')
-                            <a class="btn btn-success btn-sm approve-po" href="#" data-id="{{ $po->id }}" title="Review & Approve">
-                                <i class="fas fa-check"></i>
-                            </a>
-                            @endif
-                            @if($userRole == 'Supplier' && $po->status == 'approved')
-                            <a class="btn btn-success btn-sm approve-po-supplier" href="#" data-id="{{ $po->id }}" title="Review & Confirm">
-                                <i class="fas fa-check"></i>
-                            </a>
-                            @endif
-                            <a class="btn btn-primary btn-sm detail-po" href="#" data-id="{{ $po->id }}" title="Detail">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                            @if($po->pdf_path)
-                            <a class="btn btn-info btn-sm" href="{{ route('purchase-orders.download', $po->id) }}" title="Download PDF" target="_blank">
-                                <i class="fas fa-download"></i>
-                            </a>
-                            @endif
-                            @if($po->status == 'on_progress' && $po->no_surat_jalan)
-                            <a class="btn btn-secondary btn-sm" href="{{ route('purchase-orders.print-surat-jalan', $po->id) }}" title="Print Surat Jalan" target="_blank">
-                                <i class="fas fa-print"></i>
-                            </a>
-                            @endif
-                            <a class="btn btn-warning btn-sm edit-po" href="#" data-id="{{ $po->id }}" title="Edit">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            <button class="btn btn-danger btn-sm delete-po" data-id="{{ $po->id }}" title="Hapus" type="button">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="9" class="text-center">Tidak ada data Purchase Order</td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
+            <!-- Tab panes -->
+            <div class="tab-content">
+                <!-- Ongoing Tab -->
+                <div class="tab-pane fade show active" id="ongoing" role="tabpanel" aria-labelledby="ongoing-tab">
+                    <table class="table table-hover text-nowrap">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>PO Number</th>
+                                <th>Tanggal</th>
+                                <th>Supplier</th>
+                                <th>Jumlah Item</th>
+                                <th>Delivery Date</th>
+                                <th>Status</th>
+                                <th>Keterangan</th>
+                                <th width="250">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($ongoingPurchaseOrders as $po)
+                            <tr>
+                                <td>{{ ($ongoingPurchaseOrders->currentPage() - 1) * $ongoingPurchaseOrders->perPage() + $loop->iteration }}</td>
+                                <td>{{ $po->po_number }}</td>
+                                <td>{{ $po->date ? $po->date->format('d/m/Y') : '-' }}</td>
+                                <td>
+                                    @if($po->supplier)
+                                    <span class="badge badge-info">{{ $po->supplier->nama }}</span>
+                                    @else
+                                    <span class="text-muted">-</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <span class="badge badge-info">{{ $po->items_count }} item</span>
+                                </td>
+                                <td>{{ $po->delivery_date ? $po->delivery_date->format('d/m/Y') : '-' }}</td>
+                                <td>
+                                    @if($po->status == 'pending')
+                                    <span class="badge badge-warning">Pending</span>
+                                    @elseif($po->status == 'approved')
+                                    <span class="badge badge-info">Approved</span>
+                                    @elseif($po->status == 'on_progress')
+                                    <span class="badge badge-primary">On Progress</span>
+                                    @elseif($po->status == 'received')
+                                    <span class="badge badge-success">Received</span>
+                                    @elseif($po->status == 'rejected')
+                                    <span class="badge badge-danger">Rejected</span>
+                                    @elseif($po->status == 'supplier_rejected')
+                                    <span class="badge badge-danger">Rejected by Supplier</span>
+                                    @else
+                                    <span class="badge badge-secondary">{{ $po->status ?? '-' }}</span>
+                                    @endif
+                                </td>
+                                <td>{{ $po->keterangan ?? '-' }}</td>
+                                <td>
+                                    @if($userRole == 'Dept. Head' && $po->status == 'pending')
+                                    <a class="btn btn-success btn-sm approve-po" href="#" data-id="{{ $po->id }}" title="Review & Approve">
+                                        <i class="fas fa-check"></i>
+                                    </a>
+                                    @endif
+                                    @if($userRole == 'Supplier' && $po->status == 'approved')
+                                    <a class="btn btn-success btn-sm approve-po-supplier" href="#" data-id="{{ $po->id }}" title="Review & Confirm">
+                                        <i class="fas fa-check"></i>
+                                    </a>
+                                    @endif
+                                    <a class="btn btn-primary btn-sm detail-po" href="#" data-id="{{ $po->id }}" title="Detail">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    @if($po->pdf_path)
+                                    <a class="btn btn-info btn-sm" href="{{ route('purchase-orders.download', $po->id) }}" title="Download PDF" target="_blank">
+                                        <i class="fas fa-download"></i>
+                                    </a>
+                                    @endif
+                                    @if($po->status == 'on_progress' && $po->no_surat_jalan)
+                                    <a class="btn btn-secondary btn-sm" href="{{ route('purchase-orders.print-surat-jalan', $po->id) }}" title="Print Surat Jalan" target="_blank">
+                                        <i class="fas fa-print"></i>
+                                    </a>
+                                    @endif
+                                    <a class="btn btn-warning btn-sm edit-po" href="#" data-id="{{ $po->id }}" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button class="btn btn-danger btn-sm delete-po" data-id="{{ $po->id }}" title="Hapus" type="button">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="9" class="text-center text-muted py-4">Tidak ada data Purchase Order yang sedang diproses</td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
 
-    <div class="card-footer">
-        {{ $purchaseOrders->links() }}
+                <!-- Completed Tab -->
+                <div class="tab-pane fade" id="completed" role="tabpanel" aria-labelledby="completed-tab">
+                    <table class="table table-hover text-nowrap">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>PO Number</th>
+                                <th>Tanggal</th>
+                                <th>Supplier</th>
+                                <th>Jumlah Item</th>
+                                <th>Delivery Date</th>
+                                <th>Status</th>
+                                <th>Keterangan</th>
+                                <th width="250">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($completedPurchaseOrders as $po)
+                            <tr>
+                                <td>{{ ($completedPurchaseOrders->currentPage() - 1) * $completedPurchaseOrders->perPage() + $loop->iteration }}</td>
+                                <td>{{ $po->po_number }}</td>
+                                <td>{{ $po->date ? $po->date->format('d/m/Y') : '-' }}</td>
+                                <td>
+                                    @if($po->supplier)
+                                    <span class="badge badge-info">{{ $po->supplier->nama }}</span>
+                                    @else
+                                    <span class="text-muted">-</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <span class="badge badge-info">{{ $po->items_count }} item</span>
+                                </td>
+                                <td>{{ $po->delivery_date ? $po->delivery_date->format('d/m/Y') : '-' }}</td>
+                                <td>
+                                    @if($po->status == 'pending')
+                                    <span class="badge badge-warning">Pending</span>
+                                    @elseif($po->status == 'approved')
+                                    <span class="badge badge-info">Approved</span>
+                                    @elseif($po->status == 'on_progress')
+                                    <span class="badge badge-primary">On Progress</span>
+                                    @elseif($po->status == 'received')
+                                    <span class="badge badge-success">Received</span>
+                                    @elseif($po->status == 'rejected')
+                                    <span class="badge badge-danger">Rejected</span>
+                                    @elseif($po->status == 'supplier_rejected')
+                                    <span class="badge badge-danger">Rejected by Supplier</span>
+                                    @else
+                                    <span class="badge badge-secondary">{{ $po->status ?? '-' }}</span>
+                                    @endif
+                                </td>
+                                <td>{{ $po->keterangan ?? '-' }}</td>
+                                <td>
+                                    <a class="btn btn-primary btn-sm detail-po" href="#" data-id="{{ $po->id }}" title="Detail">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    @if($po->pdf_path)
+                                    <a class="btn btn-info btn-sm" href="{{ route('purchase-orders.download', $po->id) }}" title="Download PDF" target="_blank">
+                                        <i class="fas fa-download"></i>
+                                    </a>
+                                    @endif
+                                    @if($po->status == 'on_progress' && $po->no_surat_jalan)
+                                    <a class="btn btn-secondary btn-sm" href="{{ route('purchase-orders.print-surat-jalan', $po->id) }}" title="Print Surat Jalan" target="_blank">
+                                        <i class="fas fa-print"></i>
+                                    </a>
+                                    @endif
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="9" class="text-center text-muted py-4">Tidak ada data Purchase Order yang selesai</td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-footer">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Sedang Diproses</h6>
+                    {{ $ongoingPurchaseOrders->render() }}
+                </div>
+                <div class="col-md-6">
+                    <h6>Selesai</h6>
+                    {{ $completedPurchaseOrders->render() }}
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -290,11 +397,11 @@ Purchase Order
 
                 <div id="detailContent" style="display: none;">
                     <!-- Purchase Order Information -->
-                    <div class="card mb-3">
+                    <div class="card mb-3" style="position: relative;">
                         <div class="card-header bg-light">
                             <h5 class="mb-0"><i class="fas fa-info-circle"></i> Informasi Purchase Order</h5>
                         </div>
-                        <div class="card-body">
+                        <div class="card-body" style="position: relative; padding-bottom: 120px;">
                             <div class="row">
                                 <div class="col-md-6">
                                     <table class="table table-borderless table-sm">
@@ -345,6 +452,12 @@ Purchase Order
                                         </tr>
                                     </table>
                                 </div>
+                            </div>
+
+                            <!-- Approval Watermark -->
+                            <div id="approvalWatermark" style="display: none; position: absolute; bottom: 15px; right: 30px; text-align: right; z-index: 10;">
+                                <div style="font-size: 28px; font-weight: bold; color: #28a745; opacity: 0.7; letter-spacing: 2px;">APPROVED</div>
+                                <div style="font-size: 12px; color: #28a745; opacity: 0.7; margin-top: 5px;">by Dept Head</div>
                             </div>
                         </div>
                     </div>
@@ -599,7 +712,7 @@ Purchase Order
                 }
                 $(this).val(value);
             });
-            
+
             $(input).on('keypress', function(e) {
                 let char = String.fromCharCode(e.which);
                 if (!/[0-9]/.test(char)) {
@@ -607,7 +720,7 @@ Purchase Order
                 }
             });
         }
-        
+
         // Initialize date input mask for ETD/ETA when modal opens
         $('#modalApprovePurchaseOrder').on('shown.bs.modal', function() {
             setupDateInputMask('#etd');
@@ -674,7 +787,7 @@ Purchase Order
                 error: function(xhr) {
                     let errorList = $('#errorList');
                     errorList.html('');
-                    
+
                     if (xhr.status === 422) {
                         let errors = xhr.responseJSON.errors || xhr.responseJSON.error;
 
@@ -700,7 +813,7 @@ Purchase Order
                     } else {
                         // Handle other errors (500, 404, etc.)
                         let errorMsg = 'Gagal upload file. ';
-                        
+
                         if (xhr.responseJSON) {
                             if (xhr.responseJSON.error) {
                                 errorMsg += xhr.responseJSON.error;
@@ -715,7 +828,7 @@ Purchase Order
                                 errorMsg += '. Detail: ' + xhr.responseText.substring(0, 200);
                             }
                         }
-                        
+
                         errorList.append('<li>' + errorMsg + '</li>');
                         $('#errorMessages').removeClass('d-none');
                     }
@@ -827,7 +940,7 @@ Purchase Order
                 type: 'GET',
                 success: function(response) {
                     let po = response.purchase_order;
-                    
+
                     // Format date helper
                     function formatDate(dateString) {
                         if (!dateString) return '-';
@@ -847,6 +960,13 @@ Purchase Order
                     $('#detail_supplier').text(po.supplier ? po.supplier.nama : '-');
                     $('#detail_company_address').text(po.company_address || '-');
 
+                    // Show/hide approval watermark based on status
+                    if (po.status === 'approved') {
+                        $('#approvalWatermark').show();
+                    } else {
+                        $('#approvalWatermark').hide();
+                    }
+
                     // Fill Items Table
                     let itemsBody = $('#detail_items_body');
                     itemsBody.html('');
@@ -857,7 +977,7 @@ Purchase Order
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             }) : '0.00';
-                            
+
                             let netValue = item.net_value ? parseFloat(item.net_value).toLocaleString('id-ID', {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
@@ -906,7 +1026,7 @@ Purchase Order
                 type: 'GET',
                 success: function(response) {
                     let po = response.purchase_order;
-                    
+
                     // Format date helper
                     function formatDate(dateString) {
                         if (!dateString) return '-';
@@ -936,7 +1056,7 @@ Purchase Order
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             }) : '0.00';
-                            
+
                             let netValue = item.net_value ? parseFloat(item.net_value).toLocaleString('id-ID', {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
@@ -1053,7 +1173,7 @@ Purchase Order
                 type: 'GET',
                 success: function(response) {
                     let po = response.purchase_order;
-                    
+
                     // Format date helper
                     function formatDate(dateString) {
                         if (!dateString) return '-';
@@ -1083,7 +1203,7 @@ Purchase Order
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             }) : '0.00';
-                            
+
                             let netValue = item.net_value ? parseFloat(item.net_value).toLocaleString('id-ID', {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
@@ -1112,11 +1232,11 @@ Purchase Order
 
                     // Show ETD/ETA/No Surat Jalan form for Supplier
                     $('#supplierETDFormTop').show();
-                    
+
                     // Update button handlers for Supplier
                     $('#btnApprovePO').off('click').on('click', function() {
                         if (!currentPoId) return;
-                        
+
                         // Validate ETD, ETA, and No Surat Jalan
                         let etd = $('#etd').val();
                         let eta = $('#eta').val();
@@ -1126,14 +1246,14 @@ Purchase Order
                             alert('Mohon isi ETD, ETA, dan No Surat Jalan');
                             return;
                         }
-                        
+
                         // Validate date format DD/MM/YYYY
                         let dateRegex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
                         if (!dateRegex.test(etd) || !dateRegex.test(eta)) {
                             alert('Format tanggal harus DD/MM/YYYY');
                             return;
                         }
-                        
+
                         // Convert DD/MM/YYYY to YYYY-MM-DD for database
                         function convertDateToDB(dateStr) {
                             let parts = dateStr.split('/');
@@ -1142,26 +1262,26 @@ Purchase Order
                             }
                             return dateStr;
                         }
-                        
+
                         // Validate date values
                         let etdParts = etd.split('/');
                         let etaParts = eta.split('/');
                         let etdDateObj = new Date(parseInt(etdParts[2]), parseInt(etdParts[1]) - 1, parseInt(etdParts[0]));
                         let etaDateObj = new Date(parseInt(etaParts[2]), parseInt(etaParts[1]) - 1, parseInt(etaParts[0]));
-                        
+
                         let etdDB = convertDateToDB(etd);
                         let etaDB = convertDateToDB(eta);
-                        
+
                         if (isNaN(etdDateObj.getTime()) || isNaN(etaDateObj.getTime())) {
                             alert('Tanggal tidak valid');
                             return;
                         }
-                        
+
                         if (etaDateObj < etdDateObj) {
                             alert('ETA harus sama atau setelah ETD');
                             return;
                         }
-                        
+
                         if (confirm('Yakin ingin konfirmasi Purchase Order ini?')) {
                             $.ajax({
                                 url: `/purchase-orders/${currentPoId}/approve-supplier`,
@@ -1208,4 +1328,3 @@ Purchase Order
     });
 </script>
 @endpush
-

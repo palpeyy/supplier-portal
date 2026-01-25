@@ -17,97 +17,89 @@
 @section('page_title', 'Master Data Material')
 
 @section('breadcrumb')
-  <li class="breadcrumb-item"><a href="{{ url('/dashboard') }}">Home</a></li>
-  <li class="breadcrumb-item">Master Data</li>
-  <li class="breadcrumb-item active">Material</li>
+  <li class="flex items-center"><span class="text-gray-500">/</span></li>
+  <li class="flex items-center"><a href="{{ url('/dashboard') }}" class="text-blue-600 hover:text-blue-800 ml-2">Master Data</a></li>
+  <li class="flex items-center"><span class="text-gray-500 mx-2">/</span></li>
+  <li class="flex items-center"><span class="text-gray-700 ml-2">Material</span></li>
 @endsection
 
 @section('isi')
-<div class="container-fluid">
+<div class="w-full max-w-full px-4 py-6">
 
   <!-- HEADER -->
-  <div class="row mb-2">
-    <div class="col-sm-6"></div>
-    <div class="col-sm-6 text-right">
-      <a href="#" class="btn btn-primary" data-toggle="modal" data-target="#modalMaterial">
-        <i class="fas fa-plus"></i> Tambah Material
-      </a>
+  <div class="flex flex-wrap -mx-2 mb-4">
+    <div class="flex-1 px-2 w-full sm:w-1/2"></div>
+    <div class="flex-1 px-2 w-full sm:w-1/2 text-right">
+      <button class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-lg transition duration-200 transform hover:-translate-y-0.5" data-toggle="modal" data-target="#modalMaterial">
+        <i class="fas fa-plus mr-2"></i> Tambah Material
+      </button>
     </div>
   </div>
 
   <!-- TABLE -->
-  <div class="card">
-    <div class="card-body table-responsive">
-      <table class="table table-hover text-nowrap" id="materialTable">
-        <thead>
+  <div class="bg-white rounded-lg shadow-md overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full border-collapse" id="materialTable">
+        <thead class="bg-gray-100 border-b border-gray-200">
           <tr>
-            <th>Kode Material</th>
-            <th>Nama Material</th>
-            <th>Kategori</th>
-            <th>Satuan</th>
-            <th>Harga</th>
-            <th>Status</th>
-            <th width="100">Aksi</th>
+            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Kode Material</th>
+            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Nama Material</th>
+            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Kategori</th>
+            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Satuan</th>
+            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Harga</th>
+            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Status</th>
+            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700 w-24">Aksi</th>
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>MAT-001</td>
-            <td>Baut M10</td>
-            <td>Sparepart</td>
-            <td>PCS</td>
-            <td>Rp 2.500</td>
-            <td><span class="badge badge-success">Aktif</span></td>
-            <td class="text-center">
-              <div class="dropdown">
-                <button class="btn btn-sm btn-light" data-toggle="dropdown">
-                  <i class="fas fa-ellipsis-v"></i>
-                </button>
-                <div class="dropdown-menu dropdown-menu-right">
-                  <a class="dropdown-item" href="#"><i class="fas fa-eye text-info"></i> Detail</a>
-                  <a class="dropdown-item" href="#"><i class="fas fa-edit text-warning"></i> Edit</a>
-                </div>
-              </div>
+          <tr class="border-b border-gray-200 hover:bg-gray-50 transition duration-200">
+            <td class="px-6 py-3 text-sm text-gray-600">MAT-001</td>
+            <td class="px-6 py-3 text-sm text-gray-600 font-medium">Baut M10</td>
+            <td class="px-6 py-3 text-sm text-gray-600">Sparepart</td>
+            <td class="px-6 py-3 text-sm text-gray-600">PCS</td>
+            <td class="px-6 py-3 text-sm text-gray-600">Rp 2.500</td>
+            <td class="px-6 py-3 text-sm"><span class="inline-block bg-green-600 text-white px-3 py-1 rounded-full text-xs font-semibold">Aktif</span></td>
+            <td class="px-6 py-3 text-sm flex gap-1">
+              <a class="inline-flex items-center px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded transition duration-200" href="#" title="Detail">
+                <i class="fas fa-eye"></i>
+              </a>
+              <a class="inline-flex items-center px-2 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-semibold rounded transition duration-200" href="#" title="Edit">
+                <i class="fas fa-edit"></i>
+              </a>
             </td>
           </tr>
 
-          <tr>
-            <td>MAT-002</td>
-            <td>Oli Mesin SAE 40</td>
-            <td>Consumable</td>
-            <td>Liter</td>
-            <td>Rp 45.000</td>
-            <td><span class="badge badge-success">Aktif</span></td>
-            <td class="text-center">
-              <div class="dropdown">
-                <button class="btn btn-sm btn-light" data-toggle="dropdown">
-                  <i class="fas fa-ellipsis-v"></i>
-                </button>
-                <div class="dropdown-menu dropdown-menu-right">
-                  <a class="dropdown-item" href="#"><i class="fas fa-eye text-info"></i> Detail</a>
-                  <a class="dropdown-item" href="#"><i class="fas fa-edit text-warning"></i> Edit</a>
-                </div>
-              </div>
+          <tr class="border-b border-gray-200 hover:bg-gray-50 transition duration-200">
+            <td class="px-6 py-3 text-sm text-gray-600">MAT-002</td>
+            <td class="px-6 py-3 text-sm text-gray-600 font-medium">Oli Mesin SAE 40</td>
+            <td class="px-6 py-3 text-sm text-gray-600">Consumable</td>
+            <td class="px-6 py-3 text-sm text-gray-600">Liter</td>
+            <td class="px-6 py-3 text-sm text-gray-600">Rp 45.000</td>
+            <td class="px-6 py-3 text-sm"><span class="inline-block bg-green-600 text-white px-3 py-1 rounded-full text-xs font-semibold">Aktif</span></td>
+            <td class="px-6 py-3 text-sm flex gap-1">
+              <a class="inline-flex items-center px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded transition duration-200" href="#" title="Detail">
+                <i class="fas fa-eye"></i>
+              </a>
+              <a class="inline-flex items-center px-2 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-semibold rounded transition duration-200" href="#" title="Edit">
+                <i class="fas fa-edit"></i>
+              </a>
             </td>
           </tr>
 
-          <tr>
-            <td>MAT-003</td>
-            <td>Ban Truk 900R20</td>
-            <td>Sparepart</td>
-            <td>Unit</td>
-            <td>Rp 3.500.000</td>
-            <td><span class="badge badge-secondary">Non Aktif</span></td>
-            <td class="text-center">
-              <div class="dropdown">
-                <button class="btn btn-sm btn-light" data-toggle="dropdown">
-                  <i class="fas fa-ellipsis-v"></i>
-                </button>
-                <div class="dropdown-menu dropdown-menu-right">
-                  <a class="dropdown-item" href="#"><i class="fas fa-eye text-info"></i> Detail</a>
-                  <a class="dropdown-item" href="#"><i class="fas fa-edit text-warning"></i> Edit</a>
-                </div>
-              </div>
+          <tr class="border-b border-gray-200 hover:bg-gray-50 transition duration-200">
+            <td class="px-6 py-3 text-sm text-gray-600">MAT-003</td>
+            <td class="px-6 py-3 text-sm text-gray-600 font-medium">Ban Truk 900R20</td>
+            <td class="px-6 py-3 text-sm text-gray-600">Sparepart</td>
+            <td class="px-6 py-3 text-sm text-gray-600">Unit</td>
+            <td class="px-6 py-3 text-sm text-gray-600">Rp 3.500.000</td>
+            <td class="px-6 py-3 text-sm"><span class="inline-block bg-yellow-600 text-white px-3 py-1 rounded-full text-xs font-semibold">Non Aktif</span></td>
+            <td class="px-6 py-3 text-sm flex gap-1">
+              <a class="inline-flex items-center px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded transition duration-200" href="#" title="Detail">
+                <i class="fas fa-eye"></i>
+              </a>
+              <a class="inline-flex items-center px-2 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-semibold rounded transition duration-200" href="#" title="Edit">
+                <i class="fas fa-edit"></i>
+              </a>
             </td>
           </tr>
         </tbody>

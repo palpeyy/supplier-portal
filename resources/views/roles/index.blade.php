@@ -9,67 +9,63 @@ Manajemen Roles
 @endsection
 
 @section('isi')
-<div class="container-fluid">
-    <div class="row mb-2">
-        <div class="col-sm-6"></div>
-        <div class="col-sm-6 text-right">
-            <button class="btn btn-success btn-sm" data-toggle="modal" data-target="#modalRole">
-                <i class="fas fa-plus"></i> Tambah Role
+<div class="w-full max-w-full px-4 py-6">
+    <div class="flex flex-wrap -mx-2 mb-4">
+        <div class="flex-1 px-2 w-full sm:w-1/2"></div>
+        <div class="flex-1 px-2 w-full sm:w-1/2 text-right">
+            <button class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold text-sm rounded-lg transition duration-200 transform hover:-translate-y-0.5" data-toggle="modal" data-target="#modalRole">
+                <i class="fas fa-plus mr-2"></i> Tambah Role
             </button>
         </div>
     </div>
 
-    <div class="card">
-        <div class="card-body table-responsive p-0">
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="overflow-x-auto">
             @if ($message = Session::get('success'))
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                {{ $message }}
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+            <div class="m-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <span class="text-green-700 font-semibold">{{ $message }}</span>
+                <button type="button" class="float-right text-green-700 font-bold text-xl leading-none hover:text-green-900" onclick="this.parentElement.style.display='none';">×</button>
             </div>
             @endif
 
             @if ($message = Session::get('error'))
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                {{ $message }}
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+            <div class="m-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <span class="text-red-700 font-semibold">{{ $message }}</span>
+                <button type="button" class="float-right text-red-700 font-bold text-xl leading-none hover:text-red-900" onclick="this.parentElement.style.display='none';">×</button>
             </div>
             @endif
 
-            <table class="table table-hover text-nowrap">
-                <thead>
+            <table class="w-full border-collapse">
+                <thead class="bg-gray-100 border-b border-gray-200">
                     <tr>
-                        <th>#</th>
-                        <th>Nama Role</th>
-                        <th>Deskripsi</th>
-                        <th>Jumlah User</th>
-                        <th>Dibuat</th>
-                        <th width="150">Aksi</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">#</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Nama Role</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Deskripsi</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Jumlah User</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Dibuat</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700 w-32">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($roles as $role)
-                    <tr>
-                        <td>{{ ($roles->currentPage() - 1) * $roles->perPage() + $loop->iteration }}</td>
-                        <td>{{ $role->name }}</td>
-                        <td>{{ $role->description ?? '-' }}</td>
-                        <td>
-                            <span class="badge badge-info">{{ $role->users()->count() }} user</span>
+                    <tr class="border-b border-gray-200 hover:bg-gray-50 transition duration-200">
+                        <td class="px-6 py-3 text-sm text-gray-600">{{ ($roles->currentPage() - 1) * $roles->perPage() + $loop->iteration }}</td>
+                        <td class="px-6 py-3 text-sm text-gray-600 font-medium">{{ $role->name }}</td>
+                        <td class="px-6 py-3 text-sm text-gray-600">{{ $role->description ?? '-' }}</td>
+                        <td class="px-6 py-3 text-sm">
+                            <span class="inline-block bg-cyan-600 text-white px-3 py-1 rounded-full text-xs font-semibold">{{ $role->users()->count() }} user</span>
                         </td>
-                        <td>{{ $role->created_at->format('d/m/Y H:i') }}</td>
-                        <td>
-                            <a class="btn btn-warning btn-sm edit-role" href="#" data-id="{{ $role->id }}" title="Edit">
+                        <td class="px-6 py-3 text-sm text-gray-600">{{ $role->created_at->format('d/m/Y H:i') }}</td>
+                        <td class="px-6 py-3 text-sm flex gap-1">
+                            <a class="inline-flex items-center px-2 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-semibold rounded transition duration-200 edit-role" href="#" data-id="{{ $role->id }}" title="Edit">
                                 <i class="fas fa-edit"></i>
                             </a>
                             @if(!$role->users()->exists())
-                            <button class="btn btn-danger btn-sm delete-role" data-id="{{ $role->id }}" title="Hapus" type="button">
+                            <button class="inline-flex items-center px-2 py-1 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded transition duration-200 delete-role" data-id="{{ $role->id }}" title="Hapus" type="button">
                                 <i class="fas fa-trash"></i>
                             </button>
                             @else
-                            <button class="btn btn-danger btn-sm" disabled title="Role masih digunakan">
+                            <button class="inline-flex items-center px-2 py-1 bg-gray-400 text-white text-xs font-semibold rounded cursor-not-allowed" disabled title="Role masih digunakan">
                                 <i class="fas fa-trash"></i>
                             </button>
                             @endif
@@ -77,7 +73,7 @@ Manajemen Roles
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="6" class="text-center">Tidak ada data roles</td>
+                        <td colspan="6" class="px-6 py-4 text-center text-gray-600">Tidak ada data roles</td>
                     </tr>
                     @endforelse
                 </tbody>
@@ -85,7 +81,7 @@ Manajemen Roles
         </div>
     </div>
 
-    <div class="card-footer">
+    <div class="mt-6">
         {{ $roles->links() }}
     </div>
 </div>
@@ -93,12 +89,12 @@ Manajemen Roles
 <!-- MODAL TAMBAH/EDIT ROLE -->
 <div class="modal fade" id="modalRole" tabindex="-1" role="dialog" aria-labelledby="modalRoleLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalRoleLabel">
-                    <i class="fas fa-plus-circle"></i> Tambah Role
+        <div class="modal-content bg-white rounded-lg shadow-lg">
+            <div class="bg-green-600 text-white px-6 py-4 rounded-t-lg border-b border-green-700">
+                <h5 class="font-semibold text-lg" id="modalRoleLabel">
+                    <i class="fas fa-plus-circle mr-2"></i> Tambah Role
                 </h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="absolute right-4 top-3 text-white hover:text-gray-200 text-2xl" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -106,32 +102,28 @@ Manajemen Roles
             <form id="formRole" action="{{ route('roles.store') }}" method="post">
                 @csrf
                 @method('POST')
-                <div class="modal-body">
-                    <div id="errorMessages" class="alert alert-danger d-none" role="alert">
-                        <strong>Terjadi Kesalahan!</strong>
-                        <ul id="errorList" class="mt-2 mb-0"></ul>
+                <div class="px-6 py-4">
+                    <div id="errorMessages" class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg hidden">
+                        <strong class="text-red-700">Terjadi Kesalahan!</strong>
+                        <ul id="errorList" class="mt-2 mb-0 ml-6 text-red-600 list-disc"></ul>
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="name">Nama Role</label>
-                                <input type="text" class="form-control" id="name" name="name" placeholder="Masukkan nama role" required>
-                            </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="name" class="block text-gray-700 font-semibold mb-2">Nama Role</label>
+                            <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-600" id="name" name="name" placeholder="Masukkan nama role" required>
                         </div>
 
-                        <div class="col-md-12">
-                            <div class="form-group">
-                                <label for="description">Deskripsi</label>
-                                <textarea class="form-control" id="description" name="description" rows="3" placeholder="Masukkan deskripsi role"></textarea>
-                            </div>
+                        <div class="col-span-full">
+                            <label for="description" class="block text-gray-700 font-semibold mb-2">Deskripsi</label>
+                            <textarea class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-green-600" id="description" name="description" rows="3" placeholder="Masukkan deskripsi role"></textarea>
                         </div>
                     </div>
                 </div>
 
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary">Simpan</button>
+                <div class="border-t border-gray-200 px-6 py-4 flex gap-2 justify-end">
+                    <button type="button" class="px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white font-semibold rounded-lg transition duration-200" data-dismiss="modal">Batal</button>
+                    <button type="submit" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition duration-200">Simpan</button>
                 </div>
             </form>
         </div>
@@ -151,7 +143,7 @@ Manajemen Roles
                 $('#formRole').attr('action', '{{ route("roles.store") }}');
                 $('#formRole').find('input[name="_method"]').remove();
                 $('#modalRoleLabel').html('<i class="fas fa-plus-circle"></i> Tambah Role');
-                $('#errorMessages').addClass('d-none');
+                $('#errorMessages').addClass('hidden');
             }
         });
 
@@ -174,7 +166,7 @@ Manajemen Roles
                     }
 
                     $('#modalRoleLabel').html('<i class="fas fa-edit"></i> Edit Role');
-                    $('#errorMessages').addClass('d-none');
+                    $('#errorMessages').addClass('hidden');
                     $('#modalRole').modal('show');
                 },
                 error: function() {
@@ -208,7 +200,7 @@ Manajemen Roles
                             errorList.append('<li>' + value[0] + '</li>');
                         });
 
-                        $('#errorMessages').removeClass('d-none');
+                        $('#errorMessages').removeClass('hidden');
                     }
                 }
             });

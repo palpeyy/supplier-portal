@@ -9,71 +9,67 @@ Manajemen Supplier
 @endsection
 
 @section('isi')
-<div class="container-fluid">
-    <div class="row mb-2">
-        <div class="col-sm-6"></div>
-        <div class="col-sm-6 text-right">
-            <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#modalSupplier">
-                <i class="fas fa-plus"></i> Tambah Supplier
+<div class="w-full max-w-full px-4 py-6">
+    <div class="flex flex-wrap -mx-2 mb-4">
+        <div class="flex-1 px-2 w-full sm:w-1/2"></div>
+        <div class="flex-1 px-2 w-full sm:w-1/2 text-right">
+            <button class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-lg transition duration-200 transform hover:-translate-y-0.5" data-toggle="modal" data-target="#modalSupplier">
+                <i class="fas fa-plus mr-2"></i> Tambah Supplier
             </button>
         </div>
     </div>
 
-    <div class="card">
-        <div class="card-body table-responsive p-0">
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="overflow-x-auto">
             @if ($message = Session::get('success'))
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                {{ $message }}
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+            <div class="m-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <span class="text-green-700 font-semibold">{{ $message }}</span>
+                <button type="button" class="float-right text-green-700 font-bold text-xl leading-none hover:text-green-900" onclick="this.parentElement.style.display='none';">×</button>
             </div>
             @endif
 
             @if ($message = Session::get('error'))
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                {{ $message }}
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+            <div class="m-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <span class="text-red-700 font-semibold">{{ $message }}</span>
+                <button type="button" class="float-right text-red-700 font-bold text-xl leading-none hover:text-red-900" onclick="this.parentElement.style.display='none';">×</button>
             </div>
             @endif
 
-            <table class="table table-hover text-nowrap">
-                <thead>
+            <table class="w-full border-collapse">
+                <thead class="bg-gray-100 border-b border-gray-200">
                     <tr>
-                        <th>#</th>
-                        <th>Nama Supplier</th>
-                        <th>Alamat</th>
-                        <th>PIC</th>
-                        <th>Telephone</th>
-                        <th>Contact Person</th>
-                        <th>Dibuat</th>
-                        <th width="150">Aksi</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">#</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Nama Supplier</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Alamat</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">PIC</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Telephone</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Contact Person</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Dibuat</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700 w-32">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($suppliers as $supplier)
-                    <tr>
-                        <td>{{ ($suppliers->currentPage() - 1) * $suppliers->perPage() + $loop->iteration }}</td>
-                        <td>{{ $supplier->nama }}</td>
-                        <td>{{ $supplier->alamat ?? '-' }}</td>
-                        <td>{{ $supplier->pic ?? '-' }}</td>
-                        <td>{{ $supplier->telephone ?? '-' }}</td>
-                        <td>{{ $supplier->contact_person ?? '-' }}</td>
-                        <td>{{ $supplier->created_at->format('d/m/Y H:i') }}</td>
-                        <td>
-                            <a class="btn btn-warning btn-sm edit-supplier" href="#" data-id="{{ $supplier->id }}" title="Edit">
+                    <tr class="border-b border-gray-200 hover:bg-gray-50 transition duration-200">
+                        <td class="px-6 py-3 text-sm text-gray-600">{{ ($suppliers->currentPage() - 1) * $suppliers->perPage() + $loop->iteration }}</td>
+                        <td class="px-6 py-3 text-sm text-gray-600 font-medium">{{ $supplier->nama }}</td>
+                        <td class="px-6 py-3 text-sm text-gray-600">{{ $supplier->alamat ?? '-' }}</td>
+                        <td class="px-6 py-3 text-sm text-gray-600">{{ $supplier->pic ?? '-' }}</td>
+                        <td class="px-6 py-3 text-sm text-gray-600">{{ $supplier->telephone ?? '-' }}</td>
+                        <td class="px-6 py-3 text-sm text-gray-600">{{ $supplier->contact_person ?? '-' }}</td>
+                        <td class="px-6 py-3 text-sm text-gray-600">{{ $supplier->created_at->format('d/m/Y H:i') }}</td>
+                        <td class="px-6 py-3 text-sm flex gap-1">
+                            <a class="inline-flex items-center px-2 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-semibold rounded transition duration-200 edit-supplier" href="#" data-id="{{ $supplier->id }}" title="Edit">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <button class="btn btn-danger btn-sm delete-supplier" data-id="{{ $supplier->id }}" title="Hapus" type="button">
+                            <button class="inline-flex items-center px-2 py-1 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded transition duration-200 delete-supplier" data-id="{{ $supplier->id }}" title="Hapus" type="button">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="text-center">Tidak ada data supplier</td>
+                        <td colspan="8" class="px-6 py-4 text-center text-gray-600">Tidak ada data supplier</td>
                     </tr>
                     @endforelse
                 </tbody>
@@ -81,7 +77,7 @@ Manajemen Supplier
         </div>
     </div>
 
-    <div class="card-footer">
+    <div class="mt-6">
         {{ $suppliers->links() }}
     </div>
 </div>
@@ -89,12 +85,12 @@ Manajemen Supplier
 <!-- MODAL TAMBAH/EDIT SUPPLIER -->
 <div class="modal fade" id="modalSupplier" tabindex="-1" role="dialog" aria-labelledby="modalSupplierLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalSupplierLabel">
-                    <i class="fas fa-plus-circle"></i> Tambah Supplier
+        <div class="modal-content bg-white rounded-lg shadow-lg">
+            <div class="bg-blue-600 text-white px-6 py-4 rounded-t-lg border-b border-blue-700">
+                <h5 class="font-semibold text-lg" id="modalSupplierLabel">
+                    <i class="fas fa-plus-circle mr-2"></i> Tambah Supplier
                 </h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="absolute right-4 top-3 text-white hover:text-gray-200 text-2xl" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -102,53 +98,45 @@ Manajemen Supplier
             <form id="formSupplier" action="{{ route('suppliers.store') }}" method="post">
                 @csrf
                 @method('POST')
-                <div class="modal-body">
-                    <div id="errorMessages" class="alert alert-danger d-none" role="alert">
-                        <strong>Terjadi Kesalahan!</strong>
-                        <ul id="errorList" class="mt-2 mb-0"></ul>
+                <div class="px-6 py-4">
+                    <div id="errorMessages" class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg hidden">
+                        <strong class="text-red-700">Terjadi Kesalahan!</strong>
+                        <ul id="errorList" class="mt-2 mb-0 ml-6 text-red-600 list-disc"></ul>
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="form-group">
-                                <label for="nama">Nama Supplier <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="nama" name="nama" placeholder="Masukkan nama supplier" required>
+                    <div class="grid grid-cols-1 gap-4">
+                        <div>
+                            <label for="nama" class="block text-gray-700 font-semibold mb-2">Nama Supplier <span class="text-red-600">*</span></label>
+                            <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-600" id="nama" name="nama" placeholder="Masukkan nama supplier" required>
+                        </div>
+
+                        <div>
+                            <label for="alamat" class="block text-gray-700 font-semibold mb-2">Alamat</label>
+                            <textarea class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-600" id="alamat" name="alamat" rows="3" placeholder="Masukkan alamat supplier"></textarea>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="pic" class="block text-gray-700 font-semibold mb-2">PIC (Person In Charge)</label>
+                                <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-600" id="pic" name="pic" placeholder="Masukkan PIC">
+                            </div>
+
+                            <div>
+                                <label for="telephone" class="block text-gray-700 font-semibold mb-2">Telephone</label>
+                                <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-600" id="telephone" name="telephone" placeholder="Masukkan nomor telephone">
                             </div>
                         </div>
 
-                        <div class="col-md-12">
-                            <div class="form-group">
-                                <label for="alamat">Alamat</label>
-                                <textarea class="form-control" id="alamat" name="alamat" rows="3" placeholder="Masukkan alamat supplier"></textarea>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="pic">PIC (Person In Charge)</label>
-                                <input type="text" class="form-control" id="pic" name="pic" placeholder="Masukkan PIC">
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="telephone">Telephone</label>
-                                <input type="text" class="form-control" id="telephone" name="telephone" placeholder="Masukkan nomor telephone">
-                            </div>
-                        </div>
-
-                        <div class="col-md-12">
-                            <div class="form-group">
-                                <label for="contact_person">Contact Person</label>
-                                <input type="text" class="form-control" id="contact_person" name="contact_person" placeholder="Masukkan contact person">
-                            </div>
+                        <div>
+                            <label for="contact_person" class="block text-gray-700 font-semibold mb-2">Contact Person</label>
+                            <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-600" id="contact_person" name="contact_person" placeholder="Masukkan contact person">
                         </div>
                     </div>
                 </div>
 
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary">Simpan</button>
+                <div class="border-t border-gray-200 px-6 py-4 flex gap-2 justify-end">
+                    <button type="button" class="px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white font-semibold rounded-lg transition duration-200" data-dismiss="modal">Batal</button>
+                    <button type="submit" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition duration-200">Simpan</button>
                 </div>
             </form>
         </div>
@@ -167,8 +155,8 @@ Manajemen Supplier
                 $('#formSupplier')[0].reset();
                 $('#formSupplier').attr('action', '{{ route("suppliers.store") }}');
                 $('#formSupplier').find('input[name="_method"]').remove();
-                $('#modalSupplierLabel').html('<i class="fas fa-plus-circle"></i> Tambah Supplier');
-                $('#errorMessages').addClass('d-none');
+                $('#modalSupplierLabel').html('<i class="fas fa-plus-circle mr-2"></i> Tambah Supplier');
+                $('#errorMessages').addClass('hidden');
             }
         });
 
@@ -193,8 +181,8 @@ Manajemen Supplier
                         $('#formSupplier').prepend('<input type="hidden" name="_method" value="PUT">');
                     }
 
-                    $('#modalSupplierLabel').html('<i class="fas fa-edit"></i> Edit Supplier');
-                    $('#errorMessages').addClass('d-none');
+                    $('#modalSupplierLabel').html('<i class="fas fa-edit mr-2"></i> Edit Supplier');
+                    $('#errorMessages').addClass('hidden');
                     $('#modalSupplier').modal('show');
                 },
                 error: function() {
@@ -228,7 +216,7 @@ Manajemen Supplier
                             errorList.append('<li>' + value[0] + '</li>');
                         });
 
-                        $('#errorMessages').removeClass('d-none');
+                        $('#errorMessages').removeClass('hidden');
                     }
                 }
             });
@@ -259,4 +247,3 @@ Manajemen Supplier
     });
 </script>
 @endpush
-
