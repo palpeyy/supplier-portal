@@ -13,7 +13,7 @@ Invoice
     <div class="bg-white rounded-lg shadow-md overflow-hidden">
         <!-- Nav tabs -->
         <div class="bg-white p-0 border-b border-gray-200">
-            <ul class="flex space-x-2 px-4 py-3" id="invoiceTabs" role="tablist">
+            <ul class="nav flex space-x-2 px-4 py-3" id="invoiceTabs" role="tablist">
                 <li>
                     <a class="inline-flex items-center px-3 py-2 rounded-md text-sm font-medium bg-yellow-100 text-yellow-800" id="ongoing-tab" data-toggle="tab" href="#ongoing" role="tab" aria-controls="ongoing" aria-selected="true">
                         <i class="fas fa-hourglass-half mr-2"></i> Sedang Diproses <span class="ml-2 inline-block bg-yellow-500 text-white text-xs px-2 py-0.5 rounded">{{ $ongoingInvoices->total() }}</span>

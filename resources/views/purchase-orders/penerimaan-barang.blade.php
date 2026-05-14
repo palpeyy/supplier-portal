@@ -13,7 +13,7 @@ Advanced Shipping Notice
     <div class="bg-white rounded-lg shadow-md overflow-hidden">
         <!-- Nav tabs -->
         <div class="bg-white p-0 border-b border-gray-200">
-            <ul class="flex space-x-2 px-4 py-3" id="penerimaanBarangTabs" role="tablist">
+            <ul class="nav flex space-x-2 px-4 py-3" id="penerimaanBarangTabs" role="tablist">
                 <li>
                     <a class="inline-flex items-center px-3 py-2 rounded-md text-sm font-medium bg-indigo-100 text-indigo-800" id="ongoing-tab" data-toggle="tab" href="#ongoing" role="tab" aria-controls="ongoing" aria-selected="true">
                         <i class="fas fa-hourglass-half mr-2"></i> Sedang Diproses <span class="ml-2 inline-block bg-indigo-500 text-white text-xs px-2 py-0.5 rounded">{{ $ongoingPurchaseOrders->total() }}</span>
@@ -62,7 +62,8 @@ Advanced Shipping Notice
 
             <!-- Tab panes -->
             <div class="tab-content">
-                <!-- Ongoing Tab -->
+
+                <!-- ✅ Tab Sedang Diproses (Ongoing) -->
                 <div class="tab-pane fade show active" id="ongoing" role="tabpanel" aria-labelledby="ongoing-tab">
                     <div class="table-responsive">
                         <table class="min-w-full divide-y divide-gray-200">
@@ -121,17 +122,14 @@ Advanced Shipping Notice
                                         <div class="flex items-center gap-2">
                                             @if($userRole == 'Admin' || $userRole == 'Dept. Head')
                                             @if($po->shippingDocuments->count() > 0 && $po->shippingDocuments->where('status', 'confirmed')->count() > 0)
-                                            <!-- Tombol untuk approve SJ -->
                                             <a class="inline-flex items-center px-2 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded" href="{{ route('purchase-orders.shipping-documents', $po->id) }}" title="Lihat & Approve Surat Jalan">
                                                 <i class="fas fa-check-circle mr-1"></i> Approve SJ
                                             </a>
                                             @elseif($po->shippingDocuments->count() > 0)
-                                            <!-- SJ sudah ada tapi belum confirm, arahkan ke detail SJ -->
                                             <a class="inline-flex items-center px-2 py-1 bg-yellow-600 hover:bg-yellow-700 text-white text-xs font-semibold rounded" href="{{ route('purchase-orders.shipping-documents', $po->id) }}" title="Lihat Surat Jalan">
                                                 <i class="fas fa-file-invoice mr-1"></i> Lihat SJ
                                             </a>
                                             @else
-                                            <!-- Belum ada SJ, tunggu supplier membuat -->
                                             <span class="inline-flex items-center px-2 py-1 bg-gray-300 text-gray-700 text-xs font-semibold rounded cursor-not-allowed" title="Menunggu Supplier membuat SJ">
                                                 <i class="fas fa-clock mr-1"></i> Menunggu SJ
                                             </span>
@@ -147,7 +145,7 @@ Advanced Shipping Notice
                                             </a>
                                             @if($po->pdf_path)
                                             <button class="inline-flex items-center px-2 py-1 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-semibold rounded preview-pdf" data-id="{{ $po->id }}" title="Preview PDF" type="button">
-                                                <i class="fas fa-eye-slash"></i>
+                                                <i class="fas fa-file-pdf"></i>
                                             </button>
                                             @endif
                                         </div>
@@ -155,101 +153,103 @@ Advanced Shipping Notice
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="9" class="text-center text-muted py-4">Tidak ada data pesanan sedang diproses</td>
+                                    <td colspan="10" class="text-center text-muted py-4">Tidak ada data pesanan sedang diproses</td>
                                 </tr>
                                 @endforelse
                             </tbody>
                         </table>
                     </div>
 
-                    <!-- Completed Tab -->
-                    <div class="tab-pane fade" id="completed" role="tabpanel" aria-labelledby="completed-tab">
-                        <div class="table-responsive">
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Surat Jalan</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PO Number</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supplier</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created By</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ETD</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ETA</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Keterangan</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" width="200">Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @forelse($completedPurchaseOrders as $po)
-                                    <tr>
-                                        <td class="px-6 py-3 text-sm text-gray-900">{{ ($completedPurchaseOrders->currentPage() - 1) * $completedPurchaseOrders->perPage() + $loop->iteration }}</td>
-                                        <td class="px-6 py-3 text-sm text-gray-900">
-                                            <a href="{{ route('purchase-orders.shipping-documents', $po->id) }}" class="text-primary hover:underline">
-                                                <i class="fas fa-file-alt mr-1"></i> Surat Jalan
-                                            </a>
-                                            @if($po->shippingDocuments->count() > 0)
-                                            <span class="ml-2 inline-block bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded">{{ $po->shippingDocuments->count() }} dokumen</span>
-                                            @endif
-                                        </td>
-                                        <td class="px-6 py-3 text-sm text-gray-900">{{ $po->po_number }}</td>
-                                        <td class="px-6 py-3 text-sm text-gray-900">
-                                            @if($po->supplier)
-                                            <span class="badge badge-info">{{ $po->supplier->nama }}</span>
-                                            @else
-                                            <span class="text-muted">-</span>
-                                            @endif
-                                        </td>
-                                        <td class="px-6 py-3 text-sm text-gray-900">
-                                            @if($po->createdBy)
-                                            <span class="badge badge-secondary">{{ $po->createdBy->name }}</span>
-                                            @else
-                                            <span class="text-muted">-</span>
-                                            @endif
-                                        </td>
-                                        <td class="px-6 py-3 text-sm text-gray-900">{{ $po->etd ? $po->etd->format('d/m/Y') : '-' }}</td>
-                                        <td class="px-6 py-3 text-sm text-gray-900">{{ $po->eta ? $po->eta->format('d/m/Y') : '-' }}</td>
-                                        <td class="px-6 py-3">
-                                            <span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded">Received</span>
-                                        </td>
-                                        <td class="px-6 py-3 text-sm text-gray-900">{{ $po->keterangan ?? '-' }}</td>
-                                        <td class="px-6 py-3">
-                                            <div class="flex items-center gap-2">
-                                                <a class="inline-flex items-center px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded detail-po" href="#" data-id="{{ $po->id }}" title="Detail">
-                                                    <i class="fas fa-eye"></i>
-                                                </a>
-                                                @if($po->pdf_path)
-                                                <button class="inline-flex items-center px-2 py-1 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-semibold rounded preview-pdf" data-id="{{ $po->id }}" title="Preview PDF" type="button">
-                                                    <i class="fas fa-eye-slash"></i>
-                                                </button>
-                                                @endif
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    @empty
-                                    <tr>
-                                        <td colspan="9" class="text-center text-muted py-4">Tidak ada data barang yang selesai diterima</td>
-                                    </tr>
-                                    @endforelse
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card-footer">
-                <div class="row">
-                    <div class="col-md-6">
-                        <h6>Sedang Diproses</h6>
+                    <!-- Pagination Ongoing -->
+                    <div class="px-4 py-3">
                         {{ $ongoingPurchaseOrders->render() }}
                     </div>
-                    <div class="col-md-6">
-                        <h6>Selesai Diterima</h6>
+                </div>
+                <!-- ✅ AKHIR Tab Ongoing -->
+
+                <!-- ✅ Tab Selesai Diterima (Completed) — sejajar dengan #ongoing, bukan di dalamnya -->
+                <div class="tab-pane fade" id="completed" role="tabpanel" aria-labelledby="completed-tab">
+                    <div class="table-responsive">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Surat Jalan</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PO Number</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supplier</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created By</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ETD</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ETA</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Keterangan</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" width="200">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($completedPurchaseOrders as $po)
+                                <tr>
+                                    <td class="px-6 py-3 text-sm text-gray-900">{{ ($completedPurchaseOrders->currentPage() - 1) * $completedPurchaseOrders->perPage() + $loop->iteration }}</td>
+                                    <td class="px-6 py-3 text-sm text-gray-900">
+                                        <a href="{{ route('purchase-orders.shipping-documents', $po->id) }}" class="text-primary hover:underline">
+                                            <i class="fas fa-file-alt mr-1"></i> Surat Jalan
+                                        </a>
+                                        @if($po->shippingDocuments->count() > 0)
+                                        <span class="ml-2 inline-block bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded">{{ $po->shippingDocuments->count() }} dokumen</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-3 text-sm text-gray-900">{{ $po->po_number }}</td>
+                                    <td class="px-6 py-3 text-sm text-gray-900">
+                                        @if($po->supplier)
+                                        <span class="badge badge-info">{{ $po->supplier->nama }}</span>
+                                        @else
+                                        <span class="text-muted">-</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-3 text-sm text-gray-900">
+                                        @if($po->createdBy)
+                                        <span class="badge badge-secondary">{{ $po->createdBy->name }}</span>
+                                        @else
+                                        <span class="text-muted">-</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-3 text-sm text-gray-900">{{ $po->etd ? $po->etd->format('d/m/Y') : '-' }}</td>
+                                    <td class="px-6 py-3 text-sm text-gray-900">{{ $po->eta ? $po->eta->format('d/m/Y') : '-' }}</td>
+                                    <td class="px-6 py-3">
+                                        <span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded">Received</span>
+                                    </td>
+                                    <td class="px-6 py-3 text-sm text-gray-900">{{ $po->keterangan ?? '-' }}</td>
+                                    <td class="px-6 py-3">
+                                        <div class="flex items-center gap-2">
+                                            <a class="inline-flex items-center px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded detail-po" href="#" data-id="{{ $po->id }}" title="Detail">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            @if($po->pdf_path)
+                                            <button class="inline-flex items-center px-2 py-1 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-semibold rounded preview-pdf" data-id="{{ $po->id }}" title="Preview PDF" type="button">
+                                                <i class="fas fa-file-pdf"></i>
+                                            </button>
+                                            @endif
+                                        </div>
+                                    </td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="10" class="text-center text-muted py-4">Tidak ada data barang yang selesai diterima</td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination Completed -->
+                    <div class="px-4 py-3">
                         {{ $completedPurchaseOrders->render() }}
                     </div>
                 </div>
+                <!-- ✅ AKHIR Tab Completed -->
+
             </div>
+            <!-- AKHIR tab-content -->
+
         </div>
     </div>
 
@@ -409,154 +409,164 @@ Advanced Shipping Notice
         </div>
     </div>
 
-    @endsection
+@endsection
 
-    @push('scripts')
-    <script>
-        $(document).ready(function() {
-            // Preview PDF
-            $(document).on('click', '.preview-pdf', function(e) {
-                e.preventDefault();
-                let poId = $(this).data('id');
+@push('scripts')
+<script>
+    $(document).ready(function() {
 
-                $('#previewContent').hide();
-                $('#previewLoading').show();
-                $('#modalPreviewFile').modal('show');
+        // ============================================================
+        // Tab switching — aktifkan style tab yang dipilih
+        // ============================================================
+        $('#penerimaanBarangTabs a[data-toggle="tab"]').on('click', function() {
+            // Reset semua tab ke style tidak aktif
+            $('#penerimaanBarangTabs a').removeClass('bg-indigo-100 text-indigo-800')
+                                        .addClass('text-gray-700 hover:bg-gray-100');
+            // Set tab yang diklik menjadi aktif
+            $(this).removeClass('text-gray-700 hover:bg-gray-100')
+                   .addClass('bg-indigo-100 text-indigo-800');
+        });
 
-                $.ajax({
-                    url: `/purchase-orders/${poId}`,
-                    type: 'GET',
-                    success: function(response) {
-                        if (response.purchase_order.pdf_path) {
-                            let pdfUrl = '/storage/' + response.purchase_order.pdf_path;
-                            $('#pdfIframe').attr('src', pdfUrl);
+        // ============================================================
+        // Preview PDF
+        // ============================================================
+        $(document).on('click', '.preview-pdf', function(e) {
+            e.preventDefault();
+            let poId = $(this).data('id');
 
-                            $('#btnDownloadFile').attr('href', `/purchase-orders/${poId}/download`);
+            $('#previewContent').hide();
+            $('#previewLoading').show().html('<i class="fas fa-spinner fa-spin fa-2x"></i><p class="mt-2">Memuat file...</p>');
+            $('#modalPreviewFile').modal('show');
 
-                            $('#btnPrintFile').data('pdf-url', pdfUrl);
-
-                            $('#previewLoading').hide();
-                            $('#previewContent').show();
-                        } else {
-                            $('#previewLoading').html('<div class="alert alert-warning">File tidak ditemukan</div>');
-                        }
-                    },
-                    error: function() {
-                        $('#previewLoading').html('<div class="alert alert-danger">Gagal memuat file</div>');
+            $.ajax({
+                url: `/purchase-orders/${poId}`,
+                type: 'GET',
+                success: function(response) {
+                    if (response.purchase_order.pdf_path) {
+                        let pdfUrl = '/storage/' + response.purchase_order.pdf_path;
+                        $('#pdfIframe').attr('src', pdfUrl);
+                        $('#btnDownloadFile').attr('href', `/purchase-orders/${poId}/download`);
+                        $('#btnPrintFile').data('pdf-url', pdfUrl);
+                        $('#previewLoading').hide();
+                        $('#previewContent').show();
+                    } else {
+                        $('#previewLoading').html('<div class="alert alert-warning">File tidak ditemukan</div>');
                     }
-                });
-            });
-
-            // Print PDF
-            $(document).on('click', '#btnPrintFile', function() {
-                let pdfUrl = $(this).data('pdf-url');
-                if (pdfUrl) {
-                    let printWindow = window.open(pdfUrl, '_blank');
-                    printWindow.addEventListener('load', function() {
-                        printWindow.print();
-                    });
-                }
-            });
-
-            // Detail Purchase Order
-            $(document).on('click', '.detail-po', function(e) {
-                e.preventDefault();
-                let poId = $(this).data('id');
-
-                $('#detailContent').hide();
-                $('#detailLoading').show();
-                $('#modalDetailPurchaseOrder').modal('show');
-
-                $.ajax({
-                    url: `/purchase-orders/${poId}`,
-                    type: 'GET',
-                    success: function(response) {
-                        let po = response.purchase_order;
-
-                        // Format date helper
-                        function formatDate(dateString) {
-                            if (!dateString) return '-';
-                            let date = new Date(dateString);
-                            let day = String(date.getDate()).padStart(2, '0');
-                            let month = String(date.getMonth() + 1).padStart(2, '0');
-                            let year = date.getFullYear();
-                            return day + '/' + month + '/' + year;
-                        }
-
-                        // Fill Purchase Order Information
-                        $('#detail_po_number').text(po.po_number || '-');
-                        $('#detail_date').text(formatDate(po.date));
-                        $('#detail_delivery_date').text(formatDate(po.delivery_date));
-                        $('#detail_currency').text(po.currency || '-');
-                        $('#detail_item_count').text(po.items_count || 0);
-                        $('#detail_supplier').text(po.supplier ? po.supplier.nama : '-');
-                        $('#detail_company_address').text(po.company_address || '-');
-
-                        // Fill Items Table
-                        let itemsBody = $('#detail_items_body');
-                        itemsBody.html('');
-
-                        if (po.items && po.items.length > 0) {
-                            po.items.forEach(function(item, index) {
-                                let pricePerUnit = item.price_per_unit ? parseFloat(item.price_per_unit).toLocaleString('id-ID', {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                }) : '0.00';
-
-                                let netValue = item.net_value ? parseFloat(item.net_value).toLocaleString('id-ID', {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                }) : '0.00';
-
-                                itemsBody.append(
-                                    '<tr>' +
-                                    '<td>' + (index + 1) + '</td>' +
-                                    '<td>' + (item.item_number || '-') + '</td>' +
-                                    '<td>' + (item.material_code || '-') + '</td>' +
-                                    '<td>' + (item.vendor_material || '-') + '</td>' +
-                                    '<td>' + (item.description || '-') + '</td>' +
-                                    '<td class="text-center">' + (item.quantity || 0) + '</td>' +
-                                    '<td class="text-right">' + pricePerUnit + '</td>' +
-                                    '<td class="text-right">' + netValue + '</td>' +
-                                    '</tr>'
-                                );
-                            });
-                        } else {
-                            itemsBody.append('<tr><td colspan="8" class="text-center">Tidak ada data items</td></tr>');
-                        }
-
-                        // Show content
-                        $('#detailLoading').hide();
-                        $('#detailContent').show();
-                    },
-                    error: function() {
-                        $('#detailLoading').html('<div class="alert alert-danger">Gagal memuat data Purchase Order</div>');
-                    }
-                });
-            });
-
-            // Confirm Received
-            $(document).on('click', '.confirm-received', function(e) {
-                e.preventDefault();
-                let poId = $(this).data('id');
-
-                if (confirm('Yakin ingin konfirmasi barang sudah diterima?')) {
-                    $.ajax({
-                        url: `/purchase-orders/${poId}/confirm-received`,
-                        type: 'POST',
-                        data: {
-                            '_token': '{{ csrf_token() }}'
-                        },
-                        success: function(response) {
-                            location.reload();
-                        },
-                        error: function(xhr) {
-                            let errorMsg = xhr.responseJSON?.error || 'Gagal konfirmasi penerimaan barang';
-                            alert(errorMsg);
-                        }
-                    });
+                },
+                error: function() {
+                    $('#previewLoading').html('<div class="alert alert-danger">Gagal memuat file</div>');
                 }
             });
         });
-    </script>
-    @endpush
+
+        // ============================================================
+        // Print PDF
+        // ============================================================
+        $(document).on('click', '#btnPrintFile', function() {
+            let pdfUrl = $(this).data('pdf-url');
+            if (pdfUrl) {
+                let printWindow = window.open(pdfUrl, '_blank');
+                printWindow.addEventListener('load', function() {
+                    printWindow.print();
+                });
+            }
+        });
+
+        // ============================================================
+        // Detail Purchase Order
+        // ============================================================
+        $(document).on('click', '.detail-po', function(e) {
+            e.preventDefault();
+            let poId = $(this).data('id');
+
+            $('#detailContent').hide();
+            $('#detailLoading').show().html('<i class="fas fa-spinner fa-spin fa-2x"></i><p class="mt-2">Memuat data...</p>');
+            $('#modalDetailPurchaseOrder').modal('show');
+
+            $.ajax({
+                url: `/purchase-orders/${poId}`,
+                type: 'GET',
+                success: function(response) {
+                    let po = response.purchase_order;
+
+                    function formatDate(dateString) {
+                        if (!dateString) return '-';
+                        let date = new Date(dateString);
+                        let day   = String(date.getDate()).padStart(2, '0');
+                        let month = String(date.getMonth() + 1).padStart(2, '0');
+                        let year  = date.getFullYear();
+                        return day + '/' + month + '/' + year;
+                    }
+
+                    $('#detail_po_number').text(po.po_number || '-');
+                    $('#detail_date').text(formatDate(po.date));
+                    $('#detail_delivery_date').text(formatDate(po.delivery_date));
+                    $('#detail_currency').text(po.currency || '-');
+                    $('#detail_item_count').text(po.items_count || 0);
+                    $('#detail_supplier').text(po.supplier ? po.supplier.nama : '-');
+                    $('#detail_company_address').text(po.company_address || '-');
+
+                    let itemsBody = $('#detail_items_body');
+                    itemsBody.html('');
+
+                    if (po.items && po.items.length > 0) {
+                        po.items.forEach(function(item, index) {
+                            let pricePerUnit = item.price_per_unit
+                                ? parseFloat(item.price_per_unit).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                                : '0.00';
+                            let netValue = item.net_value
+                                ? parseFloat(item.net_value).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                                : '0.00';
+
+                            itemsBody.append(
+                                '<tr>' +
+                                '<td>' + (index + 1) + '</td>' +
+                                '<td>' + (item.item_number || '-') + '</td>' +
+                                '<td>' + (item.material_code || '-') + '</td>' +
+                                '<td>' + (item.vendor_material || '-') + '</td>' +
+                                '<td>' + (item.description || '-') + '</td>' +
+                                '<td class="text-center">' + (item.quantity || 0) + '</td>' +
+                                '<td class="text-right">' + pricePerUnit + '</td>' +
+                                '<td class="text-right">' + netValue + '</td>' +
+                                '</tr>'
+                            );
+                        });
+                    } else {
+                        itemsBody.append('<tr><td colspan="8" class="text-center">Tidak ada data items</td></tr>');
+                    }
+
+                    $('#detailLoading').hide();
+                    $('#detailContent').show();
+                },
+                error: function() {
+                    $('#detailLoading').html('<div class="alert alert-danger">Gagal memuat data Purchase Order</div>');
+                }
+            });
+        });
+
+        // ============================================================
+        // Confirm Received
+        // ============================================================
+        $(document).on('click', '.confirm-received', function(e) {
+            e.preventDefault();
+            let poId = $(this).data('id');
+
+            if (confirm('Yakin ingin konfirmasi barang sudah diterima?')) {
+                $.ajax({
+                    url: `/purchase-orders/${poId}/confirm-received`,
+                    type: 'POST',
+                    data: { '_token': '{{ csrf_token() }}' },
+                    success: function() {
+                        location.reload();
+                    },
+                    error: function(xhr) {
+                        let errorMsg = xhr.responseJSON?.error || 'Gagal konfirmasi penerimaan barang';
+                        alert(errorMsg);
+                    }
+                });
+            }
+        });
+
+    });
+</script>
+@endpush

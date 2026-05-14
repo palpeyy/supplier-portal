@@ -22,7 +22,7 @@ Purchase Order
     <div class="card">
         <!-- Nav tabs -->
         <div class="bg-white p-0 pt-3 border-b border-gray-200">
-            <ul class="flex space-x-2 px-4" id="purchaseOrderTabs" role="tablist">
+            <ul class="nav flex space-x-2 px-4" id="purchaseOrderTabs" role="tablist">
                 {{-- Menunggu Approval Tab - only for Admin and Dept. Head --}}
                 @if($userRole !== 'Supplier')
                 <li>
