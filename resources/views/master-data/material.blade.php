@@ -17,10 +17,10 @@
 @section('page_title', 'Master Data Material')
 
 @section('breadcrumb')
-  <li class="flex items-center"><span class="text-gray-500">/</span></li>
-  <li class="flex items-center"><a href="{{ url('/dashboard') }}" class="text-blue-600 hover:text-blue-800 ml-2">Master Data</a></li>
-  <li class="flex items-center"><span class="text-gray-500 mx-2">/</span></li>
-  <li class="flex items-center"><span class="text-gray-700 ml-2">Material</span></li>
+<li class="flex items-center"><span class="text-gray-500">/</span></li>
+<li class="flex items-center"><a href="{{ url('/dashboard') }}" class="text-blue-600 hover:text-blue-800 ml-2">Master Data</a></li>
+<li class="flex items-center"><span class="text-gray-500 mx-2">/</span></li>
+<li class="flex items-center"><span class="text-gray-700 ml-2">Material</span></li>
 @endsection
 
 @section('isi')

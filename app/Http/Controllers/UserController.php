@@ -40,6 +40,7 @@ class UserController extends Controller
         
         $rules = [
             'name' => 'required|string|max:255',
+            'username' => 'required|string|max:255|alpha_dash|unique:users,username',
             'email' => 'required|email|unique:users',
             'password' => 'required|min:8|confirmed',
             'role_id' => 'required|exists:roles,id',
@@ -47,6 +48,9 @@ class UserController extends Controller
         
         $messages = [
             'name.required' => 'Nama harus diisi',
+            'username.required' => 'Username harus diisi',
+            'username.alpha_dash' => 'Username hanya boleh huruf, angka, dash, dan underscore',
+            'username.unique' => 'Username sudah terdaftar',
             'email.required' => 'Email harus diisi',
             'email.unique' => 'Email sudah terdaftar',
             'password.required' => 'Password harus diisi',
@@ -66,6 +70,7 @@ class UserController extends Controller
 
         $data = [
             'name' => $request->name,
+            'username' => $request->username,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role_id' => $request->role_id,
@@ -122,6 +127,7 @@ class UserController extends Controller
         
         $rules = [
             'name' => 'required|string|max:255',
+            'username' => 'required|string|max:255|alpha_dash|unique:users,username,' . $user->id,
             'email' => 'required|email|unique:users,email,' . $user->id,
             'role_id' => 'required|exists:roles,id',
             'password' => 'nullable|min:8|confirmed',
@@ -129,6 +135,9 @@ class UserController extends Controller
         
         $messages = [
             'name.required' => 'Nama harus diisi',
+            'username.required' => 'Username harus diisi',
+            'username.alpha_dash' => 'Username hanya boleh huruf, angka, dash, dan underscore',
+            'username.unique' => 'Username sudah terdaftar',
             'email.required' => 'Email harus diisi',
             'email.unique' => 'Email sudah terdaftar',
             'password.min' => 'Password minimal 8 karakter',
@@ -147,6 +156,7 @@ class UserController extends Controller
 
         $data = [
             'name' => $request->name,
+            'username' => $request->username,
             'email' => $request->email,
             'role_id' => $request->role_id,
         ];

@@ -16,7 +16,8 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
   <style>
-    html, body {
+    html,
+    body {
       height: 100%;
       margin: 0;
       font-family: 'Poppins', sans-serif;
@@ -24,11 +25,9 @@
 
     /* Background sama dengan landing page */
     body {
-      background: linear-gradient(
-        135deg,
+      background: linear-gradient(135deg,
         rgba(180, 0, 0, 0.85),
-        rgba(0, 0, 0, 0.9)
-      ),
+        rgba(0, 0, 0, 0.9)),
       url('{{ asset("img/office-bg.jpg") }}') center / cover no-repeat;
       background-attachment: fixed;
     }
@@ -147,6 +146,7 @@
         opacity: 0;
         transform: translateY(25px);
       }
+
       to {
         opacity: 1;
         transform: translateY(0);
@@ -180,34 +180,33 @@
 
       <!-- Session Error -->
       @if ($errors->any())
-        <div class="alert alert-danger">
-          @foreach ($errors->all() as $error)
-            <small class="d-block">{{ $error }}</small>
-          @endforeach
-        </div>
+      <div class="alert alert-danger">
+        @foreach ($errors->all() as $error)
+        <small class="d-block">{{ $error }}</small>
+        @endforeach
+      </div>
       @endif
 
       <form action="{{ route('login') }}" method="POST">
         @csrf
 
-        <!-- Email Input -->
+        <!-- Username Input -->
         <div class="form-group">
           <div class="input-group">
             <span class="input-group-text">
-              <i class="bi bi-envelope-fill"></i>
+              <i class="bi bi-person-fill"></i>
             </span>
-            <input 
-              type="email" 
-              name="email" 
-              class="form-control @error('email') is-invalid @enderror" 
-              placeholder="Email" 
-              value="{{ old('email') }}"
-              required 
-              autofocus
-            >
+            <input
+              type="text"
+              name="username"
+              class="form-control @error('username') is-invalid @enderror"
+              placeholder="Username"
+              value="{{ old('username') }}"
+              required
+              autofocus>
           </div>
-          @error('email')
-            <div class="error-text">{{ $message }}</div>
+          @error('username')
+          <div class="error-text">{{ $message }}</div>
           @enderror
         </div>
 
@@ -217,36 +216,33 @@
             <span class="input-group-text">
               <i class="bi bi-lock-fill"></i>
             </span>
-            <input 
-              type="password" 
-              name="password" 
-              id="password" 
-              class="form-control @error('password') is-invalid @enderror" 
-              placeholder="Password" 
-              required
-            >
-            <button 
+            <input
+              type="password"
+              name="password"
+              id="password"
+              class="form-control @error('password') is-invalid @enderror"
+              placeholder="Password"
+              required>
+            <button
               type="button"
-              class="inline-flex items-center px-3 py-2 border border-gray-300 text-gray-700 rounded password-toggle" 
-              onclick="togglePassword()"
-            >
+              class="inline-flex items-center px-3 py-2 border border-gray-300 text-gray-700 rounded password-toggle"
+              onclick="togglePassword()">
               <i class="bi bi-eye-fill" id="toggle-icon"></i>
             </button>
           </div>
           @error('password')
-            <div class="error-text">{{ $message }}</div>
+          <div class="error-text">{{ $message }}</div>
           @enderror
         </div>
 
         <!-- Remember Me -->
         <div class="form-check text-start mb-3" style="padding-left: 0;">
-          <input 
-            class="form-check-input" 
-            type="checkbox" 
-            name="remember" 
+          <input
+            class="form-check-input"
+            type="checkbox"
+            name="remember"
             id="remember"
-            {{ old('remember') ? 'checked' : '' }}
-          >
+            {{ old('remember') ? 'checked' : '' }}>
           <label class="form-check-label" for="remember" style="font-size: 0.9rem;">
             Ingat saya
           </label>
@@ -255,13 +251,13 @@
           </a>
         </div>
 
-        <button type="submit" class="inline-flex items-center px-4 py-2 bg-red-700 hover:bg-red-800 text-white rounded font-semibold">
+        <button type="submit" class="btn-login">
           <i class="bi bi-box-arrow-in-right mr-2"></i> Login
         </button>
 
         <!-- Register Link -->
         <div style="margin-top: 15px;">
-          <span class="form-text">Belum punya akun? 
+          <span class="form-text">Belum punya akun?
             <a href="{{ route('register') }}" style="color: #b40000; text-decoration: none; font-weight: 600;">Daftar di sini</a>
           </span>
         </div>
@@ -290,4 +286,5 @@
   </script>
 
 </body>
+
 </html>

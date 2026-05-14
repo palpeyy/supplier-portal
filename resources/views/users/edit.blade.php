@@ -53,6 +53,15 @@ Edit User
                         </div>
 
                         <div class="mb-4">
+                            <label for="username" class="block text-gray-700 font-semibold mb-2">Username</label>
+                            <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-yellow-500 @error('username') border-red-500 @enderror"
+                                id="username" name="username" placeholder="Masukkan username" value="{{ old('username', $user->username) }}" required>
+                            @error('username')
+                            <span class="text-red-600 text-sm">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        <div class="mb-4">
                             <label for="role_id" class="block text-gray-700 font-semibold mb-2">Role</label>
                             <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-yellow-500 @error('role_id') border-red-500 @enderror" id="role_id" name="role_id" required>
                                 <option value="">-- Pilih Role --</option>

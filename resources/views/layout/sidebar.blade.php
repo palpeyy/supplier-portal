@@ -34,7 +34,8 @@
         </a>
       </li>
 
-      @if(auth()->check() && (auth()->user()->role->name ?? '') !== 'Supplier')
+      @php $currentRole = auth()->check() ? (auth()->user()->role->name ?? '') : ''; @endphp
+      @if(auth()->check() && $currentRole !== 'Supplier')
       <!-- Master Data (tidak untuk Supplier) -->
       <li class="nav-item has-treeview">
         <a href="#" class="nav-link">
@@ -65,25 +66,25 @@
         </a>
       </li>
 
-      <!-- Penerimaan Barang (untuk Admin, Dept. Head, dan Supplier) -->
-      @if(auth()->check() && in_array(auth()->user()->role->name ?? '', ['Admin', 'Dept. Head']))
+      <!-- Advanced Shipping Notice (untuk Admin, Dept. Head, dan Supplier) -->
+      @if(auth()->check() && in_array($currentRole, ['Admin', 'Dept. Head', 'Supplier']))
       <li class="nav-item">
         <a href="{{ route('purchase-orders.penerimaan-barang') }}" class="nav-link">
           <i class="nav-icon fas fa-box-open"></i>
           <p>
-            Penerimaan Barang
+            Advanced Shipping Notice
           </p>
         </a>
       </li>
       @endif
 
-      <!-- Penagihan Invoice (untuk Admin dan Supplier) -->
-      @if(auth()->check() && in_array(auth()->user()->role->name ?? '', ['Admin', 'Supplier']))
+      <!-- Penagihan Invoice (untuk Admin, Purchasing, dan Supplier) -->
+      @if(auth()->check() && in_array($currentRole, ['Admin', 'Purchasing', 'Supplier']))
       <li class="nav-item">
         <a href="{{ route('invoices.index') }}" class="nav-link">
           <i class="nav-icon fas fa-file-invoice"></i>
           <p>
-            Penagihan Invoice
+            Invoice
           </p>
         </a>
       </li>
@@ -165,30 +166,15 @@
         </ul>
       </li> -->
 
-      @if(auth()->check() && (auth()->user()->role->name ?? '') !== 'Supplier')
+      @if(auth()->check() && $currentRole !== 'Supplier')
       <!-- Manajemen User (tidak untuk Supplier) -->
-      <li class="nav-item has-treeview">
-        <a href="#" class="nav-link">
+      <li class="nav-item">
+        <a href="{{ route('users.index') }}" class="nav-link">
           <i class="nav-icon fas fa-users-cog"></i>
           <p>
             Manajemen User
-            <i class="right fas fa-angle-left"></i>
           </p>
         </a>
-        <ul class="nav nav-treeview">
-          <li class="nav-item">
-            <a href="{{ route('users.index') }}" class="nav-link">
-              <i class="far fa-circle nav-icon"></i>
-              <p>Users</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{{ route('roles.index') }}" class="nav-link">
-              <i class="far fa-circle nav-icon"></i>
-              <p>Roles</p>
-            </a>
-          </li>
-        </ul>
       </li>
       @endif
 

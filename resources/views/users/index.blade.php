@@ -40,6 +40,7 @@ Manajemen Users
                     <tr>
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">#</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Nama</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Username</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Email</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Role</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Supplier</th>
@@ -52,6 +53,7 @@ Manajemen Users
                     <tr class="border-b border-gray-200 hover:bg-gray-50 transition duration-200">
                         <td class="px-6 py-3 text-sm text-gray-600">{{ ($users->currentPage() - 1) * $users->perPage() + $loop->iteration }}</td>
                         <td class="px-6 py-3 text-sm text-gray-600 font-medium">{{ $user->name }}</td>
+                        <td class="px-6 py-3 text-sm text-gray-600">{{ $user->username ?? '-' }}</td>
                         <td class="px-6 py-3 text-sm text-gray-600">{{ $user->email }}</td>
                         <td class="px-6 py-3 text-sm">
                             @if($user->role)
@@ -79,7 +81,7 @@ Manajemen Users
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="px-6 py-4 text-center text-gray-600">Tidak ada data users</td>
+                        <td colspan="8" class="px-6 py-4 text-center text-gray-600">Tidak ada data users</td>
                     </tr>
                     @endforelse
                 </tbody>
@@ -89,6 +91,27 @@ Manajemen Users
 
     <div class="mt-6">
         {{ $users->links() }}
+    </div>
+</div>
+
+<div id="flashData" data-success="{{ session('success') }}"></div>
+
+<!-- MODAL SUCCESS -->
+<div class="modal fade" id="modalSuccess" tabindex="-1" role="dialog" aria-labelledby="modalSuccessLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content bg-white rounded-lg shadow-lg">
+            <div class="bg-green-600 text-white px-6 py-4 rounded-t-lg border-b border-green-700 flex items-center gap-3">
+                <i class="fas fa-check-circle text-2xl"></i>
+                <h5 class="font-semibold text-lg" id="modalSuccessLabel">Berhasil</h5>
+                <button type="button" class="absolute right-4 top-3 text-white hover:text-gray-200 text-2xl" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="px-6 py-6 text-center">
+                <p id="modalSuccessMessage" class="text-gray-700 font-semibold mb-6"></p>
+                <button type="button" class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition duration-200" data-dismiss="modal">Tutup</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -123,6 +146,12 @@ Manajemen Users
                         <div>
                             <label for="email" class="block text-gray-700 font-semibold mb-2">Email</label>
                             <input type="email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-600" id="email" name="email" placeholder="Masukkan email" required>
+                        </div>
+
+                        <div>
+                            <label for="username" class="block text-gray-700 font-semibold mb-2">Username</label>
+                            <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-600" id="username" name="username" placeholder="Masukkan username" required>
+                            <small class="text-gray-500">Gunakan huruf, angka, dash, atau underscore</small>
                         </div>
 
                         <div>
@@ -166,12 +195,19 @@ Manajemen Users
         </div>
     </div>
 </div>
-
 @endsection
+
 
 @push('scripts')
 <script>
     $(document).ready(function() {
+        // Show success modal jika ada flash session
+        const flashSuccessMessage = $('#flashData').data('success');
+        if (flashSuccessMessage) {
+            $('#modalSuccessMessage').text(flashSuccessMessage);
+            $('#modalSuccess').modal('show');
+        }
+
         // Toggle supplier field required based on role
         function toggleSupplierField() {
             let roleId = $('#role_id').val();
@@ -187,8 +223,6 @@ Manajemen Users
                 $('#supplier_required_label').hide();
                 $('#supplier_help').text('Opsional, hanya diperlukan jika role adalah Supplier');
                 $('#supplier_help').removeClass('text-red-600').addClass('text-gray-500');
-                // Optional: clear supplier_id if not supplier role
-                // $('#supplier_id').val('');
             }
         }
 
@@ -199,46 +233,37 @@ Manajemen Users
         // Store user data for edit
         let currentUserData = null;
 
-        // Reset form saat modal dibuka untuk tambah
-        $('#modalUser').on('show.bs.modal', function(e) {
-            let btnTambah = $(e.relatedTarget);
-            // Only reset if not editing (no currentUserData) and button is not edit-user
-            if (!currentUserData && (!btnTambah.length || !btnTambah.hasClass('edit-user'))) {
-                $('#formUser')[0].reset();
-                $('#formUser').attr('action', '{{ route("users.store") }}');
-                $('#formUser').find('input[name="_method"]').remove();
-                $('#modalUserLabel').html('<i class="fas fa-user-plus"></i> Tambah User');
-                $('#password').prop('required', true);
-                $('#password_confirmation').prop('required', true);
-                $('#errorMessages').addClass('hidden');
-                $('#supplier_id').prop('required', false);
-                $('#supplier_required_label').hide();
-                $('#supplier_help').text('Opsional, hanya diperlukan jika role adalah Supplier');
-                $('#supplier_help').removeClass('text-red-600').addClass('text-gray-500');
-            }
-        });
+        // TAMBAH USER - Reset form untuk create
+        $(document).on('click', '[data-toggle="modal"][data-target="#modalUser"]', function(e) {
+            e.preventDefault();
 
-        // Clear edit data when modal is hidden
-        $('#modalUser').on('hidden.bs.modal', function() {
+            // Reset all form fields
+            $('#formUser')[0].reset();
+            $('#errorMessages').addClass('hidden');
+
+            // Clear hidden method field
+            $('#formUser').find('input[name="_method"]').remove();
+
+            // Set form untuk CREATE
+            $('#formUser').attr('action', '{{ route("users.store") }}');
+
+            // Set password untuk CREATE (required)
+            $('#password').prop('required', true);
+            $('#password_confirmation').prop('required', true);
+
+            // Update modal title
+            $('#modalUserLabel').html('<i class="fas fa-user-plus mr-2"></i> Tambah User');
+
+            // Reset supplier field
+            $('#supplier_id').prop('required', false);
+            $('#supplier_required_label').hide();
+            $('#supplier_help').text('Opsional, hanya diperlukan jika role adalah Supplier');
+            $('#supplier_help').removeClass('text-red-600').addClass('text-gray-500');
+
             currentUserData = null;
         });
 
-        // Populate form when modal is fully shown (for edit)
-        $('#modalUser').on('shown.bs.modal', function() {
-            if (currentUserData) {
-                // Set values after modal is shown
-                $('#name').val(currentUserData.name || '');
-                $('#email').val(currentUserData.email || '');
-                $('#role_id').val(currentUserData.role_id || '').trigger('change');
-                // Wait a bit for role change to process, then set supplier
-                setTimeout(function() {
-                    $('#supplier_id').val(currentUserData.supplier_id || '');
-                    toggleSupplierField();
-                }, 100);
-            }
-        });
-
-        // Edit user
+        // EDIT USER - Load data dan set form untuk update
         $(document).on('click', '.edit-user', function(e) {
             e.preventDefault();
             let userId = $(this).data('id');
@@ -246,53 +271,75 @@ Manajemen Users
             $.ajax({
                 url: `/users/${userId}/edit`,
                 type: 'GET',
+                dataType: 'json',
                 success: function(response) {
-                    console.log('User data:', response.user); // Debug
-
-                    // Store user data
-                    currentUserData = response.user;
-
-                    // Reset form first
+                    // Reset form
                     $('#formUser')[0].reset();
+                    $('#errorMessages').addClass('hidden');
+
+                    // Fill form dengan data user
+                    $('#name').val(response.user.name || '');
+                    $('#username').val(response.user.username || '');
+                    $('#email').val(response.user.email || '');
+                    $('#role_id').val(response.user.role_id || '').trigger('change');
+
+                    // Set supplier_id dengan delay
+                    setTimeout(function() {
+                        $('#supplier_id').val(response.user.supplier_id || '');
+                        toggleSupplierField();
+                    }, 100);
+
+                    // Password optional untuk edit
                     $('#password').prop('required', false);
                     $('#password_confirmation').prop('required', false);
 
-                    // Update form action and method
+                    // Set form action untuk UPDATE
                     $('#formUser').attr('action', `/users/${userId}`);
+
+                    // Clear dan tambah PUT method
                     $('#formUser').find('input[name="_method"]').remove();
                     $('#formUser').prepend('<input type="hidden" name="_method" value="PUT">');
 
-                    $('#modalUserLabel').html('<i class="fas fa-edit"></i> Edit User');
-                    $('#errorMessages').addClass('hidden');
+                    // Update modal title
+                    $('#modalUserLabel').html('<i class="fas fa-edit mr-2"></i> Edit User');
 
-                    // Show modal - values will be set in 'shown.bs.modal' event
+                    // Show modal
                     $('#modalUser').modal('show');
                 },
                 error: function(xhr) {
                     console.error('Error loading user:', xhr);
-                    currentUserData = null;
                     alert('Gagal memuat data user');
                 }
             });
         });
 
-        // Submit form
+        // SUBMIT FORM - Create atau Update
         $('#formUser').on('submit', function(e) {
             e.preventDefault();
 
-            let formData = $(this).serialize();
             let action = $(this).attr('action');
+            let formData = new FormData(this);
 
             $.ajax({
                 url: action,
                 type: 'POST',
                 data: formData,
+                processData: false,
+                contentType: false,
                 success: function(response) {
                     $('#modalUser').modal('hide');
-                    location.reload();
+                    $('#modalSuccessMessage').text(response.success || 'User berhasil disimpan');
+                    $('#modalSuccess').modal('show');
+
+                    // Reload page after modal success closed
+                    $('#modalSuccess').one('hidden.bs.modal', function() {
+                        location.reload();
+                    });
                 },
                 error: function(xhr) {
+                    console.error('Form submission error:', xhr);
                     if (xhr.status === 422) {
+                        // Validation errors
                         let errors = xhr.responseJSON.errors;
                         let errorList = $('#errorList');
                         errorList.html('');
@@ -302,12 +349,14 @@ Manajemen Users
                         });
 
                         $('#errorMessages').removeClass('hidden');
+                    } else {
+                        alert('Terjadi kesalahan: ' + xhr.statusText);
                     }
                 }
             });
         });
 
-        // Delete user
+        // DELETE USER
         $(document).on('click', '.delete-user', function(e) {
             e.preventDefault();
             let userId = $(this).data('id');
@@ -321,9 +370,15 @@ Manajemen Users
                         '_token': '{{ csrf_token() }}'
                     },
                     success: function(response) {
-                        location.reload();
+                        $('#modalSuccessMessage').text(response.success || 'User berhasil dihapus');
+                        $('#modalSuccess').modal('show');
+
+                        $('#modalSuccess').one('hidden.bs.modal', function() {
+                            location.reload();
+                        });
                     },
-                    error: function() {
+                    error: function(xhr) {
+                        console.error('Delete error:', xhr);
                         alert('Gagal menghapus user');
                     }
                 });

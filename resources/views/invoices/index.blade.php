@@ -1,11 +1,11 @@
 @extends('layout.main')
 
 @section('page_title')
-Penagihan Invoice
+Invoice
 @endsection
 
 @section('breadcrumb')
-<li class="breadcrumb-item active">Penagihan Invoice</li>
+<li class="breadcrumb-item active">Invoice</li>
 @endsection
 
 @section('isi')
@@ -71,158 +71,194 @@ Penagihan Invoice
                     @endif
 
                     <div class="table-responsive">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PO Number</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal PO</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supplier</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status Invoice</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Catatan Revisi</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Upload</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" width="250">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($ongoingInvoices as $invoice)
-                            <tr>
-                                <td>{{ ($ongoingInvoices->currentPage() - 1) * $ongoingInvoices->perPage() + $loop->iteration }}</td>
-                                <td><strong>{{ $invoice->purchaseOrder->po_number }}</strong></td>
-                                <td>{{ $invoice->purchaseOrder->date ? $invoice->purchaseOrder->date->format('d/m/Y') : '-' }}</td>
-                                <td>
-                                    @if($invoice->purchaseOrder->supplier)
-                                    <span class="badge badge-info">{{ $invoice->purchaseOrder->supplier->nama }}</span>
-                                    @else
-                                    <span class="text-muted">-</span>
-                                    @endif
-                                </td>
-                                <td class="px-6 py-3">
-                                    @if($invoice->status == 'pending')
-                                    <span class="inline-block bg-yellow-100 text-yellow-800 text-xs px-2 py-0.5 rounded">Pending</span>
-                                    @elseif($invoice->status == 'revised')
-                                    <span class="inline-block bg-red-100 text-red-800 text-xs px-2 py-0.5 rounded">Revised</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    @if($invoice->catatan_revisi)
-                                    <span class="text-danger" title="{{ $invoice->catatan_revisi }}">
-                                        <i class="fas fa-exclamation-circle"></i> Ada catatan
-                                    </span>
-                                    @else
-                                    <span class="text-muted">-</span>
-                                    @endif
-                                </td>
-                                <td>{{ $invoice->created_at->format('d/m/Y H:i') }}</td>
-                                <td>
-                                    @if($userRole === 'Supplier' && $invoice->status == 'revised')
-                                    <button class="inline-flex items-center px-2 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-semibold rounded revise-invoice-supplier" data-id="{{ $invoice->id }}" title="Upload Revisi">
-                                        <i class="fas fa-upload mr-2"></i> Revisi
-                                    </button>
-                                    @endif
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PO Number</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal PO</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supplier</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status Invoice</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Catatan Revisi</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Upload</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" width="250">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($ongoingInvoices as $invoice)
+                                <tr>
+                                    <td class="px-6 py-3 text-sm text-gray-900">{{ ($ongoingInvoices->currentPage() - 1) * $ongoingInvoices->perPage() + $loop->iteration }}</td>
+                                    <td class="px-6 py-3 text-sm text-gray-900"><strong>{{ $invoice->purchaseOrder->po_number }}</strong></td>
+                                    <td class="px-6 py-3 text-sm text-gray-900">{{ $invoice->purchaseOrder->date ? $invoice->purchaseOrder->date->format('d/m/Y') : '-' }}</td>
+                                    <td class="px-6 py-3 text-sm text-gray-900">
+                                        @if($invoice->purchaseOrder->supplier)
+                                        <span class="badge badge-info">{{ $invoice->purchaseOrder->supplier->nama }}</span>
+                                        @else
+                                        <span class="text-muted">-</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-3">
+                                        @if($invoice->status == 'pending')
+                                        <span class="inline-block bg-yellow-100 text-yellow-800 text-xs px-2 py-0.5 rounded">Pending</span>
+                                        @elseif($invoice->status == 'revised')
+                                        <span class="inline-block bg-red-100 text-red-800 text-xs px-2 py-0.5 rounded">Revised</span>
+                                        @elseif($invoice->status == 'ready_for_payment')
+                                        <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded">Siap Bayar</span>
+                                        @elseif($invoice->status == 'paid')
+                                        <span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded">Paid</span>
+                                        @elseif($invoice->status == 'completed')
+                                        <span class="inline-block bg-gray-800 text-white text-xs px-2 py-0.5 rounded">Completed</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-3 text-sm text-gray-900">
+                                        @if($invoice->catatan_revisi)
+                                        <span class="text-danger" title="{{ $invoice->catatan_revisi }}">
+                                            <i class="fas fa-exclamation-circle"></i> Ada catatan
+                                        </span>
+                                        @else
+                                        <span class="text-muted">-</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-3 text-sm text-gray-900">{{ $invoice->created_at->format('d/m/Y H:i') }}</td>
+                                    <td class="px-6 py-3">
+                                        <div class="flex items-center gap-2">
+                                            @if($userRole === 'Supplier' && $invoice->status == 'revised')
+                                            <button class="inline-flex items-center px-2 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-semibold rounded revise-invoice-supplier" data-id="{{ $invoice->id }}" title="Upload Revisi">
+                                                <i class="fas fa-upload mr-2"></i> Revisi
+                                            </button>
+                                            @endif
 
-                                    @if($userRole === 'Admin' && in_array($invoice->status, ['pending', 'revised']))
-                                    <button class="inline-flex items-center px-2 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded approve-invoice" data-id="{{ $invoice->id }}" title="Aksi">
-                                        <i class="fas fa-tasks mr-2"></i> Aksi
-                                    </button>
-                                    @endif
+                                            @if($userRole === 'Admin' && in_array($invoice->status, ['pending', 'revised']))
+                                            <button class="inline-flex items-center px-2 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded approve-invoice" data-id="{{ $invoice->id }}" title="Aksi">
+                                                <i class="fas fa-tasks mr-2"></i> Aksi
+                                            </button>
+                                            @endif
 
-                                    @if($invoice->invoice_file && $invoice->surat_jalan_file && $invoice->faktur_pajak_file)
-                                    <button class="inline-flex items-center px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded detail-invoice" data-id="{{ $invoice->id }}" title="Lihat Detail">
-                                        <i class="fas fa-eye mr-2"></i> Detail
-                                    </button>
-                                    @endif
-                                </td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="8" class="text-center text-muted py-4">Tidak ada Invoice yang sedang diproses</td>
-                            </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
+                                            @if($invoice->invoice_file && $invoice->surat_jalan_file && $invoice->faktur_pajak_file)
+                                            <button class="inline-flex items-center px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded detail-invoice" data-id="{{ $invoice->id }}" title="Lihat Detail">
+                                                <i class="fas fa-eye mr-2"></i> Detail
+                                            </button>
+                                            @endif
+                                        </div>
+                                    </td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted py-4">Tidak ada Invoice yang sedang diproses</td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
 
-                            @if($userRole === 'Supplier')
-                            @foreach($purchaseOrdersWithoutInvoice as $po)
-                            <tr style="background-color: #f9f9f9;">
-                                <td>-</td>
-                                <td><strong>{{ $po->po_number }}</strong></td>
-                                <td>{{ $po->date ? $po->date->format('d/m/Y') : '-' }}</td>
-                                <td>
-                                    @if($po->supplier)
-                                    <span class="badge badge-info">{{ $po->supplier->nama }}</span>
-                                    @else
-                                    <span class="text-muted">-</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    <span class="badge badge-secondary">Belum Upload</span>
-                                </td>
-                                <td><span class="text-muted">-</span></td>
-                                <td><span class="text-muted">-</span></td>
-                                <td>
-                                    <button class="inline-flex items-center px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded upload-invoice" data-po-id="{{ $po->id }}" title="Upload Invoice">
-                                        <i class="fas fa-upload mr-2"></i> Upload Invoice
-                                    </button>
-                                </td>
-                            </tr>
-                            @endforeach
-                            @endif
-                        </tbody>
-                    </table>
+                    @if($userRole === 'Supplier' && $purchaseOrdersWithoutInvoice->count() > 0)
+                    <div class="mt-4 border border-blue-200 rounded-lg overflow-hidden">
+                        <div class="bg-blue-50 px-4 py-3 border-b border-blue-200">
+                            <h6 class="mb-0 text-blue-800 font-semibold">
+                                <i class="fas fa-file-upload mr-2"></i> PO Siap Di-invoice
+                            </h6>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PO Number</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal PO</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supplier</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-100">
+                                    @foreach($purchaseOrdersWithoutInvoice as $po)
+                                    <tr>
+                                        <td class="px-6 py-3 text-sm text-gray-900">{{ $loop->iteration }}</td>
+                                        <td class="px-6 py-3 text-sm text-gray-900"><strong>{{ $po->po_number }}</strong></td>
+                                        <td class="px-6 py-3 text-sm text-gray-900">{{ $po->date ? $po->date->format('d/m/Y') : '-' }}</td>
+                                        <td class="px-6 py-3 text-sm text-gray-900">
+                                            @if($po->supplier)
+                                            <span class="badge badge-info">{{ $po->supplier->nama }}</span>
+                                            @else
+                                            <span class="text-muted">-</span>
+                                            @endif
+                                        </td>
+                                        <td class="px-6 py-3 text-sm text-gray-900">
+                                            <span class="inline-block bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded">Belum Upload</span>
+                                        </td>
+                                        <td class="px-6 py-3 text-sm text-gray-900">
+                                            <button class="inline-flex items-center px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded upload-invoice" data-po-id="{{ $po->id }}" title="Upload Invoice">
+                                                <i class="fas fa-upload mr-2"></i> Upload Invoice
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    @endif
+
                 </div>
 
                 <!-- Completed Tab -->
                 <div class="tab-pane fade" id="completed" role="tabpanel" aria-labelledby="completed-tab">
-                    <table class="table table-hover text-nowrap">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>PO Number</th>
-                                <th>Tanggal PO</th>
-                                <th>Supplier</th>
-                                <th>Status Invoice</th>
-                                <th>Tanggal Update</th>
-                                <th width="250">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($completedInvoices as $invoice)
-                            <tr>
-                                <td>{{ ($completedInvoices->currentPage() - 1) * $completedInvoices->perPage() + $loop->iteration }}</td>
-                                <td><strong>{{ $invoice->purchaseOrder->po_number }}</strong></td>
-                                <td>{{ $invoice->purchaseOrder->date ? $invoice->purchaseOrder->date->format('d/m/Y') : '-' }}</td>
-                                <td>
-                                    @if($invoice->purchaseOrder->supplier)
-                                    <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded">{{ $invoice->purchaseOrder->supplier->nama }}</span>
-                                    @else
-                                    <span class="text-gray-400">-</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    @if($invoice->status == 'approved')
-                                    <span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded">Approved</span>
-                                    @elseif($invoice->status == 'rejected')
-                                    <span class="inline-block bg-red-100 text-red-800 text-xs px-2 py-0.5 rounded">Rejected</span>
-                                    @endif
-                                </td>
-                                <td>{{ $invoice->updated_at->format('d/m/Y H:i') }}</td>
-                                <td>
-                                    @if($invoice->invoice_file && $invoice->surat_jalan_file && $invoice->faktur_pajak_file)
-                                    <button class="inline-flex items-center px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded detail-invoice" data-id="{{ $invoice->id }}" title="Lihat Detail">
-                                        <i class="fas fa-eye mr-2"></i> Detail
-                                    </button>
-                                    @endif
-                                </td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="7" class="text-center text-muted py-4">Tidak ada Invoice yang selesai</td>
-                            </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PO Number</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal PO</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supplier</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status Invoice</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Update</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" width="250">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($completedInvoices as $invoice)
+                                <tr>
+                                    <td class="px-6 py-3 text-sm text-gray-900">{{ ($completedInvoices->currentPage() - 1) * $completedInvoices->perPage() + $loop->iteration }}</td>
+                                    <td class="px-6 py-3 text-sm text-gray-900"><strong>{{ $invoice->purchaseOrder->po_number }}</strong></td>
+                                    <td class="px-6 py-3 text-sm text-gray-900">{{ $invoice->purchaseOrder->date ? $invoice->purchaseOrder->date->format('d/m/Y') : '-' }}</td>
+                                    <td class="px-6 py-3 text-sm text-gray-900">
+                                        @if($invoice->purchaseOrder->supplier)
+                                        <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded">{{ $invoice->purchaseOrder->supplier->nama }}</span>
+                                        @else
+                                        <span class="text-gray-400">-</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-3">
+                                        @if($invoice->status == 'ready_for_payment')
+                                        <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded">Siap Bayar</span>
+                                        @elseif($invoice->status == 'paid')
+                                        <span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded">Paid</span>
+                                        @elseif($invoice->status == 'completed')
+                                        <span class="inline-block bg-gray-800 text-white text-xs px-2 py-0.5 rounded">Completed</span>
+                                        @elseif($invoice->status == 'rejected')
+                                        <span class="inline-block bg-red-100 text-red-800 text-xs px-2 py-0.5 rounded">Rejected</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-3 text-sm text-gray-900">{{ $invoice->updated_at->format('d/m/Y H:i') }}</td>
+                                    <td class="px-6 py-3">
+                                        <div class="flex items-center gap-2">
+                                            @if($invoice->invoice_file && $invoice->surat_jalan_file && $invoice->faktur_pajak_file)
+                                            <button class="inline-flex items-center px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded detail-invoice" data-id="{{ $invoice->id }}" title="Lihat Detail">
+                                                <i class="fas fa-eye mr-2"></i> Detail
+                                            </button>
+                                            @endif
+                                        </div>
+                                    </td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted py-4">Tidak ada Invoice yang selesai</td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -646,6 +682,13 @@ Penagihan Invoice
 @push('scripts')
 <script>
     $(document).ready(function() {
+        // Setup CSRF token untuk semua AJAX requests
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+
         let currentInvoiceId = null;
         let currentAction = null; // 'reject' or 'revise'
         let currentPoId = null;
@@ -753,11 +796,20 @@ Penagihan Invoice
                     _token: '{{ csrf_token() }}'
                 },
                 success: function(response) {
+                    console.log('Approve success:', response);
+                    alert('Invoice berhasil di-approve');
                     $('#modalApproveInvoice').modal('hide');
-                    location.reload();
+                    setTimeout(function() {
+                        location.reload();
+                    }, 500);
                 },
                 error: function(xhr) {
-                    alert(xhr.responseJSON?.error || 'Gagal approve invoice');
+                    console.error('Approve error:', xhr);
+                    let errorMsg = 'Gagal approve invoice';
+                    if (xhr.responseJSON && xhr.responseJSON.error) {
+                        errorMsg = xhr.responseJSON.error;
+                    }
+                    alert(errorMsg);
                 }
             });
         });
@@ -946,8 +998,12 @@ Penagihan Invoice
                         statusBadge = '<span class="badge badge-warning">Pending</span>';
                     } else if (invoice.status == 'revised') {
                         statusBadge = '<span class="badge badge-danger">Revised</span>';
-                    } else if (invoice.status == 'approved') {
-                        statusBadge = '<span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded">Approved</span>'; 
+                    } else if (invoice.status == 'ready_for_payment') {
+                        statusBadge = '<span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded">Siap Bayar</span>';
+                    } else if (invoice.status == 'paid') {
+                        statusBadge = '<span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded">Paid</span>';
+                    } else if (invoice.status == 'completed') {
+                        statusBadge = '<span class="inline-block bg-gray-800 text-white text-xs px-2 py-0.5 rounded">Completed</span>';
                     } else if (invoice.status == 'rejected') {
                         statusBadge = '<span class="badge badge-danger">Rejected</span>';
                     }
@@ -1009,6 +1065,8 @@ Penagihan Invoice
                 }
             });
         });
+
+        // Alur dipotong sampai Admin memvalidasi invoice (approve -> selesai).
     });
 </script>
 @endpush

@@ -16,18 +16,17 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
   <style>
-    html, body {
+    html,
+    body {
       height: 100%;
       margin: 0;
       font-family: 'Poppins', sans-serif;
     }
 
     body {
-      background: linear-gradient(
-        135deg,
+      background: linear-gradient(135deg,
         rgba(180, 0, 0, 0.85),
-        rgba(0, 0, 0, 0.9)
-      ),
+        rgba(0, 0, 0, 0.9)),
       url('{{ asset("img/office-bg.jpg") }}') center / cover no-repeat;
       background-attachment: fixed;
     }
@@ -153,6 +152,7 @@
         opacity: 0;
         transform: translateY(25px);
       }
+
       to {
         opacity: 1;
         transform: translateY(0);
@@ -186,11 +186,11 @@
 
       <!-- Session Error -->
       @if ($errors->any())
-        <div class="alert alert-danger">
-          @foreach ($errors->all() as $error)
-            <small class="d-block">{{ $error }}</small>
-          @endforeach
-        </div>
+      <div class="alert alert-danger">
+        @foreach ($errors->all() as $error)
+        <small class="d-block">{{ $error }}</small>
+        @endforeach
+      </div>
       @endif
 
       <form action="{{ route('password.store') }}" method="POST">
@@ -204,18 +204,17 @@
             <span class="input-group-text">
               <i class="bi bi-envelope-fill"></i>
             </span>
-            <input 
-              type="email" 
-              name="email" 
-              class="form-control @error('email') is-invalid @enderror" 
-              placeholder="Email" 
+            <input
+              type="email"
+              name="email"
+              class="form-control @error('email') is-invalid @enderror"
+              placeholder="Email"
               value="{{ old('email', $request->email) }}"
-              required 
-              autofocus
-            >
+              required
+              autofocus>
           </div>
           @error('email')
-            <div class="error-text">{{ $message }}</div>
+          <div class="error-text">{{ $message }}</div>
           @enderror
         </div>
 
@@ -225,19 +224,17 @@
             <span class="input-group-text">
               <i class="bi bi-lock-fill"></i>
             </span>
-            <input 
-              type="password" 
-              name="password" 
-              id="password" 
-              class="form-control @error('password') is-invalid @enderror" 
-              placeholder="Password Baru" 
-              required
-            >
-            <button 
+            <input
+              type="password"
+              name="password"
+              id="password"
+              class="form-control @error('password') is-invalid @enderror"
+              placeholder="Password Baru"
+              required>
+            <button
               type="button"
-              class="inline-flex items-center px-3 py-2 border border-gray-300 text-gray-700 rounded password-toggle" 
-              onclick="togglePassword('password', 'toggle-icon')"
-            >
+              class="inline-flex items-center px-3 py-2 border border-gray-300 text-gray-700 rounded password-toggle"
+              onclick="togglePassword('password', 'toggle-icon')">
               <i class="bi bi-eye-fill" id="toggle-icon"></i>
             </button>
           </div>
@@ -245,7 +242,7 @@
             Minimal 8 karakter dengan kombinasi huruf, angka, dan simbol
           </div>
           @error('password')
-            <div class="error-text">{{ $message }}</div>
+          <div class="error-text">{{ $message }}</div>
           @enderror
         </div>
 
@@ -255,19 +252,17 @@
             <span class="input-group-text">
               <i class="bi bi-lock-fill"></i>
             </span>
-            <input 
-              type="password" 
-              name="password_confirmation" 
-              id="password_confirmation" 
-              class="form-control" 
-              placeholder="Konfirmasi Password" 
-              required
-            >
-            <button 
+            <input
+              type="password"
+              name="password_confirmation"
+              id="password_confirmation"
+              class="form-control"
+              placeholder="Konfirmasi Password"
+              required>
+            <button
               type="button"
-              class="inline-flex items-center px-3 py-2 border border-gray-300 text-gray-700 rounded password-toggle" 
-              onclick="togglePassword('password_confirmation', 'toggle-icon-confirm')"
-            >
+              class="inline-flex items-center px-3 py-2 border border-gray-300 text-gray-700 rounded password-toggle"
+              onclick="togglePassword('password_confirmation', 'toggle-icon-confirm')">
               <i class="bi bi-eye-fill" id="toggle-icon-confirm"></i>
             </button>
           </div>
@@ -301,4 +296,5 @@
   </script>
 
 </body>
+
 </html>

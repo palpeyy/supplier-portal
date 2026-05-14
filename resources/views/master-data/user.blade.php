@@ -4,7 +4,7 @@
 
 <script>
   document.querySelectorAll('.fa-eye').forEach(icon => {
-    icon.addEventListener('click', function () {
+    icon.addEventListener('click', function() {
       const input = this.closest('.input-group').querySelector('input');
       input.type = input.type === 'password' ? 'text' : 'password';
       this.classList.toggle('fa-eye-slash');
@@ -13,16 +13,15 @@
 </script>
 
 <script>
-    $(document).ready(function() {
-        $('#userTable').DataTable({
-            autoWidth: false,
-            "language": {
-                "emptyTable": "tidak ada data"
-            },
-            "lengthMenu": [10, 25, 50],
-        });
+  $(document).ready(function() {
+    $('#userTable').DataTable({
+      autoWidth: false,
+      "language": {
+        "emptyTable": "tidak ada data"
+      },
+      "lengthMenu": [10, 25, 50],
     });
-
+  });
 </script>
 
 @endsection
@@ -30,9 +29,9 @@
 @section('page_title', 'Staff PT KTB')
 
 @section('breadcrumb')
-  <li class="breadcrumb-item"><a href="{{ url('/dashboard') }}">Home</a></li>
-  <li class="breadcrumb-item">Master Data</li>
-  <li class="breadcrumb-item active">User PT</li>
+<li class="breadcrumb-item"><a href="{{ url('/dashboard') }}">Home</a></li>
+<li class="breadcrumb-item">Master Data</li>
+<li class="breadcrumb-item active">User PT</li>
 @endsection
 
 @section('isi')
@@ -63,120 +62,120 @@
           </tr>
         </thead>
         <tbody>
-  <tr>
-    <td>EMP-001</td>
-    <td>Naufal</td>
-    <td>andi@company.co.id</td>
-    <td>Purchasing</td>
-    <td><span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded">Aktif</span></td>
-    <td class="text-center">
-      <div class="relative inline-block text-left">
-        <button class="inline-flex items-center px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-sm" data-toggle="dropdown">
-          <i class="fas fa-ellipsis-v"></i>
-        </button>
-        <div class="dropdown-menu dropdown-menu-right">
-          <a class="dropdown-item" href="#"><i class="fas fa-eye text-blue-600 mr-2"></i> Detail</a>
-          <a class="dropdown-item" href="#"><i class="fas fa-edit text-yellow-500 mr-2"></i> Edit</a>
-        </div>
-      </div>
-    </td>
-  </tr>
+          <tr>
+            <td>EMP-001</td>
+            <td>Naufal</td>
+            <td>andi@company.co.id</td>
+            <td>Purchasing</td>
+            <td><span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded">Aktif</span></td>
+            <td class="text-center">
+              <div class="relative inline-block text-left">
+                <button class="inline-flex items-center px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-sm" data-toggle="dropdown">
+                  <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <div class="dropdown-menu dropdown-menu-right">
+                  <a class="dropdown-item" href="#"><i class="fas fa-eye text-blue-600 mr-2"></i> Detail</a>
+                  <a class="dropdown-item" href="#"><i class="fas fa-edit text-yellow-500 mr-2"></i> Edit</a>
+                </div>
+              </div>
+            </td>
+          </tr>
 
-  <tr>
-    <td>EMP-002</td>
-    <td>Siti Rahma</td>
-    <td>siti@company.co.id</td>
-    <td>Finance</td>
-    <td><span class="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-0.5 rounded">Non Aktif</span></td>
-    <td class="text-center">
-      <div class="relative inline-block text-left">
-        <button class="inline-flex items-center px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-sm" data-toggle="dropdown">
-          <i class="fas fa-ellipsis-v"></i>
-        </button>
-        <div class="dropdown-menu dropdown-menu-right">
-          <a class="dropdown-item" href="#"><i class="fas fa-eye text-blue-600 mr-2"></i> Detail</a>
-          <a class="dropdown-item" href="#"><i class="fas fa-edit text-yellow-500 mr-2"></i> Edit</a>
-        </div>
-      </div>
-    </td>
-  </tr>
+          <tr>
+            <td>EMP-002</td>
+            <td>Siti Rahma</td>
+            <td>siti@company.co.id</td>
+            <td>Accounting</td>
+            <td><span class="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-0.5 rounded">Non Aktif</span></td>
+            <td class="text-center">
+              <div class="relative inline-block text-left">
+                <button class="inline-flex items-center px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-sm" data-toggle="dropdown">
+                  <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <div class="dropdown-menu dropdown-menu-right">
+                  <a class="dropdown-item" href="#"><i class="fas fa-eye text-blue-600 mr-2"></i> Detail</a>
+                  <a class="dropdown-item" href="#"><i class="fas fa-edit text-yellow-500 mr-2"></i> Edit</a>
+                </div>
+              </div>
+            </td>
+          </tr>
 
-  <tr>
-    <td>EMP-003</td>
-    <td>Budi Santoso</td>
-    <td>budi@company.co.id</td>
-    <td>Logistik</td>
-    <td><span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded">Aktif</span></td>
-    <td class="text-center">
-      <div class="relative inline-block text-left">
-        <button class="inline-flex items-center px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-sm" data-toggle="dropdown">
-          <i class="fas fa-ellipsis-v"></i>
-        </button>
-        <div class="dropdown-menu dropdown-menu-right">
-          <a class="dropdown-item" href="#"><i class="fas fa-eye text-blue-600 mr-2"></i> Detail</a>
-          <a class="dropdown-item" href="#"><i class="fas fa-edit text-yellow-500 mr-2"></i> Edit</a>
-        </div>
-      </div>
-    </td>
-  </tr>
+          <tr>
+            <td>EMP-003</td>
+            <td>Budi Santoso</td>
+            <td>budi@company.co.id</td>
+            <td>Logistik</td>
+            <td><span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded">Aktif</span></td>
+            <td class="text-center">
+              <div class="relative inline-block text-left">
+                <button class="inline-flex items-center px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-sm" data-toggle="dropdown">
+                  <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <div class="dropdown-menu dropdown-menu-right">
+                  <a class="dropdown-item" href="#"><i class="fas fa-eye text-blue-600 mr-2"></i> Detail</a>
+                  <a class="dropdown-item" href="#"><i class="fas fa-edit text-yellow-500 mr-2"></i> Edit</a>
+                </div>
+              </div>
+            </td>
+          </tr>
 
-  <tr>
-    <td>EMP-004</td>
-    <td>Rina Oktaviani</td>
-    <td>rina@company.co.id</td>
-    <td>Admin</td>
-    <td><span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded">Aktif</span></td>
-    <td class="text-center">
-      <div class="relative inline-block text-left">
-        <button class="inline-flex items-center px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-sm" data-toggle="dropdown">
-          <i class="fas fa-ellipsis-v"></i>
-        </button>
-        <div class="dropdown-menu dropdown-menu-right">
-          <a class="dropdown-item" href="#"><i class="fas fa-eye text-blue-600 mr-2"></i> Detail</a>
-          <a class="dropdown-item" href="#"><i class="fas fa-edit text-yellow-500 mr-2"></i> Edit</a>
-        </div>
-      </div>
-    </td>
-  </tr>
+          <tr>
+            <td>EMP-004</td>
+            <td>Rina Oktaviani</td>
+            <td>rina@company.co.id</td>
+            <td>Admin</td>
+            <td><span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded">Aktif</span></td>
+            <td class="text-center">
+              <div class="relative inline-block text-left">
+                <button class="inline-flex items-center px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-sm" data-toggle="dropdown">
+                  <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <div class="dropdown-menu dropdown-menu-right">
+                  <a class="dropdown-item" href="#"><i class="fas fa-eye text-blue-600 mr-2"></i> Detail</a>
+                  <a class="dropdown-item" href="#"><i class="fas fa-edit text-yellow-500 mr-2"></i> Edit</a>
+                </div>
+              </div>
+            </td>
+          </tr>
 
-  <tr>
-    <td>EMP-005</td>
-    <td>Doni Prasetyo</td>
-    <td>doni@company.co.id</td>
-    <td>Purchasing</td>
-    <td><span class="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-0.5 rounded">Non Aktif</span></td>
-    <td class="text-center">
-      <div class="relative inline-block text-left">
-        <button class="inline-flex items-center px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-sm" data-toggle="dropdown">
-          <i class="fas fa-ellipsis-v"></i>
-        </button>
-        <div class="dropdown-menu dropdown-menu-right">
-          <a class="dropdown-item" href="#"><i class="fas fa-eye text-blue-600 mr-2"></i> Detail</a>
-          <a class="dropdown-item" href="#"><i class="fas fa-edit text-yellow-500 mr-2"></i> Edit</a>
-        </div>
-      </div>
-    </td>
-  </tr>
+          <tr>
+            <td>EMP-005</td>
+            <td>Doni Prasetyo</td>
+            <td>doni@company.co.id</td>
+            <td>Purchasing</td>
+            <td><span class="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-0.5 rounded">Non Aktif</span></td>
+            <td class="text-center">
+              <div class="relative inline-block text-left">
+                <button class="inline-flex items-center px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-sm" data-toggle="dropdown">
+                  <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <div class="dropdown-menu dropdown-menu-right">
+                  <a class="dropdown-item" href="#"><i class="fas fa-eye text-blue-600 mr-2"></i> Detail</a>
+                  <a class="dropdown-item" href="#"><i class="fas fa-edit text-yellow-500 mr-2"></i> Edit</a>
+                </div>
+              </div>
+            </td>
+          </tr>
 
-  <tr>
-    <td>EMP-006</td>
-    <td>Maya Putri</td>
-    <td>maya@company.co.id</td>
-    <td>Finance</td>
-    <td><span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded">Aktif</span></td>
-    <td class="text-center">
-      <div class="relative inline-block text-left">
-        <button class="inline-flex items-center px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-sm" data-toggle="dropdown">
-          <i class="fas fa-ellipsis-v"></i>
-        </button>
-        <div class="dropdown-menu dropdown-menu-right">
-          <a class="dropdown-item" href="#"><i class="fas fa-eye text-blue-600 mr-2"></i> Detail</a>
-          <a class="dropdown-item" href="#"><i class="fas fa-edit text-yellow-500 mr-2"></i> Edit</a>
-        </div>
-      </div>
-    </td>
-  </tr>
-</tbody>
+          <tr>
+            <td>EMP-006</td>
+            <td>Maya Putri</td>
+            <td>maya@company.co.id</td>
+            <td>Accounting</td>
+            <td><span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded">Aktif</span></td>
+            <td class="text-center">
+              <div class="relative inline-block text-left">
+                <button class="inline-flex items-center px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-sm" data-toggle="dropdown">
+                  <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <div class="dropdown-menu dropdown-menu-right">
+                  <a class="dropdown-item" href="#"><i class="fas fa-eye text-blue-600 mr-2"></i> Detail</a>
+                  <a class="dropdown-item" href="#"><i class="fas fa-edit text-yellow-500 mr-2"></i> Edit</a>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
 
       </table>
     </div>
@@ -222,7 +221,6 @@
                 <select class="form-control">
                   <option>Purchasing</option>
                   <option>Logistik</option>
-                  <option>Finance</option>
                   <option>Admin</option>
                 </select>
               </div>

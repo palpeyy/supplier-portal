@@ -2,15 +2,39 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\InvoiceApprovedMail;
 use App\Models\Invoice;
 use App\Models\PurchaseOrder;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class InvoiceController extends Controller
 {
+    private const STATUS_READY_FOR_PAYMENT = 'ready_for_payment';
+    private const STATUS_PAID = 'paid';
+
+    /**
+     * Ownership rule for purchasing-side users (Admin/Purchasing):
+     * invoice can only be accessed if the related PO was uploaded by them.
+     */
+    private function ensurePurchasingOwnerAccess(Invoice $invoice): void
+    {
+        $user = auth()->user();
+        $role = $user->role->name ?? null;
+
+        if (in_array($role, ['Admin', 'Purchasing'], true)) {
+            $poCreatedBy = (int) ($invoice->purchaseOrder->created_by ?? 0);
+            if ($poCreatedBy !== (int) $user->id) {
+                abort(403, 'Anda tidak memiliki hak akses untuk invoice ini');
+            }
+        }
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -18,16 +42,27 @@ class InvoiceController extends Controller
     {
         $user = auth()->user();
         $userRole = $user->role->name ?? null;
-
-        // Query untuk invoice yang pending/revised (belum selesai)
-        if ($userRole === 'Admin') {
+        // Workflow dipotong sampai Admin memvalidasi invoice (approve -> ready_for_payment).
+        if (in_array($userRole, ['Admin', 'Purchasing'], true)) {
             $ongoingInvoices = Invoice::with('purchaseOrder.supplier', 'purchaseOrder.items')
                 ->whereIn('status', ['pending', 'revised'])
+                ->whereHas('purchaseOrder', function ($q) use ($user) {
+                    $q->where('created_by', $user->id);
+                })
                 ->latest()
                 ->paginate(10, ['*'], 'ongoing_page');
 
             $completedInvoices = Invoice::with('purchaseOrder.supplier', 'purchaseOrder.items')
-                ->whereIn('status', ['approved', 'rejected'])
+                ->whereIn('status', [
+                    'rejected',
+                    // Backward-compat (status lama)
+                    'completed',
+                    self::STATUS_READY_FOR_PAYMENT,
+                    self::STATUS_PAID,
+                ])
+                ->whereHas('purchaseOrder', function ($q) use ($user) {
+                    $q->where('created_by', $user->id);
+                })
                 ->latest()
                 ->paginate(10, ['*'], 'completed_page');
         } else {
@@ -37,7 +72,13 @@ class InvoiceController extends Controller
                 ->latest();
 
             $completedQuery = Invoice::with('purchaseOrder.supplier', 'purchaseOrder.items')
-                ->whereIn('status', ['approved', 'rejected'])
+                ->whereIn('status', [
+                    'rejected',
+                    // Backward-compat (status lama)
+                    'completed',
+                    self::STATUS_READY_FOR_PAYMENT,
+                    self::STATUS_PAID,
+                ])
                 ->latest();
 
             if ($userRole === 'Supplier' && $user->supplier_id) {
@@ -229,6 +270,7 @@ class InvoiceController extends Controller
     public function show(Invoice $invoice)
     {
         $invoice->load('purchaseOrder.supplier', 'purchaseOrder.items');
+        $this->ensurePurchasingOwnerAccess($invoice);
 
         if (request()->ajax()) {
             return response()->json(['invoice' => $invoice]);
@@ -347,8 +389,11 @@ class InvoiceController extends Controller
         $user = auth()->user();
         $userRole = $user->role->name ?? null;
 
-        // Check if user is Admin
-        if ($userRole !== 'Admin') {
+        $invoice->loadMissing('purchaseOrder');
+        $this->ensurePurchasingOwnerAccess($invoice);
+
+        // Check if user is Admin/Purchasing
+        if (!in_array($userRole, ['Admin', 'Purchasing'], true)) {
             if ($request->ajax()) {
                 return response()->json(['error' => 'Anda tidak memiliki hak akses untuk approve'], 403);
             }
@@ -364,15 +409,74 @@ class InvoiceController extends Controller
         }
 
         $invoice->update([
-            'status' => 'approved',
+            'status' => self::STATUS_READY_FOR_PAYMENT,
             'catatan_revisi' => null,
         ]);
 
+        // Email notification should never block approval.
+        $this->sendApprovalEmailToFinance($invoice);
+
         if ($request->ajax()) {
-            return response()->json(['success' => 'Invoice berhasil di-approve']);
+            return response()->json(['success' => 'Invoice siap diproses pembayaran (Finance sudah diberitahu via email)']);
         }
 
-        return redirect()->route('invoices.index')->with('success', 'Invoice berhasil di-approve');
+        return redirect()->route('invoices.index')->with('success', 'Invoice berhasil divalidasi dan siap diproses pembayaran (email Finance terkirim)');
+    }
+
+    /**
+     * Send invoice approved email notification to all Finance users.
+     */
+    private function sendApprovalEmailToFinance(Invoice $invoice): void
+    {
+        try {
+            $smtpUsername = (string) config('mail.mailers.smtp.username');
+            $smtpPassword = (string) config('mail.mailers.smtp.password');
+
+            // Skip sending if SMTP credentials are not configured yet.
+            if (
+                $smtpUsername === '' ||
+                $smtpPassword === '' ||
+                $smtpUsername === 'your_email@gmail.com' ||
+                $smtpPassword === 'your_gmail_app_password'
+            ) {
+                Log::warning('Invoice approved email: SMTP belum dikonfigurasi (MAIL_USERNAME/MAIL_PASSWORD masih kosong/placeholder). Email tidak dikirim.', [
+                    'invoice_id' => $invoice->id,
+                ]);
+                return;
+            }
+
+            // Ambil semua user dengan role Finance
+            $financeUsers = User::whereHas('role', function ($q) {
+                $q->where('name', 'Finance');
+            })->whereNotNull('email')->get();
+
+            if ($financeUsers->isEmpty()) {
+                Log::warning('Invoice approved email: tidak ada user Finance yang ditemukan.');
+                return;
+            }
+
+            foreach ($financeUsers as $financeUser) {
+                try {
+                    Mail::to($financeUser->email, $financeUser->name)
+                        ->send(new InvoiceApprovedMail($invoice));
+                } catch (\Throwable $e) {
+                    Log::error('Gagal mengirim email notifikasi Finance ke user tertentu: ' . $e->getMessage(), [
+                        'invoice_id' => $invoice->id,
+                        'to' => $financeUser->email,
+                    ]);
+                }
+            }
+
+            Log::info('Invoice approved email berhasil dikirim ke ' . $financeUsers->count() . ' user Finance.', [
+                'invoice_id' => $invoice->id,
+                'po_number'  => $invoice->purchaseOrder->po_number ?? 'N/A',
+            ]);
+        } catch (\Exception $e) {
+            // Log error tapi jangan gagalkan proses approve
+            Log::error('Gagal mengirim email notifikasi Finance: ' . $e->getMessage(), [
+                'invoice_id' => $invoice->id,
+            ]);
+        }
     }
 
     /**
@@ -383,8 +487,11 @@ class InvoiceController extends Controller
         $user = auth()->user();
         $userRole = $user->role->name ?? null;
 
-        // Check if user is Admin
-        if ($userRole !== 'Admin') {
+        $invoice->loadMissing('purchaseOrder');
+        $this->ensurePurchasingOwnerAccess($invoice);
+
+        // Check if user is Admin/Purchasing
+        if (!in_array($userRole, ['Admin', 'Purchasing'], true)) {
             if ($request->ajax()) {
                 return response()->json(['error' => 'Anda tidak memiliki hak akses untuk reject'], 403);
             }
@@ -425,8 +532,11 @@ class InvoiceController extends Controller
         $user = auth()->user();
         $userRole = $user->role->name ?? null;
 
-        // Check if user is Admin
-        if ($userRole !== 'Admin') {
+        $invoice->loadMissing('purchaseOrder');
+        $this->ensurePurchasingOwnerAccess($invoice);
+
+        // Check if user is Admin/Purchasing
+        if (!in_array($userRole, ['Admin', 'Purchasing'], true)) {
             if ($request->ajax()) {
                 return response()->json(['error' => 'Anda tidak memiliki hak akses untuk revise'], 403);
             }
@@ -464,6 +574,8 @@ class InvoiceController extends Controller
      */
     public function downloadInvoice(Invoice $invoice)
     {
+        $invoice->loadMissing('purchaseOrder');
+        $this->ensurePurchasingOwnerAccess($invoice);
         if (!$invoice->invoice_file || !Storage::disk('public')->exists($invoice->invoice_file)) {
             return redirect()->back()->with('error', 'File invoice tidak ditemukan');
         }
@@ -482,6 +594,8 @@ class InvoiceController extends Controller
      */
     public function downloadSuratJalan(Invoice $invoice)
     {
+        $invoice->loadMissing('purchaseOrder');
+        $this->ensurePurchasingOwnerAccess($invoice);
         if (!$invoice->surat_jalan_file || !Storage::disk('public')->exists($invoice->surat_jalan_file)) {
             return redirect()->back()->with('error', 'File surat jalan tidak ditemukan');
         }
@@ -500,6 +614,8 @@ class InvoiceController extends Controller
      */
     public function downloadFakturPajak(Invoice $invoice)
     {
+        $invoice->loadMissing('purchaseOrder');
+        $this->ensurePurchasingOwnerAccess($invoice);
         if (!$invoice->faktur_pajak_file || !Storage::disk('public')->exists($invoice->faktur_pajak_file)) {
             return redirect()->back()->with('error', 'File faktur pajak tidak ditemukan');
         }

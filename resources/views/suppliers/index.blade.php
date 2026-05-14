@@ -82,6 +82,25 @@ Manajemen Supplier
     </div>
 </div>
 
+<!-- MODAL SUCCESS -->
+<div class="modal fade" id="modalSuccess" tabindex="-1" role="dialog" aria-labelledby="modalSuccessLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content bg-white rounded-lg shadow-lg">
+            <div class="bg-green-600 text-white px-6 py-4 rounded-t-lg border-b border-green-700 flex items-center gap-3">
+                <i class="fas fa-check-circle text-2xl"></i>
+                <h5 class="font-semibold text-lg" id="modalSuccessLabel">Berhasil</h5>
+                <button type="button" class="absolute right-4 top-3 text-white hover:text-gray-200 text-2xl" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="px-6 py-6 text-center">
+                <p id="modalSuccessMessage" class="text-gray-700 font-semibold mb-6"></p>
+                <button type="button" class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition duration-200" data-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- MODAL TAMBAH/EDIT SUPPLIER -->
 <div class="modal fade" id="modalSupplier" tabindex="-1" role="dialog" aria-labelledby="modalSupplierLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
@@ -97,7 +116,6 @@ Manajemen Supplier
 
             <form id="formSupplier" action="{{ route('suppliers.store') }}" method="post">
                 @csrf
-                @method('POST')
                 <div class="px-6 py-4">
                     <div id="errorMessages" class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg hidden">
                         <strong class="text-red-700">Terjadi Kesalahan!</strong>
@@ -108,6 +126,19 @@ Manajemen Supplier
                         <div>
                             <label for="nama" class="block text-gray-700 font-semibold mb-2">Nama Supplier <span class="text-red-600">*</span></label>
                             <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-600" id="nama" name="nama" placeholder="Masukkan nama supplier" required>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="email" class="block text-gray-700 font-semibold mb-2">Email <span class="text-red-600">*</span></label>
+                                <input type="email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-600" id="email" name="email" placeholder="Masukkan email supplier" required>
+                                <small class="form-text text-muted">Email untuk login supplier</small>
+                            </div>
+
+                            <div>
+                                <label for="password" class="block text-gray-700 font-semibold mb-2">Password <span class="text-red-600">*</span></label>
+                                <input type="password" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-600" id="password" name="password" placeholder="Masukkan password (min 6 karakter)" required>
+                            </div>
                         </div>
 
                         <div>
@@ -148,19 +179,38 @@ Manajemen Supplier
 @push('scripts')
 <script>
     $(document).ready(function() {
-        // Reset form saat modal dibuka untuk tambah
-        $('#modalSupplier').on('show.bs.modal', function(e) {
-            let btnTambah = $(e.relatedTarget);
-            if (!btnTambah.hasClass('edit-supplier')) {
-                $('#formSupplier')[0].reset();
-                $('#formSupplier').attr('action', '{{ route("suppliers.store") }}');
-                $('#formSupplier').find('input[name="_method"]').remove();
-                $('#modalSupplierLabel').html('<i class="fas fa-plus-circle mr-2"></i> Tambah Supplier');
-                $('#errorMessages').addClass('hidden');
-            }
+        // Show success modal jika ada flash session
+        @if(Session::has('success'))
+        $('#modalSuccessMessage').text('{{ Session::get('
+            success ') }}');
+        $('#modalSuccess').modal('show');
+        @endif
+
+        // TAMBAH SUPPLIER - Reset form untuk create
+        $(document).on('click', '[data-toggle="modal"][data-target="#modalSupplier"]', function(e) {
+            e.preventDefault();
+
+            // Reset all form fields
+            $('#formSupplier')[0].reset();
+            $('#errorMessages').addClass('hidden');
+
+            // Clear hidden method field
+            $('#formSupplier').find('input[name="_method"]').remove();
+
+            // Set form untuk CREATE
+            $('#formSupplier').attr('action', '{{ route("suppliers.store") }}');
+
+            // Set email untuk CREATE (required, tidak readonly)
+            $('#email').val('').prop('readonly', false).prop('required', true);
+
+            // Set password untuk CREATE (required)
+            $('#password').val('').prop('required', true).prop('placeholder', 'Masukkan password (min 6 karakter)');
+
+            // Update modal title
+            $('#modalSupplierLabel').html('<i class="fas fa-plus-circle mr-2"></i> Tambah Supplier');
         });
 
-        // Edit supplier
+        // EDIT SUPPLIER - Load data dan set form untuk update
         $(document).on('click', '.edit-supplier', function(e) {
             e.preventDefault();
             let supplierId = $(this).data('id');
@@ -168,46 +218,78 @@ Manajemen Supplier
             $.ajax({
                 url: `/suppliers/${supplierId}/edit`,
                 type: 'GET',
+                dataType: 'json',
                 success: function(response) {
+                    // Reset form
                     $('#formSupplier')[0].reset();
-                    $('#nama').val(response.supplier.nama);
-                    $('#alamat').val(response.supplier.alamat);
-                    $('#pic').val(response.supplier.pic);
-                    $('#telephone').val(response.supplier.telephone);
-                    $('#contact_person').val(response.supplier.contact_person);
+                    $('#errorMessages').addClass('hidden');
 
-                    $('#formSupplier').attr('action', `/suppliers/${supplierId}`);
-                    if ($('#formSupplier').find('input[name="_method"]').length === 0) {
-                        $('#formSupplier').prepend('<input type="hidden" name="_method" value="PUT">');
+                    // Fill form dengan data supplier
+                    $('#nama').val(response.supplier.nama);
+                    $('#alamat').val(response.supplier.alamat || '');
+                    $('#pic').val(response.supplier.pic || '');
+                    $('#telephone').val(response.supplier.telephone || '');
+                    $('#contact_person').val(response.supplier.contact_person || '');
+
+                    // Get email dari user relationship
+                    let email = '';
+                    if (response.supplier.users && response.supplier.users.length > 0) {
+                        email = response.supplier.users[0].email;
                     }
 
+                    // Set email untuk EDIT (readonly, tidak required)
+                    $('#email').val(email).prop('readonly', true).prop('required', false);
+
+                    // Set password untuk EDIT (optional)
+                    $('#password').val('').prop('required', false).prop('placeholder', 'Biarkan kosong jika tidak ingin mengubah password');
+
+                    // Set form action untuk UPDATE
+                    $('#formSupplier').attr('action', `/suppliers/${supplierId}`);
+
+                    // Clear dan tambah PUT method
+                    $('#formSupplier').find('input[name="_method"]').remove();
+                    $('#formSupplier').prepend('<input type="hidden" name="_method" value="PUT">');
+
+                    // Update modal title
                     $('#modalSupplierLabel').html('<i class="fas fa-edit mr-2"></i> Edit Supplier');
-                    $('#errorMessages').addClass('hidden');
+
+                    // Show modal
                     $('#modalSupplier').modal('show');
                 },
-                error: function() {
+                error: function(xhr) {
+                    console.error('Error loading supplier:', xhr);
                     alert('Gagal memuat data supplier');
                 }
             });
         });
 
-        // Submit form
+        // SUBMIT FORM - Create atau Update
         $('#formSupplier').on('submit', function(e) {
             e.preventDefault();
 
-            let formData = $(this).serialize();
             let action = $(this).attr('action');
+            let formData = new FormData(this);
 
             $.ajax({
                 url: action,
                 type: 'POST',
                 data: formData,
+                processData: false,
+                contentType: false,
                 success: function(response) {
                     $('#modalSupplier').modal('hide');
-                    location.reload();
+                    $('#modalSuccessMessage').text(response.success);
+                    $('#modalSuccess').modal('show');
+
+                    // Reload page after modal success closed
+                    $('#modalSuccess').one('hidden.bs.modal', function() {
+                        location.reload();
+                    });
                 },
                 error: function(xhr) {
+                    console.error('Form submission error:', xhr);
                     if (xhr.status === 422) {
+                        // Validation errors
                         let errors = xhr.responseJSON.errors;
                         let errorList = $('#errorList');
                         errorList.html('');
@@ -217,12 +299,14 @@ Manajemen Supplier
                         });
 
                         $('#errorMessages').removeClass('hidden');
+                    } else {
+                        alert('Terjadi kesalahan: ' + xhr.statusText);
                     }
                 }
             });
         });
 
-        // Delete supplier
+        // DELETE SUPPLIER
         $(document).on('click', '.delete-supplier', function(e) {
             e.preventDefault();
             let supplierId = $(this).data('id');
@@ -236,9 +320,15 @@ Manajemen Supplier
                         '_token': '{{ csrf_token() }}'
                     },
                     success: function(response) {
-                        location.reload();
+                        $('#modalSuccessMessage').text(response.success);
+                        $('#modalSuccess').modal('show');
+
+                        $('#modalSuccess').one('hidden.bs.modal', function() {
+                            location.reload();
+                        });
                     },
-                    error: function() {
+                    error: function(xhr) {
+                        console.error('Delete error:', xhr);
                         alert('Gagal menghapus supplier');
                     }
                 });

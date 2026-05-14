@@ -86,6 +86,25 @@ Manajemen Roles
     </div>
 </div>
 
+<!-- MODAL SUCCESS -->
+<div class="modal fade" id="modalSuccess" tabindex="-1" role="dialog" aria-labelledby="modalSuccessLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content bg-white rounded-lg shadow-lg">
+            <div class="bg-green-600 text-white px-6 py-4 rounded-t-lg border-b border-green-700 flex items-center gap-3">
+                <i class="fas fa-check-circle text-2xl"></i>
+                <h5 class="font-semibold text-lg" id="modalSuccessLabel">Berhasil</h5>
+                <button type="button" class="absolute right-4 top-3 text-white hover:text-gray-200 text-2xl" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="px-6 py-6 text-center">
+                <p id="modalSuccessMessage" class="text-gray-700 font-semibold mb-6"></p>
+                <button type="button" class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition duration-200" data-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- MODAL TAMBAH/EDIT ROLE -->
 <div class="modal fade" id="modalRole" tabindex="-1" role="dialog" aria-labelledby="modalRoleLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
@@ -135,19 +154,32 @@ Manajemen Roles
 @push('scripts')
 <script>
     $(document).ready(function() {
-        // Reset form saat modal dibuka untuk tambah
-        $('#modalRole').on('show.bs.modal', function(e) {
-            let btnTambah = $(e.relatedTarget);
-            if (!btnTambah.hasClass('edit-role')) {
-                $('#formRole')[0].reset();
-                $('#formRole').attr('action', '{{ route("roles.store") }}');
-                $('#formRole').find('input[name="_method"]').remove();
-                $('#modalRoleLabel').html('<i class="fas fa-plus-circle"></i> Tambah Role');
-                $('#errorMessages').addClass('hidden');
-            }
+        // Show success modal jika ada flash session
+        @if(Session::has('success'))
+        $('#modalSuccessMessage').text('{{ Session::get('
+            success ') }}');
+        $('#modalSuccess').modal('show');
+        @endif
+
+        // TAMBAH ROLE - Reset form untuk create
+        $(document).on('click', '[data-toggle="modal"][data-target="#modalRole"]', function(e) {
+            e.preventDefault();
+
+            // Reset all form fields
+            $('#formRole')[0].reset();
+            $('#errorMessages').addClass('hidden');
+
+            // Clear hidden method field
+            $('#formRole').find('input[name="_method"]').remove();
+
+            // Set form untuk CREATE
+            $('#formRole').attr('action', '{{ route("roles.store") }}');
+
+            // Update modal title
+            $('#modalRoleLabel').html('<i class="fas fa-plus-circle mr-2"></i> Tambah Role');
         });
 
-        // Edit role
+        // EDIT ROLE - Load data dan set form untuk update
         $(document).on('click', '.edit-role', function(e) {
             e.preventDefault();
             let roleId = $(this).data('id');
@@ -155,43 +187,63 @@ Manajemen Roles
             $.ajax({
                 url: `/roles/${roleId}/edit`,
                 type: 'GET',
+                dataType: 'json',
                 success: function(response) {
+                    // Reset form
                     $('#formRole')[0].reset();
-                    $('#name').val(response.role.name);
-                    $('#description').val(response.role.description);
-
-                    $('#formRole').attr('action', `/roles/${roleId}`);
-                    if ($('#formRole').find('input[name="_method"]').length === 0) {
-                        $('#formRole').prepend('<input type="hidden" name="_method" value="PUT">');
-                    }
-
-                    $('#modalRoleLabel').html('<i class="fas fa-edit"></i> Edit Role');
                     $('#errorMessages').addClass('hidden');
+
+                    // Fill form dengan data role
+                    $('#name').val(response.role.name || '');
+                    $('#description').val(response.role.description || '');
+
+                    // Set form action untuk UPDATE
+                    $('#formRole').attr('action', `/roles/${roleId}`);
+
+                    // Clear dan tambah PUT method
+                    $('#formRole').find('input[name="_method"]').remove();
+                    $('#formRole').prepend('<input type="hidden" name="_method" value="PUT">');
+
+                    // Update modal title
+                    $('#modalRoleLabel').html('<i class="fas fa-edit mr-2"></i> Edit Role');
+
+                    // Show modal
                     $('#modalRole').modal('show');
                 },
-                error: function() {
+                error: function(xhr) {
+                    console.error('Error loading role:', xhr);
                     alert('Gagal memuat data role');
                 }
             });
         });
 
-        // Submit form
+        // SUBMIT FORM - Create atau Update
         $('#formRole').on('submit', function(e) {
             e.preventDefault();
 
-            let formData = $(this).serialize();
             let action = $(this).attr('action');
+            let formData = new FormData(this);
 
             $.ajax({
                 url: action,
                 type: 'POST',
                 data: formData,
+                processData: false,
+                contentType: false,
                 success: function(response) {
                     $('#modalRole').modal('hide');
-                    location.reload();
+                    $('#modalSuccessMessage').text(response.success || 'Role berhasil disimpan');
+                    $('#modalSuccess').modal('show');
+
+                    // Reload page after modal success closed
+                    $('#modalSuccess').one('hidden.bs.modal', function() {
+                        location.reload();
+                    });
                 },
                 error: function(xhr) {
+                    console.error('Form submission error:', xhr);
                     if (xhr.status === 422) {
+                        // Validation errors
                         let errors = xhr.responseJSON.errors;
                         let errorList = $('#errorList');
                         errorList.html('');
@@ -201,12 +253,14 @@ Manajemen Roles
                         });
 
                         $('#errorMessages').removeClass('hidden');
+                    } else {
+                        alert('Terjadi kesalahan: ' + xhr.statusText);
                     }
                 }
             });
         });
 
-        // Delete role
+        // DELETE ROLE
         $(document).on('click', '.delete-role', function(e) {
             e.preventDefault();
             let roleId = $(this).data('id');
@@ -220,9 +274,15 @@ Manajemen Roles
                         '_token': '{{ csrf_token() }}'
                     },
                     success: function(response) {
-                        location.reload();
+                        $('#modalSuccessMessage').text(response.success || 'Role berhasil dihapus');
+                        $('#modalSuccess').modal('show');
+
+                        $('#modalSuccess').one('hidden.bs.modal', function() {
+                            location.reload();
+                        });
                     },
-                    error: function() {
+                    error: function(xhr) {
+                        console.error('Delete error:', xhr);
                         alert('Gagal menghapus role');
                     }
                 });

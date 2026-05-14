@@ -8,14 +8,15 @@
 
   <link href="img/logo.png" rel="icon">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-<!-- Bootstrap CSS -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-<!-- Bootstrap Icons -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
   <style>
-    html, body {
+    html,
+    body {
       height: 100%;
       margin: 0;
       font-family: 'Poppins', sans-serif;
@@ -30,7 +31,7 @@
     .overlay {
       position: absolute;
       inset: 0;
-      background: linear-gradient(135deg, rgba(180,0,0,0.85), rgba(0,0,0,0.85));
+      background: linear-gradient(135deg, rgba(180, 0, 0, 0.85), rgba(0, 0, 0, 0.85));
       z-index: 1;
     }
 
@@ -78,7 +79,7 @@
       border: 2px solid #b40000;
       color: #fff;
       transition: .3s;
-      box-shadow: 0 6px 15px rgba(0,0,0,.4);
+      box-shadow: 0 6px 15px rgba(0, 0, 0, .4);
     }
 
     .btn-login:hover {
@@ -114,10 +115,12 @@
 
     /* Gambar kanan */
     .hero-image {
-    max-width: 85%;
-    height: auto;
-    margin-left: auto;   /* PENTING */
-    display: block;      /* PENTING */
+      max-width: 85%;
+      height: auto;
+      margin-left: auto;
+      /* PENTING */
+      display: block;
+      /* PENTING */
     }
 
     .footer {
@@ -137,6 +140,7 @@
         opacity: 0;
         transform: translateY(30px);
       }
+
       to {
         opacity: 1;
         transform: translateY(0);
@@ -165,8 +169,8 @@
             <h1>Selamat Datang</h1>
             <h2>Portal Supplier PT Krama Yudha Tiga Berlian</h2>
             <p class="mb-4">
-            Supplier Portal merupakan sistem berbasis aplikasi yang digunakan
-            sebagai media interaksi dan pertukaran informasi antara perusahaan dan supplier.
+              Supplier Portal merupakan sistem berbasis aplikasi yang digunakan
+              sebagai media interaksi dan pertukaran informasi antara perusahaan dan supplier.
             </p>
             <a href="login" class="inline-flex items-center px-4 py-2 bg-red-700 hover:bg-red-800 text-white rounded font-semibold">
               <i class="bi bi-box-arrow-in-right mr-2"></i> Masuk Portal
@@ -174,9 +178,9 @@
           </div>
 
           <!-- KANAN: Gambar -->
-            <div class="col-md-6 d-flex justify-content-end align-items-center mt-4 mt-md-0">
+          <div class="col-md-6 d-flex justify-content-end align-items-center mt-4 mt-md-0">
             <img src="img/supplier.png" class="hero-image" alt="Portal Supplier KTB">
-            </div>
+          </div>
 
         </div>
       </div>

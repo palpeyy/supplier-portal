@@ -16,18 +16,17 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
   <style>
-    html, body {
+    html,
+    body {
       height: 100%;
       margin: 0;
       font-family: 'Poppins', sans-serif;
     }
 
     body {
-      background: linear-gradient(
-        135deg,
+      background: linear-gradient(135deg,
         rgba(180, 0, 0, 0.85),
-        rgba(0, 0, 0, 0.9)
-      ),
+        rgba(0, 0, 0, 0.9)),
       url('{{ asset("img/office-bg.jpg") }}') center / cover no-repeat;
       background-attachment: fixed;
     }
@@ -154,6 +153,7 @@
         opacity: 0;
         transform: translateY(25px);
       }
+
       to {
         opacity: 1;
         transform: translateY(0);
@@ -187,17 +187,17 @@
 
       <!-- Session Error -->
       @if ($errors->any())
-        <div class="alert alert-danger">
-          @foreach ($errors->all() as $error)
-            <small class="d-block">{{ $error }}</small>
-          @endforeach
-        </div>
+      <div class="alert alert-danger">
+        @foreach ($errors->all() as $error)
+        <small class="d-block">{{ $error }}</small>
+        @endforeach
+      </div>
       @endif
 
       @if (session('status'))
-        <div class="alert alert-success">
-          {{ session('status') }}
-        </div>
+      <div class="alert alert-success">
+        {{ session('status') }}
+      </div>
       @endif
 
       <form action="{{ route('password.email') }}" method="POST">
@@ -209,18 +209,17 @@
             <span class="input-group-text">
               <i class="bi bi-envelope-fill"></i>
             </span>
-            <input 
-              type="email" 
-              name="email" 
-              class="form-control @error('email') is-invalid @enderror" 
-              placeholder="Masukkan Email Anda" 
+            <input
+              type="email"
+              name="email"
+              class="form-control @error('email') is-invalid @enderror"
+              placeholder="Masukkan Email Anda"
               value="{{ old('email') }}"
-              required 
-              autofocus
-            >
+              required
+              autofocus>
           </div>
           @error('email')
-            <div class="error-text">{{ $message }}</div>
+          <div class="error-text">{{ $message }}</div>
           @enderror
         </div>
 
@@ -246,4 +245,5 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
+
 </html>

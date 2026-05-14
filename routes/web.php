@@ -53,7 +53,17 @@ Route::post('/logout', [LoginController::class, 'destroy'])
     ->name('logout');
 
 Route::get('/', function () {
-    return view('home');
+    if (auth()->check()) {
+        return redirect()->route('dashboard');
+    }
+    return redirect()->route('login');
+});
+
+Route::get('/home', function () {
+    if (auth()->check()) {
+        return redirect()->route('dashboard');
+    }
+    return redirect()->route('login');
 });
 
 // Protected Routes
@@ -66,7 +76,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/purchase-request', [PurchaseRequestController::class, 'index']);
     Route::get('/purchase-order', [PurchaseOrderController::class, 'index'])->name('purchase-orders.index');
     Route::get('/purchase-order-approval', [PurchaseOrderController::class, 'approval']);
-    
+
     // Purchase Order CRUD Routes
     Route::resource('purchase-orders', PurchaseOrderController::class)->except(['create']);
     Route::get('/purchase-orders/{purchaseOrder}/download', [PurchaseOrderController::class, 'download'])->name('purchase-orders.download');
@@ -77,6 +87,17 @@ Route::middleware('auth')->group(function () {
     Route::post('/purchase-orders/{purchaseOrder}/reject-supplier', [PurchaseOrderController::class, 'rejectBySupplier'])->name('purchase-orders.reject-supplier');
     Route::get('/penerimaan-barang', [PurchaseOrderController::class, 'penerimaanBarang'])->name('purchase-orders.penerimaan-barang');
     Route::post('/purchase-orders/{purchaseOrder}/confirm-received', [PurchaseOrderController::class, 'confirmReceived'])->name('purchase-orders.confirm-received');
+
+    // Shipping Documents Routes
+    Route::get('/purchase-orders/{purchaseOrder}/shipping-documents', [PurchaseOrderController::class, 'showShippingDocuments'])->name('purchase-orders.shipping-documents');
+    Route::post('/purchase-orders/{purchaseOrder}/shipping-documents', [PurchaseOrderController::class, 'storeShippingDocument'])->name('purchase-orders.store-shipping-document');
+    Route::post('/purchase-orders/{purchaseOrder}/shipping-documents/auto-generate', [PurchaseOrderController::class, 'autoGenerateShippingDocument'])->name('purchase-orders.auto-generate-shipping-document');
+    Route::get('/purchase-orders/{purchaseOrder}/shipping-documents/{shippingDocument}/print', [PurchaseOrderController::class, 'printShippingDocument'])->name('purchase-orders.print-shipping-document');
+    Route::post('/purchase-orders/{purchaseOrder}/shipping-documents/{shippingDocument}/approve', [PurchaseOrderController::class, 'approveShippingDocument'])->name('purchase-orders.approve-shipping-document');
+    Route::post('/purchase-orders/{purchaseOrder}/shipping-documents/{shippingDocument}/mark-received', [PurchaseOrderController::class, 'markShippingDocumentAsReceived'])->name('purchase-orders.mark-received-shipping-document');
+    Route::post('/purchase-orders/{purchaseOrder}/shipping-documents/{shippingDocument}/reject', [PurchaseOrderController::class, 'rejectShippingDocument'])->name('purchase-orders.reject-shipping-document');
+    Route::post('/purchase-orders/{purchaseOrder}/shipping-documents/{shippingDocument}/revise', [PurchaseOrderController::class, 'reviseShippingDocument'])->name('purchase-orders.revise-shipping-document');
+    Route::delete('/purchase-orders/{purchaseOrder}/shipping-documents/{shippingDocument}', [PurchaseOrderController::class, 'deleteShippingDocument'])->name('purchase-orders.delete-shipping-document');
 
     // Invoice Routes
     Route::resource('invoices', InvoiceController::class)->except(['create', 'edit', 'destroy']);
@@ -93,9 +114,6 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/good-receipt', [GoodReceiptController::class, 'index']);
     Route::get('/good-receipt-history', [GoodReceiptController::class, 'history']);
-
-    Route::get('/purchase-invoice', [PurchaseInvoiceController::class, 'index']);
-    Route::get('/purchase-invoice-history', [PurchaseInvoiceController::class, 'pembayaran']);
 
     // Manajemen User - CRUD Routes
     Route::resource('users', UserController::class);

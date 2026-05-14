@@ -84,9 +84,6 @@
       padding: 10px;
     }
 
-    box-shadow: 0 0 0 0.2rem rgba(180, 0, 0, 0.25);
-    }
-
     .input-group-text {
       border-radius: 30px;
       background: #f5f5f5;
@@ -223,6 +220,25 @@
           @enderror
         </div>
 
+        <!-- Username Input -->
+        <div class="form-group">
+          <div class="input-group">
+            <span class="input-group-text">
+              <i class="bi bi-at"></i>
+            </span>
+            <input
+              type="text"
+              name="username"
+              class="form-control @error('username') is-invalid @enderror"
+              placeholder="Username"
+              value="{{ old('username') }}"
+              required>
+          </div>
+          @error('username')
+          <div class="error-text">{{ $message }}</div>
+          @enderror
+        </div>
+
         <!-- Email Input -->
         <div class="form-group">
           <div class="input-group">
@@ -317,7 +333,7 @@
           </div>
         </div>
 
-        <button type="submit" class="inline-flex items-center px-4 py-2 bg-red-700 hover:bg-red-800 text-white rounded font-semibold">
+        <button type="submit" class="btn-login">
           <i class="bi bi-person-plus"></i> Daftar
         </button>
 

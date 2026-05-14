@@ -29,6 +29,20 @@ class DatabaseSeeder extends Seeder
             'description' => 'Staff - View Only',
         ]);
 
+        $deptHeadRole = \App\Models\Role::create([
+            'name' => 'Dept. Head',
+            'description' => 'Department Head - Can approve PO',
+        ]);
+
+        // Create a test supplier
+        $supplier = \App\Models\Supplier::create([
+            'nama' => 'PT Supplier Utama',
+            'alamat' => 'Jl. Industri No. 123, Jakarta',
+            'pic' => 'John Doe',
+            'telephone' => '021-1234567',
+            'contact_person' => 'Bagian Purchasing',
+        ]);
+
         // Create a test admin user
         \App\Models\User::create([
             'name' => 'Admin User',
@@ -37,12 +51,13 @@ class DatabaseSeeder extends Seeder
             'role_id' => $adminRole->id,
         ]);
 
-        // Create a test supplier user
+        // Create a test supplier user (linked with supplier)
         \App\Models\User::create([
             'name' => 'Supplier User',
             'email' => 'supplier@example.com',
             'password' => Hash::make('password123'),
             'role_id' => $supplierRole->id,
+            'supplier_id' => $supplier->id,
         ]);
 
         // Create a test staff user
@@ -51,6 +66,14 @@ class DatabaseSeeder extends Seeder
             'email' => 'staff@example.com',
             'password' => Hash::make('password123'),
             'role_id' => $staffRole->id,
+        ]);
+
+        // Create a test dept head user
+        \App\Models\User::create([
+            'name' => 'Dept. Head User',
+            'email' => 'depthead@example.com',
+            'password' => Hash::make('password123'),
+            'role_id' => $deptHeadRole->id,
         ]);
     }
 }

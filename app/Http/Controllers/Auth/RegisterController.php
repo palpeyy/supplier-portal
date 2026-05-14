@@ -29,11 +29,15 @@ class RegisterController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'username' => ['required', 'string', 'max:255', 'alpha_dash', 'unique:users,username'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'role_id' => ['required', 'exists:roles,id'],
         ], [
             'name.required' => 'Nama harus diisi',
+            'username.required' => 'Username harus diisi',
+            'username.alpha_dash' => 'Username hanya boleh huruf, angka, dash, dan underscore',
+            'username.unique' => 'Username sudah terdaftar',
             'email.required' => 'Email harus diisi',
             'email.unique' => 'Email sudah terdaftar',
             'password.required' => 'Password harus diisi',
@@ -44,6 +48,7 @@ class RegisterController extends Controller
 
         $user = User::create([
             'name' => $request->name,
+            'username' => $request->username,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role_id' => $request->role_id,

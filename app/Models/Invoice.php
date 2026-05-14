@@ -19,6 +19,14 @@ class Invoice extends Model
     ];
 
     /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+    ];
+
+    /**
      * Get the purchase order for the invoice.
      */
     public function purchaseOrder()
