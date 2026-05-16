@@ -311,7 +311,7 @@
                     </div>
                     <div class="info-row">
                         <span class="info-label" style="width: 100px;">Supplier Code :</span>
-                        <span class="info-value">-</span>
+                        <span class="info-value">{{ $shippingDocument->purchaseOrder->supplier->supplier_code ?? '-' }}</span>
                     </div>
                 </div>
                 <div style="display: table-cell; width: 50%;">

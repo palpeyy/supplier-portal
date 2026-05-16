@@ -327,6 +327,7 @@ class PurchaseOrderController extends Controller
     {
         $this->ensurePurchasingOwnerAccess($purchaseOrder);
         $purchaseOrder->load('items', 'supplier', 'createdBy');
+        $purchaseOrder->loadCount('items');
 
         if (request()->ajax()) {
             return response()->json(['purchase_order' => $purchaseOrder]);
@@ -483,9 +484,9 @@ class PurchaseOrderController extends Controller
      */
     public function approve(Request $request, PurchaseOrder $purchaseOrder)
     {
-        // Check if user is Dept. Head
+        // Check if user is Dept. Head or Admin
         $userRole = auth()->user()->role->name ?? null;
-        if ($userRole !== 'Dept. Head') {
+        if (!in_array($userRole, ['Admin', 'Dept. Head'])) {
             if ($request->ajax()) {
                 return response()->json(['error' => 'Anda tidak memiliki hak akses untuk approve'], 403);
             }
@@ -523,9 +524,9 @@ class PurchaseOrderController extends Controller
             'keterangan.required' => 'Keterangan harus diisi',
         ]);
 
-        // Check if user is Dept. Head
+        // Check if user is Dept. Head or Admin
         $userRole = auth()->user()->role->name ?? null;
-        if ($userRole !== 'Dept. Head') {
+        if (!in_array($userRole, ['Admin', 'Dept. Head'])) {
             if ($request->ajax()) {
                 return response()->json(['error' => 'Anda tidak memiliki hak akses untuk reject'], 403);
             }

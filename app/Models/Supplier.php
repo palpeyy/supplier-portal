@@ -15,6 +15,7 @@ class Supplier extends Model
         'pic',
         'telephone',
         'contact_person',
+        'supplier_code',
     ];
 
     /**

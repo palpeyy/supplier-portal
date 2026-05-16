@@ -121,7 +121,7 @@ Purchase Order
                                     <td class="px-6 py-3 text-sm text-gray-900">{{ $po->keterangan ?? '-' }}</td>
                                     <td class="px-6 py-3">
                                         <div class="flex items-center gap-2">
-                                            @if($userRole == 'Dept. Head')
+                                            @if(in_array($userRole, ['Admin', 'Dept. Head']))
                                             <a class="inline-flex items-center px-2 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded approve-po" href="#" data-id="{{ $po->id }}" title="Review & Approve">
                                                 <i class="fas fa-check"></i>
                                             </a>
