@@ -9,6 +9,8 @@ use App\Models\Invoice;
 use App\Models\ShippingDocument;
 use App\Models\ShippingDocumentItem;
 use App\Services\PdfExtractorService;
+use App\Services\PurchaseOrderNotificationService;
+use App\Services\ShippingDocumentNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
@@ -19,6 +21,11 @@ use setasign\Fpdi\Fpdi;
 
 class PurchaseOrderController extends Controller
 {
+    public function __construct(
+        private readonly PurchaseOrderNotificationService $poNotificationService,
+        private readonly ShippingDocumentNotificationService $sjNotificationService,
+    ) {}
+
     /**
      * Ownership rule:
      * - Supplier: restricted by supplier_id (already handled in several places)
@@ -180,6 +187,7 @@ class PurchaseOrderController extends Controller
         $pdfExtractor = new PdfExtractorService();
         $successCount = 0;
         $errorMessages = [];
+        $createdPurchaseOrders = [];
 
         DB::beginTransaction();
         try {
@@ -271,6 +279,10 @@ class PurchaseOrderController extends Controller
                         $purchaseOrder->update(['item_count' => count($extractedData['items'])]);
                     }
 
+                    if (in_array($userRole, ['Admin', 'Purchasing'], true)) {
+                        $createdPurchaseOrders[] = $purchaseOrder;
+                    }
+
                     $successCount++;
                 } catch (\Exception $e) {
                     Log::error('Error processing PDF file: ' . $pdfFile->getClientOriginalName() . ' - ' . $e->getMessage());
@@ -284,6 +296,12 @@ class PurchaseOrderController extends Controller
             }
 
             DB::commit();
+
+            if (in_array($userRole, ['Admin', 'Purchasing'], true)) {
+                foreach ($createdPurchaseOrders as $createdPo) {
+                    $this->poNotificationService->notifyDeptHeadOnUpload($createdPo);
+                }
+            }
 
             $message = $successCount . ' file Purchase Order berhasil diupload';
             if (!empty($errorMessages)) {
@@ -470,6 +488,65 @@ class PurchaseOrderController extends Controller
     }
 
     /**
+     * Stream PDF for in-browser preview (iframe). Uses storage directly so preview works
+     * even when the public/storage symlink is missing.
+     */
+    public function previewPdf(PurchaseOrder $purchaseOrder)
+    {
+        $this->ensurePurchasingOwnerAccess($purchaseOrder);
+        if (!$purchaseOrder->pdf_path || !Storage::disk('public')->exists($purchaseOrder->pdf_path)) {
+            abort(404, 'File PDF tidak ditemukan');
+        }
+
+        $basename = basename($purchaseOrder->pdf_path);
+
+        if ($purchaseOrder->status === 'approved') {
+            try {
+                $pdfPath = Storage::disk('public')->path($purchaseOrder->pdf_path);
+                $pdf = new Fpdi();
+                $pageCount = $pdf->setSourceFile($pdfPath);
+
+                for ($pageNum = 1; $pageNum <= $pageCount; $pageNum++) {
+                    $templateId = $pdf->importPage($pageNum);
+                    $pdf->addPage();
+                    $pdf->useTemplate($templateId);
+
+                    $pdf->SetFont('Arial', 'B', 24);
+                    $pdf->SetTextColor(144, 200, 154);
+
+                    $pageWidth = $pdf->GetPageWidth();
+                    $pageHeight = $pdf->GetPageHeight();
+
+                    $pdf->SetXY($pageWidth - 70, $pageHeight - 50);
+                    $pdf->Write(10, 'APPROVED');
+
+                    $pdf->SetFont('Arial', '', 10);
+                    $pdf->SetXY($pageWidth - 65, $pageHeight - 35);
+                    $pdf->Write(5, 'by Dept Head');
+                }
+
+                $filename = basename($purchaseOrder->pdf_path, '.pdf').'_approved.pdf';
+
+                return response($pdf->Output('S'), 200, [
+                    'Content-Type' => 'application/pdf',
+                    'Content-Disposition' => 'inline; filename="'.$filename.'"',
+                    'X-Content-Type-Options' => 'nosniff',
+                ]);
+            } catch (\Exception $e) {
+                Log::error('Error building watermarked PDF for preview: '.$e->getMessage());
+
+                return Storage::disk('public')->response($purchaseOrder->pdf_path, $basename, [
+                    'Content-Disposition' => 'inline; filename="'.$basename.'"',
+                ]);
+            }
+        }
+
+        return Storage::disk('public')->response($purchaseOrder->pdf_path, $basename, [
+            'Content-Disposition' => 'inline; filename="'.$basename.'"',
+        ]);
+    }
+
+    /**
      * Approval method (existing)
      */
     public function approval()
@@ -505,6 +582,8 @@ class PurchaseOrderController extends Controller
             'status' => 'approved',
             'keterangan' => 'Menunggu Konfirmasi dari Supplier',
         ]);
+
+        $this->poNotificationService->notifySupplierOnApprove($purchaseOrder->fresh());
 
         if ($request->ajax()) {
             return response()->json(['success' => 'PO berhasil di-approve']);
@@ -545,6 +624,8 @@ class PurchaseOrderController extends Controller
             'status' => 'rejected',
             'keterangan' => $request->keterangan,
         ]);
+
+        $this->poNotificationService->notifyPurchasingOnReject($purchaseOrder->fresh());
 
         if ($request->ajax()) {
             return response()->json(['success' => 'PO berhasil di-reject']);
@@ -606,6 +687,8 @@ class PurchaseOrderController extends Controller
             'keterangan' => 'pesanan sedang diproses',
         ]);
 
+        $this->poNotificationService->notifyPurchasingOnSupplierApprove($purchaseOrder->fresh());
+
         if ($request->ajax()) {
             return response()->json(['success' => 'PO berhasil dikonfirmasi']);
         }
@@ -663,6 +746,8 @@ class PurchaseOrderController extends Controller
             'status' => 'supplier_rejected',
             'keterangan' => $request->keterangan,
         ]);
+
+        $this->poNotificationService->notifyPurchasingOnSupplierReject($purchaseOrder->fresh());
 
         if ($request->ajax()) {
             return response()->json(['success' => 'PO berhasil di-reject']);
@@ -866,6 +951,13 @@ class PurchaseOrderController extends Controller
 
             DB::commit();
 
+            if ($userRole === 'Supplier') {
+                $this->sjNotificationService->notifyPurchasingOnCreated(
+                    $purchaseOrder->fresh(),
+                    $shippingDoc->fresh()
+                );
+            }
+
             Log::info('Shipping document created successfully', [
                 'po_id' => $purchaseOrder->id,
                 'shipping_doc_id' => $shippingDoc->id,
@@ -1062,6 +1154,11 @@ class PurchaseOrderController extends Controller
 
             DB::commit();
 
+            $this->sjNotificationService->notifySupplierOnApproved(
+                $purchaseOrder->fresh(),
+                $shippingDocument->fresh()
+            );
+
             if ($request->ajax()) {
                 return response()->json([
                     'success' => 'Surat jalan berhasil di-approve',
@@ -1143,6 +1240,11 @@ class PurchaseOrderController extends Controller
             $purchaseOrder->updateFulfillmentStatus();
 
             DB::commit();
+
+            $this->sjNotificationService->notifySupplierOnRejected(
+                $purchaseOrder->fresh(),
+                $shippingDocument->fresh()
+            );
 
             Log::info('Shipping document rejected with rollback', [
                 'po_id' => $purchaseOrder->id,
@@ -1230,6 +1332,11 @@ class PurchaseOrderController extends Controller
             $purchaseOrder->updateFulfillmentStatus();
 
             DB::commit();
+
+            $this->sjNotificationService->notifySupplierOnRevised(
+                $purchaseOrder->fresh(),
+                $shippingDocument->fresh()
+            );
 
             Log::info('Shipping document revised (returned to draft) with rollback', [
                 'po_id' => $purchaseOrder->id,
@@ -1350,6 +1457,13 @@ class PurchaseOrderController extends Controller
             $purchaseOrder->updateFulfillmentStatus();
 
             DB::commit();
+
+            if ($userRole === 'Supplier') {
+                $this->sjNotificationService->notifyPurchasingOnCreated(
+                    $purchaseOrder->fresh(),
+                    $shippingDoc->fresh()
+                );
+            }
 
             Log::info('Auto-generated shipping document', [
                 'po_id' => $purchaseOrder->id,

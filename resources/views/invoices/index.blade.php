@@ -307,8 +307,8 @@ Invoice
 
                     <div class="form-group">
                         <label for="surat_jalan_file">File Surat Jalan/ASN <span class="text-danger">*</span></label>
-                        <input type="file" class="form-control-file" id="surat_jalan_file" name="surat_jalan_file" accept=".pdf,.jpg,.jpeg,.png" required>
-                        <small class="form-text text-muted">Format: PDF, JPG, PNG (Maksimal 10MB)</small>
+                        <input type="file" class="form-control-file" id="surat_jalan_file" name="surat_jalan_file[]" accept=".pdf,.jpg,.jpeg,.png" multiple required>
+                        <small class="form-text text-muted">Format: PDF, JPG, PNG (Maksimal 10MB per file). Dapat memilih beberapa file sekaligus.</small>
                     </div>
 
                     <div class="form-group">
@@ -364,8 +364,8 @@ Invoice
 
                     <div class="form-group">
                         <label for="revise_surat_jalan_file">File Surat Jalan/ASN (Baru) <span class="text-danger">*</span></label>
-                        <input type="file" class="form-control-file" id="revise_surat_jalan_file" name="surat_jalan_file" accept=".pdf,.jpg,.jpeg,.png" required>
-                        <small class="form-text text-muted">Format: PDF, JPG, PNG (Maksimal 10MB)</small>
+                        <input type="file" class="form-control-file" id="revise_surat_jalan_file" name="surat_jalan_file[]" accept=".pdf,.jpg,.jpeg,.png" multiple required>
+                        <small class="form-text text-muted">Format: PDF, JPG, PNG (Maksimal 10MB per file). Dapat memilih beberapa file sekaligus.</small>
                     </div>
 
                     <div class="form-group">
@@ -452,9 +452,7 @@ Invoice
                                 <div class="col-md-4">
                                     <div class="text-center">
                                         <h6>Surat Jalan/ASN</h6>
-                                        <a id="approve_download_surat_jalan" href="#" class="inline-flex items-center px-3 py-2 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-semibold rounded" target="_blank">
-                                            <i class="fas fa-download mr-2"></i> Download
-                                        </a>
+                                        <div id="approve_surat_jalan_downloads" class="d-flex flex-wrap justify-content-center gap-2"></div>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
@@ -650,9 +648,7 @@ Invoice
                                     <div class="text-center p-3 border rounded">
                                         <i class="fas fa-truck fa-3x text-success mb-3"></i>
                                         <h6>Surat Jalan/ASN</h6>
-                                        <button class="inline-flex items-center px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded mt-2" id="btn_open_surat_jalan">
-                                            <i class="fas fa-external-link-alt mr-2"></i> Buka Dokumen
-                                        </button>
+                                        <div id="detail_surat_jalan_downloads" class="d-flex flex-wrap justify-content-center gap-2 mt-2"></div>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
@@ -692,6 +688,32 @@ Invoice
         let currentInvoiceId = null;
         let currentAction = null; // 'reject' or 'revise'
         let currentPoId = null;
+
+        function renderSuratJalanDownloadButtons(containerSelector, invoiceId, files, options) {
+            options = options || {};
+            let buttonClass = options.buttonClass || 'inline-flex items-center px-3 py-2 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-semibold rounded';
+            let singleLabel = options.singleLabel || 'Download';
+            let multipleLabelPrefix = options.multipleLabelPrefix || 'Download';
+            let iconClass = options.iconClass || 'fas fa-download';
+
+            let container = $(containerSelector);
+            container.html('');
+
+            if (!files || files.length === 0) {
+                container.append('<span class="text-muted small">Tidak ada file</span>');
+                return;
+            }
+
+            files.forEach(function(file, index) {
+                let label = files.length > 1 ? multipleLabelPrefix + ' ' + (index + 1) : singleLabel;
+                container.append(
+                    '<a href="/invoices/' + invoiceId + '/download-surat-jalan?index=' + index + '" ' +
+                    'class="' + buttonClass + '" target="_blank">' +
+                    '<i class="' + iconClass + ' mr-2"></i> ' + label +
+                    '</a>'
+                );
+            });
+        }
 
         // Upload Invoice (Supplier)
         $(document).on('click', '.upload-invoice', function(e) {
@@ -770,7 +792,7 @@ Invoice
                     $('#approve_po_date').text(po.date ? new Date(po.date).toLocaleDateString('id-ID') : '-');
 
                     $('#approve_download_invoice').attr('href', `/invoices/${invoice.id}/download-invoice`);
-                    $('#approve_download_surat_jalan').attr('href', `/invoices/${invoice.id}/download-surat-jalan`);
+                    renderSuratJalanDownloadButtons('#approve_surat_jalan_downloads', invoice.id, invoice.surat_jalan_file || []);
                     $('#approve_download_faktur_pajak').attr('href', `/invoices/${invoice.id}/download-faktur-pajak`);
 
                     $('#approveLoading').hide();
@@ -1048,8 +1070,11 @@ Invoice
                         window.open(`/invoices/${invoiceId}/download-invoice`, '_blank');
                     });
 
-                    $('#btn_open_surat_jalan').off('click').on('click', function() {
-                        window.open(`/invoices/${invoiceId}/download-surat-jalan`, '_blank');
+                    renderSuratJalanDownloadButtons('#detail_surat_jalan_downloads', invoiceId, invoice.surat_jalan_file || [], {
+                        buttonClass: 'inline-flex items-center px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded',
+                        singleLabel: 'Buka Dokumen',
+                        multipleLabelPrefix: 'Buka Dokumen',
+                        iconClass: 'fas fa-external-link-alt'
                     });
 
                     $('#btn_open_faktur_pajak').off('click').on('click', function() {

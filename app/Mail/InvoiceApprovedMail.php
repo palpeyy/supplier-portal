@@ -62,10 +62,13 @@ class InvoiceApprovedMail extends Mailable
                     ->as('Invoice-' . $this->invoice->purchaseOrder->po_number . '-' . basename($this->invoice->invoice_file));
             }
 
-            // Attachment: Surat Jalan File
-            if ($this->invoice->surat_jalan_file && Storage::disk('public')->exists($this->invoice->surat_jalan_file)) {
-                $attachments[] = Attachment::fromStorageDisk('public', $this->invoice->surat_jalan_file)
-                    ->as('Surat-Jalan-' . $this->invoice->purchaseOrder->po_number . '-' . basename($this->invoice->surat_jalan_file));
+            // Attachment: Surat Jalan Files
+            foreach ((array) ($this->invoice->surat_jalan_file ?? []) as $index => $path) {
+                if ($path && Storage::disk('public')->exists($path)) {
+                    $suffix = count((array) $this->invoice->surat_jalan_file) > 1 ? '-' . ($index + 1) : '';
+                    $attachments[] = Attachment::fromStorageDisk('public', $path)
+                        ->as('Surat-Jalan' . $suffix . '-' . $this->invoice->purchaseOrder->po_number . '-' . basename($path));
+                }
             }
 
             // Attachment: Faktur Pajak File

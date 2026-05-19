@@ -24,6 +24,7 @@ class Invoice extends Model
      * @var array<string, string>
      */
     protected $casts = [
+        'surat_jalan_file' => 'array',
     ];
 
     /**

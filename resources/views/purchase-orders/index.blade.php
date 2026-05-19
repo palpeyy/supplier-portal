@@ -482,7 +482,7 @@ Purchase Order
 
                         <div class="form-group">
                             <label for="pdf_files">Upload File PDF Purchase Order</label>
-                            <small class="form-text text-muted mb-2">Anda dapat mengupload beberapa file PDF sekaligus (Maksimal 10MB per file)</small>
+                            <small class="form-text text-muted mb-2"> file PDF  (Maksimal 10MB per file)</small>
                             <input type="file" class="form-control-file" id="pdf_files" name="pdf_files[]" multiple accept=".pdf" required>
                             <div id="filePreview" class="mt-3"></div>
                         </div>
@@ -713,7 +713,6 @@ Purchase Order
                                                 <th width="5%">#</th>
                                                 <th width="10%">Item Number</th>
                                                 <th width="12%">Material Code</th>
-                                                <th width="12%">Vendor Material</th>
                                                 <th>Description</th>
                                                 <th width="8%" class="text-center">Qty</th>
                                                 <th width="12%" class="text-right">Price Per Unit</th>
@@ -722,7 +721,7 @@ Purchase Order
                                         </thead>
                                         <tbody id="detail_items_body">
                                             <tr>
-                                                <td colspan="8" class="text-center">Tidak ada data items</td>
+                                                <td colspan="7" class="text-center">Tidak ada data items</td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -837,7 +836,6 @@ Purchase Order
                                                 <th width="5%">#</th>
                                                 <th width="10%">Item Number</th>
                                                 <th width="12%">Material Code</th>
-                                                <th width="12%">Vendor Material</th>
                                                 <th>Description</th>
                                                 <th width="8%" class="text-center">Qty</th>
                                                 <th width="12%" class="text-right">Price Per Unit</th>
@@ -846,7 +844,7 @@ Purchase Order
                                         </thead>
                                         <tbody id="approve_items_body">
                                             <tr>
-                                                <td colspan="8" class="text-center">Tidak ada data items</td>
+                                                <td colspan="7" class="text-center">Tidak ada data items</td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -929,37 +927,25 @@ Purchase Order
             $('#modalSuccessMessage').text("{{ Session::get('success') }}");
             $('#modalSuccess').modal('show');
             @endif
-            // Preview PDF
+            // Preview PDF (served via app route so it works without public/storage symlink)
             $(document).on('click', '.preview-pdf', function(e) {
                 e.preventDefault();
                 let poId = $(this).data('id');
+                let pdfUrl = `/purchase-orders/${poId}/preview-pdf`;
 
                 $('#previewContent').hide();
-                $('#previewLoading').show();
+                $('#previewLoading').show().html('<i class="fas fa-spinner fa-spin fa-2x"></i><p class="mt-2">Memuat file...</p>');
                 $('#modalPreviewFile').modal('show');
 
-                $.ajax({
-                    url: `/purchase-orders/${poId}`,
-                    type: 'GET',
-                    success: function(response) {
-                        if (response.purchase_order.pdf_path) {
-                            let pdfUrl = '/storage/' + response.purchase_order.pdf_path;
-                            $('#pdfIframe').attr('src', pdfUrl);
+                $('#btnDownloadFile').attr('href', `/purchase-orders/${poId}/download`);
+                $('#btnPrintFile').data('pdf-url', pdfUrl);
 
-                            $('#btnDownloadFile').attr('href', `/purchase-orders/${poId}/download`);
-
-                            $('#btnPrintFile').data('pdf-url', pdfUrl);
-
-                            $('#previewLoading').hide();
-                            $('#previewContent').show();
-                        } else {
-                            $('#previewLoading').html('<div class="alert alert-warning">File tidak ditemukan</div>');
-                        }
-                    },
-                    error: function() {
-                        $('#previewLoading').html('<div class="alert alert-danger">Gagal memuat file</div>');
-                    }
+                $('#pdfIframe').off('load.previewPo').on('load.previewPo', function() {
+                    $('#previewLoading').hide();
+                    $('#previewContent').show();
                 });
+
+                $('#pdfIframe').attr('src', pdfUrl);
             });
 
             // Print PDF
@@ -1267,7 +1253,6 @@ Purchase Order
                                     '<td>' + (index + 1) + '</td>' +
                                     '<td>' + (item.item_number || '-') + '</td>' +
                                     '<td>' + (item.material_code || '-') + '</td>' +
-                                    '<td>' + (item.vendor_material || '-') + '</td>' +
                                     '<td>' + (item.description || '-') + '</td>' +
                                     '<td class="text-center">' + (item.quantity || 0) + '</td>' +
                                     '<td class="text-right">' + pricePerUnit + '</td>' +
@@ -1276,7 +1261,7 @@ Purchase Order
                                 );
                             });
                         } else {
-                            itemsBody.append('<tr><td colspan="8" class="text-center">Tidak ada data items</td></tr>');
+                            itemsBody.append('<tr><td colspan="7" class="text-center">Tidak ada data items</td></tr>');
                         }
 
                         // Show content
@@ -1347,7 +1332,6 @@ Purchase Order
                                     '<td>' + (index + 1) + '</td>' +
                                     '<td>' + (item.item_number || '-') + '</td>' +
                                     '<td>' + (item.material_code || '-') + '</td>' +
-                                    '<td>' + (item.vendor_material || '-') + '</td>' +
                                     '<td>' + (item.description || '-') + '</td>' +
                                     '<td class="text-center">' + (item.quantity || 0) + '</td>' +
                                     '<td class="text-right">' + pricePerUnit + '</td>' +
@@ -1356,7 +1340,7 @@ Purchase Order
                                 );
                             });
                         } else {
-                            itemsBody.append('<tr><td colspan="8" class="text-center">Tidak ada data items</td></tr>');
+                            itemsBody.append('<tr><td colspan="7" class="text-center">Tidak ada data items</td></tr>');
                         }
 
                         // Show content
@@ -1494,7 +1478,6 @@ Purchase Order
                                     '<td>' + (index + 1) + '</td>' +
                                     '<td>' + (item.item_number || '-') + '</td>' +
                                     '<td>' + (item.material_code || '-') + '</td>' +
-                                    '<td>' + (item.vendor_material || '-') + '</td>' +
                                     '<td>' + (item.description || '-') + '</td>' +
                                     '<td class="text-center">' + (item.quantity || 0) + '</td>' +
                                     '<td class="text-right">' + pricePerUnit + '</td>' +
@@ -1503,7 +1486,7 @@ Purchase Order
                                 );
                             });
                         } else {
-                            itemsBody.append('<tr><td colspan="8" class="text-center">Tidak ada data items</td></tr>');
+                            itemsBody.append('<tr><td colspan="7" class="text-center">Tidak ada data items</td></tr>');
                         }
 
                         // Show content
