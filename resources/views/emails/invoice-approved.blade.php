@@ -290,7 +290,7 @@
                 <tr>
                     <td class="label">Tanggal PO</td>
                     <td class="value">
-                        {{ $invoice->purchaseOrder->date ? \Carbon\Carbon::parse($invoice->purchaseOrder->date)->translatedFormat('d F Y') : 'N/A' }}
+                        {{ $invoice->purchaseOrder->created_at ? $invoice->purchaseOrder->created_at->translatedFormat('d F Y') : 'N/A' }}
                     </td>
                 </tr>
                 <tr>

@@ -52,9 +52,9 @@ class PurchaseOrderController extends Controller
         $user = auth()->user();
         $userRole = $user->role->name ?? null;
 
-        // Get suppliers for dropdown (only for Admin and Dept. Head)
+        // Get suppliers for dropdown (only for Admin and Purchasing)
         $suppliers = null;
-        if (in_array($userRole, ['Admin', 'Dept. Head'])) {
+        if (in_array($userRole, ['Admin', 'Purchasing'])) {
             $suppliers = Supplier::all();
         }
 
@@ -125,6 +125,11 @@ class PurchaseOrderController extends Controller
      */
     public function create()
     {
+        $userRole = auth()->user()->role->name ?? null;
+        if (!in_array($userRole, ['Admin', 'Purchasing'], true)) {
+            abort(403, 'Anda tidak memiliki hak akses untuk upload Purchase Order');
+        }
+
         return view('purchase-orders.create', ['tittle' => 'Tambah Purchase Order | Portal Supplier']);
     }
 
@@ -136,10 +141,18 @@ class PurchaseOrderController extends Controller
         $user = auth()->user();
         $userRole = $user->role->name ?? null;
 
+        if (!in_array($userRole, ['Admin', 'Purchasing'], true)) {
+            if ($request->ajax()) {
+                return response()->json(['error' => 'Anda tidak memiliki hak akses untuk upload Purchase Order'], 403);
+            }
+            return redirect()->back()->with('error', 'Anda tidak memiliki hak akses untuk upload Purchase Order');
+        }
+
         try {
             $rules = [
                 'pdf_files' => 'required|array|min:1',
                 'pdf_files.*' => 'required|file|mimes:pdf|max:10240', // Max 10MB per file
+                'supplier_id' => 'required|exists:suppliers,id',
             ];
 
             $messages = [
@@ -150,22 +163,14 @@ class PurchaseOrderController extends Controller
                 'pdf_files.*.file' => 'File harus berupa file yang valid',
                 'pdf_files.*.mimes' => 'File harus berformat PDF',
                 'pdf_files.*.max' => 'Ukuran file maksimal 10MB',
+                'supplier_id.required' => 'Supplier harus dipilih',
+                'supplier_id.exists' => 'Supplier tidak valid',
             ];
-
-            // Validate supplier_id - wajib untuk Admin dan Dept. Head
-            if (in_array($userRole, ['Admin', 'Dept. Head'])) {
-                $rules['supplier_id'] = 'required|exists:suppliers,id';
-                $messages['supplier_id.required'] = 'Supplier harus dipilih';
-                $messages['supplier_id.exists'] = 'Supplier tidak valid';
-            }
 
             $request->validate($rules, $messages);
 
-            // CRITICAL: Check if supplier_id is provided for Admin/Dept Head
-            if (in_array($userRole, ['Admin', 'Dept. Head'])) {
-                if (empty($request->supplier_id)) {
-                    throw new \Exception('Supplier harus dipilih untuk upload PO');
-                }
+            if (empty($request->supplier_id)) {
+                throw new \Exception('Supplier harus dipilih untuk upload PO');
             }
         } catch (ValidationException $e) {
             if ($request->ajax()) {
@@ -213,20 +218,13 @@ class PurchaseOrderController extends Controller
                         $counter++;
                     }
 
-                    // Determine supplier_id: use from request first (for Admin/Dept. Head)
+                    // Determine supplier_id: use from request first
                     $supplierId = null;
 
-                    // Priority 1: From request (Admin/Dept. Head selection)
                     if (!empty($request->supplier_id)) {
                         $supplierId = $request->supplier_id;
-                    }
-                    // Priority 2: From extracted PDF data
-                    elseif (!empty($extractedData['supplier_id'])) {
+                    } elseif (!empty($extractedData['supplier_id'])) {
                         $supplierId = $extractedData['supplier_id'];
-                    }
-                    // Priority 3: From Supplier user's supplier_id
-                    elseif ($userRole === 'Supplier' && $user->supplier_id) {
-                        $supplierId = $user->supplier_id;
                     }
 
                     // CRITICAL: supplier_id HARUS ada
@@ -247,7 +245,7 @@ class PurchaseOrderController extends Controller
                         'item_count' => $extractedData['item_count'] ?? 0,
                         'delivery_date' => $extractedData['delivery_date'],
                         'currency' => $extractedData['currency'] ?? 'IDR',
-                        'company_address' => $extractedData['company_address'],
+                        'company_address' => PurchaseOrder::resolveCompanyAddress($extractedData['company_address'] ?? null),
                         'pdf_path' => $path,
                         'status' => 'pending',
                         'keterangan' => 'Menunggu Approval Dept. Head',
@@ -433,8 +431,7 @@ class PurchaseOrderController extends Controller
             return redirect()->back()->with('error', 'File PDF tidak ditemukan');
         }
 
-        // Jika status approved, tambahkan watermark
-        if ($purchaseOrder->status === 'approved') {
+        if ($purchaseOrder->showsDeptHeadApprovalMark()) {
             try {
                 // Get the PDF file
                 $pdfPath = Storage::disk('public')->path($purchaseOrder->pdf_path);
@@ -500,7 +497,7 @@ class PurchaseOrderController extends Controller
 
         $basename = basename($purchaseOrder->pdf_path);
 
-        if ($purchaseOrder->status === 'approved') {
+        if ($purchaseOrder->showsDeptHeadApprovalMark()) {
             try {
                 $pdfPath = Storage::disk('public')->path($purchaseOrder->pdf_path);
                 $pdf = new Fpdi();
@@ -561,9 +558,9 @@ class PurchaseOrderController extends Controller
      */
     public function approve(Request $request, PurchaseOrder $purchaseOrder)
     {
-        // Check if user is Dept. Head or Admin
+        // Check if user is Dept. Head
         $userRole = auth()->user()->role->name ?? null;
-        if (!in_array($userRole, ['Admin', 'Dept. Head'])) {
+        if ($userRole !== 'Dept. Head') {
             if ($request->ajax()) {
                 return response()->json(['error' => 'Anda tidak memiliki hak akses untuk approve'], 403);
             }
@@ -603,9 +600,9 @@ class PurchaseOrderController extends Controller
             'keterangan.required' => 'Keterangan harus diisi',
         ]);
 
-        // Check if user is Dept. Head or Admin
+        // Check if user is Dept. Head
         $userRole = auth()->user()->role->name ?? null;
-        if (!in_array($userRole, ['Admin', 'Dept. Head'])) {
+        if ($userRole !== 'Dept. Head') {
             if ($request->ajax()) {
                 return response()->json(['error' => 'Anda tidak memiliki hak akses untuk reject'], 403);
             }
@@ -770,12 +767,12 @@ class PurchaseOrderController extends Controller
         }
 
         // Ongoing query (on_progress)
-        $ongoingQuery = PurchaseOrder::with('supplier', 'createdBy')
+        $ongoingQuery = PurchaseOrder::with('supplier', 'createdBy', 'shippingDocuments')
             ->withCount('items')
             ->where('status', 'on_progress');
 
         // Completed query (received)
-        $completedQuery = PurchaseOrder::with('supplier', 'createdBy')
+        $completedQuery = PurchaseOrder::with('supplier', 'createdBy', 'shippingDocuments')
             ->withCount('items')
             ->where('status', 'received');
 
@@ -809,9 +806,12 @@ class PurchaseOrderController extends Controller
         }
 
         // Load items and supplier
-        $purchaseOrder->load('items', 'supplier');
+        $purchaseOrder->load('items', 'supplier', 'shippingDocuments');
 
-        return view('purchase-orders.print-surat-jalan', compact('purchaseOrder'));
+        $companyInfo = $this->resolveCompanyInfoForPrint($purchaseOrder);
+        $latestSj = $purchaseOrder->latestShippingDocument();
+
+        return view('purchase-orders.print-surat-jalan', compact('purchaseOrder', 'companyInfo', 'latestSj'));
     }
 
     /**
@@ -1000,7 +1000,11 @@ class PurchaseOrderController extends Controller
             return redirect()->back()->with('error', 'PO ini bukan untuk supplier Anda');
         }
 
-        $purchaseOrder->load('items', 'supplier', 'shippingDocuments.items.purchaseOrderItem');
+        $purchaseOrder->load([
+            'items.shippingDocumentItems.shippingDocument',
+            'supplier',
+            'shippingDocuments.items.purchaseOrderItem',
+        ]);
 
         return view('purchase-orders.shipping-documents', compact('purchaseOrder', 'userRole'), [
             'tittle' => 'Surat Jalan | Portal Supplier'
@@ -1018,9 +1022,45 @@ class PurchaseOrderController extends Controller
             return redirect()->back()->with('error', 'Surat jalan tidak ditemukan');
         }
 
-        $shippingDocument->load('items.purchaseOrderItem', 'purchaseOrder.supplier');
+        $shippingDocument->load('items.purchaseOrderItem', 'purchaseOrder.supplier', 'approvedBy');
 
-        return view('purchase-orders.print-shipping-document', compact('shippingDocument', 'purchaseOrder'));
+        $companyInfo = $this->resolveCompanyInfoForPrint($purchaseOrder);
+
+        return view('purchase-orders.print-shipping-document', compact('shippingDocument', 'purchaseOrder', 'companyInfo'));
+    }
+
+    /**
+     * Data perusahaan untuk cetak surat jalan (PO + konfigurasi aplikasi).
+     */
+    private function resolveCompanyInfoForPrint(PurchaseOrder $purchaseOrder): array
+    {
+        $rawAddress = PurchaseOrder::resolveCompanyAddress($purchaseOrder->company_address);
+        if ($rawAddress === '-') {
+            $rawAddress = '';
+        }
+        $phone = trim((string) config('app.company_phone', ''));
+        $email = trim((string) config('app.company_email', ''));
+        $address = $rawAddress;
+
+        if ($rawAddress !== '') {
+            if ($phone === '' && preg_match('/(?:phone|tel|telepon)\s*[:\-]?\s*([^\n]+)/iu', $rawAddress, $m)) {
+                $phone = trim($m[1]);
+            }
+            if ($email === '' && preg_match('/(?:e-?mail)\s*[:\-]?\s*([^\s\n]+)/iu', $rawAddress, $m)) {
+                $email = trim($m[1]);
+            }
+            $address = trim((string) preg_replace('/\n?\s*(?:phone|tel|telepon|e-?mail)\s*[:\-]?\s*[^\n]+/iu', '', $rawAddress));
+            if ($address === '') {
+                $address = $rawAddress;
+            }
+        }
+
+        return [
+            'name' => config('app.company_name', config('app.name')),
+            'address' => $address !== '' ? $address : '-',
+            'phone' => $phone !== '' ? $phone : '-',
+            'email' => $email !== '' ? $email : '-',
+        ];
     }
 
     /**
@@ -1054,13 +1094,7 @@ class PurchaseOrderController extends Controller
                 $item->delete();
             }
 
-            // Recalculate fulfillment for all items in this PO
             $purchaseOrder->refresh()->load('items');
-            foreach ($purchaseOrder->items as $item) {
-                $item->recalculateQuantityShipped();
-            }
-
-            // Update PO fulfillment status
             $purchaseOrder->updateFulfillmentStatus();
 
             // Revert PO status if needed
@@ -1214,28 +1248,8 @@ class PurchaseOrderController extends Controller
 
         DB::beginTransaction();
         try {
-            // ROLLBACK: Decrement quantity_shipped untuk setiap item di SJ ini
-            // Load SJ items with PO items
-            $shippingDocument->load('items.purchaseOrderItem');
-
-            foreach ($shippingDocument->items as $sjItem) {
-                $poItem = $sjItem->purchaseOrderItem;
-                if ($poItem) {
-                    // Decrement quantity_shipped
-                    $poItem->decrement('quantity_shipped', $sjItem->quantity_shipped);
-
-                    Log::info('Rolled back quantity for PO item', [
-                        'po_item_id' => $poItem->id,
-                        'quantity_rolled_back' => $sjItem->quantity_shipped,
-                        'new_quantity_shipped' => $poItem->quantity_shipped,
-                    ]);
-                }
-            }
-
-            // Mark SJ as rejected
             $shippingDocument->update(['status' => 'rejected']);
 
-            // Recalculate fulfillment status untuk PO
             $purchaseOrder->refresh()->load('items');
             $purchaseOrder->updateFulfillmentStatus();
 
@@ -1254,7 +1268,7 @@ class PurchaseOrderController extends Controller
 
             if ($request->ajax()) {
                 return response()->json([
-                    'success' => 'Surat jalan berhasil di-reject (qty dikembalikan)',
+                    'success' => 'Surat jalan berhasil di-reject',
                 ]);
             }
 
@@ -1306,28 +1320,8 @@ class PurchaseOrderController extends Controller
 
         DB::beginTransaction();
         try {
-            // ROLLBACK: Decrement quantity_shipped untuk setiap item di SJ ini
-            // Load SJ items with PO items
-            $shippingDocument->load('items.purchaseOrderItem');
-
-            foreach ($shippingDocument->items as $sjItem) {
-                $poItem = $sjItem->purchaseOrderItem;
-                if ($poItem) {
-                    // Decrement quantity_shipped
-                    $poItem->decrement('quantity_shipped', $sjItem->quantity_shipped);
-
-                    Log::info('Rolled back quantity for revise', [
-                        'po_item_id' => $poItem->id,
-                        'quantity_rolled_back' => $sjItem->quantity_shipped,
-                        'new_quantity_shipped' => $poItem->quantity_shipped,
-                    ]);
-                }
-            }
-
-            // Return SJ to draft status so supplier can edit
             $shippingDocument->update(['status' => 'draft']);
 
-            // Recalculate fulfillment status untuk PO
             $purchaseOrder->refresh()->load('items');
             $purchaseOrder->updateFulfillmentStatus();
 
@@ -1420,8 +1414,10 @@ class PurchaseOrderController extends Controller
                 'purchase_order_id' => $purchaseOrder->id,
                 'no_surat_jalan' => $suratJalanNumber,
                 'date' => now(),
-                'etd' => $purchaseOrder->etd ?? now(),
-                'eta' => $purchaseOrder->eta ?? now()->addDays(7),
+                'etd' => $purchaseOrder->delivery_date ?? now(),
+                'eta' => $purchaseOrder->delivery_date
+                    ? $purchaseOrder->delivery_date->copy()->addDays(7)
+                    : now()->addDays(7),
                 'status' => 'draft',
                 'notes' => 'Auto-generated on ' . now()->format('Y-m-d H:i:s'),
             ]);

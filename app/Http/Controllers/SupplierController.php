@@ -33,6 +33,7 @@ class SupplierController extends Controller
     public function store(Request $request)
     {
         $request->validate([
+            'supplier_code' => 'required|string|max:20|unique:suppliers,supplier_code',
             'nama' => 'required|string|max:255',
             'alamat' => 'nullable|string',
             'pic' => 'nullable|string|max:255',
@@ -41,6 +42,9 @@ class SupplierController extends Controller
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:6',
         ], [
+            'supplier_code.required' => 'Kode supplier harus diisi',
+            'supplier_code.max' => 'Kode supplier maksimal 20 karakter',
+            'supplier_code.unique' => 'Kode supplier sudah digunakan',
             'nama.required' => 'Nama supplier harus diisi',
             'nama.max' => 'Nama supplier maksimal 255 karakter',
             'pic.max' => 'PIC maksimal 255 karakter',
@@ -56,6 +60,7 @@ class SupplierController extends Controller
         try {
             // Create supplier
             $supplier = Supplier::create([
+                'supplier_code' => $request->supplier_code,
                 'nama' => $request->nama,
                 'alamat' => $request->alamat,
                 'pic' => $request->pic,
@@ -123,6 +128,7 @@ class SupplierController extends Controller
     public function update(Request $request, Supplier $supplier)
     {
         $request->validate([
+            'supplier_code' => 'required|string|max:20|unique:suppliers,supplier_code,' . $supplier->id,
             'nama' => 'required|string|max:255',
             'alamat' => 'nullable|string',
             'pic' => 'nullable|string|max:255',
@@ -130,6 +136,9 @@ class SupplierController extends Controller
             'contact_person' => 'nullable|string|max:255',
             'password' => 'nullable|string|min:6',
         ], [
+            'supplier_code.required' => 'Kode supplier harus diisi',
+            'supplier_code.max' => 'Kode supplier maksimal 20 karakter',
+            'supplier_code.unique' => 'Kode supplier sudah digunakan',
             'nama.required' => 'Nama supplier harus diisi',
             'nama.max' => 'Nama supplier maksimal 255 karakter',
             'pic.max' => 'PIC maksimal 255 karakter',
@@ -141,6 +150,7 @@ class SupplierController extends Controller
         try {
             // Update supplier
             $supplier->update([
+                'supplier_code' => $request->supplier_code,
                 'nama' => $request->nama,
                 'alamat' => $request->alamat,
                 'pic' => $request->pic,

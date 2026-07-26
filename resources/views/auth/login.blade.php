@@ -246,21 +246,11 @@
           <label class="form-check-label" for="remember" style="font-size: 0.9rem;">
             Ingat saya
           </label>
-          <a href="{{ route('password.request') }}" style="float: right; color: #b40000; text-decoration: none; font-size: 0.9rem;">
-            Lupa password?
-          </a>
         </div>
 
         <button type="submit" class="btn-login">
           <i class="bi bi-box-arrow-in-right mr-2"></i> Login
         </button>
-
-        <!-- Register Link -->
-        <div style="margin-top: 15px;">
-          <span class="form-text">Belum punya akun?
-            <a href="{{ route('register') }}" style="color: #b40000; text-decoration: none; font-weight: 600;">Daftar di sini</a>
-          </span>
-        </div>
       </form>
 
       <div class="footer-text">

@@ -61,6 +61,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Company Information (Surat Jalan / Cetak)
+    |--------------------------------------------------------------------------
+    */
+    'company_name' => env('COMPANY_NAME', 'PT Krama Yudha Tiga Berlian'),
+    'company_address' => env('COMPANY_ADDRESS', 'KTB Spare Part Center Jl. Raya Bekasi KM 21-22, Pulogadung, Jakarta Timur, 13920'),
+    'company_phone' => env('COMPANY_PHONE', ''),
+    'company_email' => env('COMPANY_EMAIL', ''),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |
@@ -70,7 +80,7 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    'timezone' => env('APP_TIMEZONE', 'Asia/Jakarta'),
 
     /*
     |--------------------------------------------------------------------------

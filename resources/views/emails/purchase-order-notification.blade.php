@@ -187,7 +187,7 @@
                 <tr>
                     <td class="label">Tanggal PO</td>
                     <td class="value">
-                        {{ $po->date ? \Carbon\Carbon::parse($po->date)->translatedFormat('d F Y') : 'N/A' }}
+                        {{ $po->created_at ? $po->created_at->translatedFormat('d F Y') : 'N/A' }}
                     </td>
                 </tr>
                 <tr>

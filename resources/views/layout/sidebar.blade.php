@@ -1,9 +1,9 @@
 <!-- Brand Logo -->
-<a href="/dashboard" class="brand-link">
-  <img src="img/ktb_fuso.png"
-    alt="AdminLTE Logo"
-    class="brand-image img-circle elevation-3"
-    style="opacity:.8; margin-left:-5px;">
+<a href="{{ route('dashboard') }}" class="brand-link">
+  <img src="{{ asset('img/ktb_fuso.png') }}"
+    alt="PT Krama Yudha Tiga Berlian"
+    class="brand-image elevation-3"
+    style="opacity: .9; max-height: 33px; width: auto; border-radius: 0; margin-left: -5px;">
 
   <span class="brand-text font-weight-light">Portal Supplier</span>
 </a>
@@ -16,7 +16,7 @@
       <i class="nav-icon fas fa-user" style="color: white;"></i>
     </div>
     <div class="info">
-      <a href="#" class="d-block">Naufal</h6></a>
+      <a href="#" class="d-block text-white">{{ auth()->user()->name ?? 'User' }}</a>
     </div>
   </div>
 
@@ -69,7 +69,7 @@
       <!-- Advanced Shipping Notice (untuk Admin, Dept. Head, dan Supplier) -->
       @if(auth()->check() && in_array($currentRole, ['Admin', 'Dept. Head', 'Supplier']))
       <li class="nav-item">
-        <a href="{{ route('purchase-orders.penerimaan-barang') }}" class="nav-link">
+        <a href="{{ route('purchase-orders.penerimaan-barang') }}" class="nav-link {{ request()->routeIs('purchase-orders.penerimaan-barang', 'purchase-orders.shipping-documents') ? 'active' : '' }}">
           <i class="nav-icon fas fa-box-open"></i>
           <p>
             Advanced Shipping Notice
@@ -178,6 +178,7 @@
       </li>
       @endif
 
+    </ul>
   </nav>
   <!-- /.sidebar-menu -->
 </div>

@@ -89,7 +89,7 @@ Invoice
                                 <tr>
                                     <td class="px-6 py-3 text-sm text-gray-900">{{ ($ongoingInvoices->currentPage() - 1) * $ongoingInvoices->perPage() + $loop->iteration }}</td>
                                     <td class="px-6 py-3 text-sm text-gray-900"><strong>{{ $invoice->purchaseOrder->po_number }}</strong></td>
-                                    <td class="px-6 py-3 text-sm text-gray-900">{{ $invoice->purchaseOrder->date ? $invoice->purchaseOrder->date->format('d/m/Y') : '-' }}</td>
+                                    <td class="px-6 py-3 text-sm text-gray-900">{{ $invoice->purchaseOrder->created_at ? $invoice->purchaseOrder->created_at->format('d/m/Y') : '-' }}</td>
                                     <td class="px-6 py-3 text-sm text-gray-900">
                                         @if($invoice->purchaseOrder->supplier)
                                         <span class="badge badge-info">{{ $invoice->purchaseOrder->supplier->nama }}</span>
@@ -102,12 +102,10 @@ Invoice
                                         <span class="inline-block bg-yellow-100 text-yellow-800 text-xs px-2 py-0.5 rounded">Pending</span>
                                         @elseif($invoice->status == 'revised')
                                         <span class="inline-block bg-red-100 text-red-800 text-xs px-2 py-0.5 rounded">Revised</span>
-                                        @elseif($invoice->status == 'ready_for_payment')
-                                        <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded">Siap Bayar</span>
+                                        @elseif(in_array($invoice->status, ['completed', 'ready_for_payment'], true))
+                                        <span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded">Completed</span>
                                         @elseif($invoice->status == 'paid')
                                         <span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded">Paid</span>
-                                        @elseif($invoice->status == 'completed')
-                                        <span class="inline-block bg-gray-800 text-white text-xs px-2 py-0.5 rounded">Completed</span>
                                         @endif
                                     </td>
                                     <td class="px-6 py-3 text-sm text-gray-900">
@@ -134,7 +132,7 @@ Invoice
                                             </button>
                                             @endif
 
-                                            @if($invoice->invoice_file && $invoice->surat_jalan_file && $invoice->faktur_pajak_file)
+                                            @if($invoice->hasAllDocuments())
                                             <button class="inline-flex items-center px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded detail-invoice" data-id="{{ $invoice->id }}" title="Lihat Detail">
                                                 <i class="fas fa-eye mr-2"></i> Detail
                                             </button>
@@ -175,7 +173,7 @@ Invoice
                                     <tr>
                                         <td class="px-6 py-3 text-sm text-gray-900">{{ $loop->iteration }}</td>
                                         <td class="px-6 py-3 text-sm text-gray-900"><strong>{{ $po->po_number }}</strong></td>
-                                        <td class="px-6 py-3 text-sm text-gray-900">{{ $po->date ? $po->date->format('d/m/Y') : '-' }}</td>
+                                        <td class="px-6 py-3 text-sm text-gray-900">{{ $po->created_at ? $po->created_at->format('d/m/Y') : '-' }}</td>
                                         <td class="px-6 py-3 text-sm text-gray-900">
                                             @if($po->supplier)
                                             <span class="badge badge-info">{{ $po->supplier->nama }}</span>
@@ -221,7 +219,7 @@ Invoice
                                 <tr>
                                     <td class="px-6 py-3 text-sm text-gray-900">{{ ($completedInvoices->currentPage() - 1) * $completedInvoices->perPage() + $loop->iteration }}</td>
                                     <td class="px-6 py-3 text-sm text-gray-900"><strong>{{ $invoice->purchaseOrder->po_number }}</strong></td>
-                                    <td class="px-6 py-3 text-sm text-gray-900">{{ $invoice->purchaseOrder->date ? $invoice->purchaseOrder->date->format('d/m/Y') : '-' }}</td>
+                                    <td class="px-6 py-3 text-sm text-gray-900">{{ $invoice->purchaseOrder->created_at ? $invoice->purchaseOrder->created_at->format('d/m/Y') : '-' }}</td>
                                     <td class="px-6 py-3 text-sm text-gray-900">
                                         @if($invoice->purchaseOrder->supplier)
                                         <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded">{{ $invoice->purchaseOrder->supplier->nama }}</span>
@@ -230,12 +228,10 @@ Invoice
                                         @endif
                                     </td>
                                     <td class="px-6 py-3">
-                                        @if($invoice->status == 'ready_for_payment')
-                                        <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded">Siap Bayar</span>
+                                        @if(in_array($invoice->status, ['completed', 'ready_for_payment'], true))
+                                        <span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded">Completed</span>
                                         @elseif($invoice->status == 'paid')
                                         <span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded">Paid</span>
-                                        @elseif($invoice->status == 'completed')
-                                        <span class="inline-block bg-gray-800 text-white text-xs px-2 py-0.5 rounded">Completed</span>
                                         @elseif($invoice->status == 'rejected')
                                         <span class="inline-block bg-red-100 text-red-800 text-xs px-2 py-0.5 rounded">Rejected</span>
                                         @endif
@@ -243,7 +239,7 @@ Invoice
                                     <td class="px-6 py-3 text-sm text-gray-900">{{ $invoice->updated_at->format('d/m/Y H:i') }}</td>
                                     <td class="px-6 py-3">
                                         <div class="flex items-center gap-2">
-                                            @if($invoice->invoice_file && $invoice->surat_jalan_file && $invoice->faktur_pajak_file)
+                                            @if($invoice->hasAllDocuments())
                                             <button class="inline-flex items-center px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded detail-invoice" data-id="{{ $invoice->id }}" title="Lihat Detail">
                                                 <i class="fas fa-eye mr-2"></i> Detail
                                             </button>
@@ -301,20 +297,23 @@ Invoice
 
                     <div class="form-group">
                         <label for="invoice_file">File Invoice <span class="text-danger">*</span></label>
-                        <input type="file" class="form-control-file" id="invoice_file" name="invoice_file" accept=".pdf,.jpg,.jpeg,.png" required>
-                        <small class="form-text text-muted">Format: PDF, JPG, PNG (Maksimal 10MB)</small>
+                        <input type="file" class="form-control-file js-multi-file-input" id="invoice_file" name="invoice_file[]" accept=".pdf,.jpg,.jpeg,.png" multiple required>
+                        <ul id="invoice_file_list" class="list-unstyled small text-muted mt-2 mb-0"></ul>
+                        <small class="form-text text-muted">Format: PDF, JPG, PNG (Maksimal 10MB per file). Bisa pilih beberapa file sekaligus atau tambah file secara bertahap.</small>
                     </div>
 
                     <div class="form-group">
                         <label for="surat_jalan_file">File Surat Jalan/ASN <span class="text-danger">*</span></label>
-                        <input type="file" class="form-control-file" id="surat_jalan_file" name="surat_jalan_file[]" accept=".pdf,.jpg,.jpeg,.png" multiple required>
-                        <small class="form-text text-muted">Format: PDF, JPG, PNG (Maksimal 10MB per file). Dapat memilih beberapa file sekaligus.</small>
+                        <input type="file" class="form-control-file js-multi-file-input" id="surat_jalan_file" name="surat_jalan_file[]" accept=".pdf,.jpg,.jpeg,.png" multiple required>
+                        <ul id="surat_jalan_file_list" class="list-unstyled small text-muted mt-2 mb-0"></ul>
+                        <small class="form-text text-muted">Format: PDF, JPG, PNG (Maksimal 10MB per file). Bisa pilih beberapa file sekaligus atau tambah file secara bertahap.</small>
                     </div>
 
                     <div class="form-group">
                         <label for="faktur_pajak_file">File Faktur Pajak <span class="text-danger">*</span></label>
-                        <input type="file" class="form-control-file" id="faktur_pajak_file" name="faktur_pajak_file" accept=".pdf,.jpg,.jpeg,.png" required>
-                        <small class="form-text text-muted">Format: PDF, JPG, PNG (Maksimal 10MB)</small>
+                        <input type="file" class="form-control-file js-multi-file-input" id="faktur_pajak_file" name="faktur_pajak_file[]" accept=".pdf,.jpg,.jpeg,.png" multiple required>
+                        <ul id="faktur_pajak_file_list" class="list-unstyled small text-muted mt-2 mb-0"></ul>
+                        <small class="form-text text-muted">Format: PDF, JPG, PNG (Maksimal 10MB per file). Bisa pilih beberapa file sekaligus atau tambah file secara bertahap.</small>
                     </div>
                 </div>
 
@@ -358,20 +357,23 @@ Invoice
 
                     <div class="form-group">
                         <label for="revise_invoice_file">File Invoice (Baru) <span class="text-danger">*</span></label>
-                        <input type="file" class="form-control-file" id="revise_invoice_file" name="invoice_file" accept=".pdf,.jpg,.jpeg,.png" required>
-                        <small class="form-text text-muted">Format: PDF, JPG, PNG (Maksimal 10MB)</small>
+                        <input type="file" class="form-control-file js-multi-file-input" id="revise_invoice_file" name="invoice_file[]" accept=".pdf,.jpg,.jpeg,.png" multiple required>
+                        <ul id="revise_invoice_file_list" class="list-unstyled small text-muted mt-2 mb-0"></ul>
+                        <small class="form-text text-muted">Format: PDF, JPG, PNG (Maksimal 10MB per file). Bisa pilih beberapa file sekaligus atau tambah file secara bertahap.</small>
                     </div>
 
                     <div class="form-group">
                         <label for="revise_surat_jalan_file">File Surat Jalan/ASN (Baru) <span class="text-danger">*</span></label>
-                        <input type="file" class="form-control-file" id="revise_surat_jalan_file" name="surat_jalan_file[]" accept=".pdf,.jpg,.jpeg,.png" multiple required>
-                        <small class="form-text text-muted">Format: PDF, JPG, PNG (Maksimal 10MB per file). Dapat memilih beberapa file sekaligus.</small>
+                        <input type="file" class="form-control-file js-multi-file-input" id="revise_surat_jalan_file" name="surat_jalan_file[]" accept=".pdf,.jpg,.jpeg,.png" multiple required>
+                        <ul id="revise_surat_jalan_file_list" class="list-unstyled small text-muted mt-2 mb-0"></ul>
+                        <small class="form-text text-muted">Format: PDF, JPG, PNG (Maksimal 10MB per file). Bisa pilih beberapa file sekaligus atau tambah file secara bertahap.</small>
                     </div>
 
                     <div class="form-group">
                         <label for="revise_faktur_pajak_file">File Faktur Pajak (Baru) <span class="text-danger">*</span></label>
-                        <input type="file" class="form-control-file" id="revise_faktur_pajak_file" name="faktur_pajak_file" accept=".pdf,.jpg,.jpeg,.png" required>
-                        <small class="form-text text-muted">Format: PDF, JPG, PNG (Maksimal 10MB)</small>
+                        <input type="file" class="form-control-file js-multi-file-input" id="revise_faktur_pajak_file" name="faktur_pajak_file[]" accept=".pdf,.jpg,.jpeg,.png" multiple required>
+                        <ul id="revise_faktur_pajak_file_list" class="list-unstyled small text-muted mt-2 mb-0"></ul>
+                        <small class="form-text text-muted">Format: PDF, JPG, PNG (Maksimal 10MB per file). Bisa pilih beberapa file sekaligus atau tambah file secara bertahap.</small>
                     </div>
                 </div>
 
@@ -386,7 +388,7 @@ Invoice
     </div>
 </div>
 
-<!-- MODAL APPROVE/REJECT/REVISE INVOICE (Admin) -->
+<!-- MODAL APPROVE/REJECT INVOICE (Admin) -->
 <div class="modal fade" id="modalApproveInvoice" tabindex="-1" role="dialog" aria-labelledby="modalApproveInvoiceLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
@@ -444,9 +446,7 @@ Invoice
                                 <div class="col-md-4">
                                     <div class="text-center">
                                         <h6>Invoice</h6>
-                                        <a id="approve_download_invoice" href="#" class="inline-flex items-center px-3 py-2 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-semibold rounded" target="_blank">
-                                            <i class="fas fa-download mr-2"></i> Download
-                                        </a>
+                                        <div id="approve_invoice_downloads" class="d-flex flex-wrap justify-content-center gap-2"></div>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
@@ -458,9 +458,7 @@ Invoice
                                 <div class="col-md-4">
                                     <div class="text-center">
                                         <h6>Faktur Pajak</h6>
-                                        <a id="approve_download_faktur_pajak" href="#" class="inline-flex items-center px-3 py-2 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-semibold rounded" target="_blank">
-                                            <i class="fas fa-download mr-2"></i> Download
-                                        </a>
+                                        <div id="approve_faktur_pajak_downloads" class="d-flex flex-wrap justify-content-center gap-2"></div>
                                     </div>
                                 </div>
                             </div>
@@ -476,9 +474,6 @@ Invoice
                 </button>
                 <button type="button" class="inline-flex items-center px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded" id="btnRejectInvoice">
                     <i class="fas fa-times mr-2"></i> Reject
-                </button>
-                <button type="button" class="inline-flex items-center px-3 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded" id="btnReviseInvoice">
-                    <i class="fas fa-edit mr-2"></i> Revise
                 </button>
             </div>
         </div>
@@ -540,11 +535,11 @@ Invoice
 
                 <div id="invoiceDetailContent" style="display: none;">
                     <!-- Purchase Order Information -->
-                    <div class="card mb-3">
+                    <div class="card mb-3" style="position: relative;">
                         <div class="card-header bg-light">
                             <h5 class="mb-0"><i class="fas fa-info-circle"></i> Informasi Purchase Order</h5>
                         </div>
-                        <div class="card-body">
+                        <div class="card-body" style="position: relative; padding-bottom: 120px;">
                             <div class="row">
                                 <div class="col-md-6">
                                     <table class="table table-borderless table-sm">
@@ -595,6 +590,12 @@ Invoice
                                     </table>
                                 </div>
                             </div>
+
+                            <!-- Approval Watermark -->
+                            <div id="invoice_approvalWatermark" style="display: none; position: absolute; bottom: 15px; right: 30px; text-align: right; z-index: 10;">
+                                <div style="font-size: 28px; font-weight: bold; color: #28a745; opacity: 0.7; letter-spacing: 2px;">APPROVED</div>
+                                <div style="font-size: 12px; color: #28a745; opacity: 0.7; margin-top: 5px;">by Dept Head</div>
+                            </div>
                         </div>
                     </div>
 
@@ -611,7 +612,6 @@ Invoice
                                             <th width="5%">#</th>
                                             <th width="10%">Item Number</th>
                                             <th width="12%">Material Code</th>
-                                            <th width="12%">Vendor Material</th>
                                             <th>Description</th>
                                             <th width="8%" class="text-center">Qty</th>
                                             <th width="12%" class="text-right">Price Per Unit</th>
@@ -620,7 +620,7 @@ Invoice
                                     </thead>
                                     <tbody id="invoice_detail_items_body">
                                         <tr>
-                                            <td colspan="8" class="text-center">Tidak ada data items</td>
+                                            <td colspan="7" class="text-center">Tidak ada data items</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -639,9 +639,7 @@ Invoice
                                     <div class="text-center p-3 border rounded">
                                         <i class="fas fa-file-invoice fa-3x text-primary mb-3"></i>
                                         <h6>Invoice</h6>
-                                        <button class="inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded mt-2" id="btn_open_invoice">
-                                            <i class="fas fa-external-link-alt mr-2"></i> Buka Dokumen
-                                        </button>
+                                        <div id="detail_invoice_downloads" class="d-flex flex-wrap justify-content-center gap-2 mt-2"></div>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
@@ -655,9 +653,7 @@ Invoice
                                     <div class="text-center p-3 border rounded">
                                         <i class="fas fa-receipt fa-3x text-warning mb-3"></i>
                                         <h6>Faktur Pajak</h6>
-                                        <button class="inline-flex items-center px-3 py-2 bg-yellow-500 hover:bg-yellow-600 text-white text-sm rounded mt-2" id="btn_open_faktur_pajak">
-                                            <i class="fas fa-external-link-alt mr-2"></i> Buka Dokumen
-                                        </button>
+                                        <div id="detail_faktur_pajak_downloads" class="d-flex flex-wrap justify-content-center gap-2 mt-2"></div>
                                     </div>
                                 </div>
                             </div>
@@ -689,7 +685,166 @@ Invoice
         let currentAction = null; // 'reject' or 'revise'
         let currentPoId = null;
 
-        function renderSuratJalanDownloadButtons(containerSelector, invoiceId, files, options) {
+        const multiFileStores = {};
+
+        function normalizeFileList(files) {
+            if (!files) {
+                return [];
+            }
+            if (typeof files === 'string') {
+                try {
+                    const parsed = JSON.parse(files);
+                    if (Array.isArray(parsed)) {
+                        return parsed.filter(Boolean);
+                    }
+                    return parsed ? [parsed] : [];
+                } catch (e) {
+                    return files ? [files] : [];
+                }
+            }
+            if (Array.isArray(files)) {
+                return files.filter(Boolean);
+            }
+            return [files];
+        }
+
+        function fileIdentity(file) {
+            return [file.name, file.size, file.lastModified].join('|');
+        }
+
+        function syncInputFiles(input, files) {
+            const dataTransfer = new DataTransfer();
+            files.forEach(function(file) {
+                dataTransfer.items.add(file);
+            });
+            input.files = dataTransfer.files;
+        }
+
+        function renderSelectedFileList(inputId, listId) {
+            const files = multiFileStores[inputId] || [];
+            const listEl = document.getElementById(listId);
+
+            if (!listEl) {
+                return;
+            }
+
+            listEl.innerHTML = '';
+
+            if (files.length === 0) {
+                listEl.innerHTML = '<li class="text-muted">Belum ada file dipilih</li>';
+                return;
+            }
+
+            files.forEach(function(file, index) {
+                const item = document.createElement('li');
+                item.className = 'd-flex align-items-center justify-content-between border rounded px-2 py-1 mb-1';
+                item.innerHTML =
+                    '<span><i class="fas fa-file mr-1"></i> ' + file.name + ' (' + formatFileSize(file.size) + ')</span>' +
+                    '<button type="button" class="btn btn-link btn-sm text-danger p-0 ml-2 js-remove-selected-file" ' +
+                    'data-input-id="' + inputId + '" data-list-id="' + listId + '" data-index="' + index + '" title="Hapus">' +
+                    '<i class="fas fa-times"></i></button>';
+                listEl.appendChild(item);
+            });
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes < 1024) {
+                return bytes + ' B';
+            }
+            if (bytes < 1024 * 1024) {
+                return (bytes / 1024).toFixed(1) + ' KB';
+            }
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        function initMultiFileInput(inputId, listId) {
+            const input = document.getElementById(inputId);
+            if (!input) {
+                return;
+            }
+
+            multiFileStores[inputId] = [];
+
+            input.addEventListener('change', function() {
+                const existing = multiFileStores[inputId] || [];
+                const identities = new Set(existing.map(fileIdentity));
+
+                Array.from(input.files || []).forEach(function(file) {
+                    const identity = fileIdentity(file);
+                    if (!identities.has(identity)) {
+                        existing.push(file);
+                        identities.add(identity);
+                    }
+                });
+
+                multiFileStores[inputId] = existing;
+                syncInputFiles(input, existing);
+                renderSelectedFileList(inputId, listId);
+            });
+
+            renderSelectedFileList(inputId, listId);
+        }
+
+        function resetMultiFileInputs(formSelector) {
+            $(formSelector).find('.js-multi-file-input').each(function() {
+                const inputId = this.id;
+                multiFileStores[inputId] = [];
+                this.value = '';
+                syncInputFiles(this, []);
+                const listId = inputId + '_list';
+                renderSelectedFileList(inputId, listId);
+            });
+        }
+
+        function buildInvoiceFormData(form) {
+            const formData = new FormData();
+            const $form = $(form);
+            const token = $form.find('input[name="_token"]').val();
+
+            if (token) {
+                formData.append('_token', token);
+            }
+
+            const method = $form.find('input[name="_method"]').val();
+            if (method) {
+                formData.append('_method', method);
+            }
+
+            $form.find('input[type="file"][name$="[]"]').each(function() {
+                const fieldName = this.name;
+                Array.from(this.files || []).forEach(function(file) {
+                    formData.append(fieldName, file);
+                });
+            });
+
+            return formData;
+        }
+
+        initMultiFileInput('invoice_file', 'invoice_file_list');
+        initMultiFileInput('surat_jalan_file', 'surat_jalan_file_list');
+        initMultiFileInput('faktur_pajak_file', 'faktur_pajak_file_list');
+        initMultiFileInput('revise_invoice_file', 'revise_invoice_file_list');
+        initMultiFileInput('revise_surat_jalan_file', 'revise_surat_jalan_file_list');
+        initMultiFileInput('revise_faktur_pajak_file', 'revise_faktur_pajak_file_list');
+
+        $(document).on('click', '.js-remove-selected-file', function() {
+            const inputId = $(this).data('input-id');
+            const listId = $(this).data('list-id');
+            const index = parseInt($(this).data('index'), 10);
+            const input = document.getElementById(inputId);
+
+            if (!input || Number.isNaN(index)) {
+                return;
+            }
+
+            const files = multiFileStores[inputId] || [];
+            files.splice(index, 1);
+            multiFileStores[inputId] = files;
+            syncInputFiles(input, files);
+            renderSelectedFileList(inputId, listId);
+        });
+
+        function renderDocumentDownloadButtons(containerSelector, invoiceId, files, downloadRoute, options) {
             options = options || {};
             let buttonClass = options.buttonClass || 'inline-flex items-center px-3 py-2 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-semibold rounded';
             let singleLabel = options.singleLabel || 'Download';
@@ -699,15 +854,16 @@ Invoice
             let container = $(containerSelector);
             container.html('');
 
-            if (!files || files.length === 0) {
+            let fileList = normalizeFileList(files);
+            if (fileList.length === 0) {
                 container.append('<span class="text-muted small">Tidak ada file</span>');
                 return;
             }
 
-            files.forEach(function(file, index) {
-                let label = files.length > 1 ? multipleLabelPrefix + ' ' + (index + 1) : singleLabel;
+            fileList.forEach(function(file, index) {
+                let label = fileList.length > 1 ? multipleLabelPrefix + ' ' + (index + 1) : singleLabel;
                 container.append(
-                    '<a href="/invoices/' + invoiceId + '/download-surat-jalan?index=' + index + '" ' +
+                    '<a href="/invoices/' + invoiceId + '/' + downloadRoute + '?index=' + index + '" ' +
                     'class="' + buttonClass + '" target="_blank">' +
                     '<i class="' + iconClass + ' mr-2"></i> ' + label +
                     '</a>'
@@ -722,6 +878,7 @@ Invoice
 
             $('#formUploadInvoice').attr('action', `/invoices/${currentPoId}/store`);
             $('#formUploadInvoice')[0].reset();
+            resetMultiFileInputs('#formUploadInvoice');
             $('#errorMessages').addClass('d-none');
             $('#modalUploadInvoice').modal('show');
         });
@@ -730,7 +887,7 @@ Invoice
         $('#formUploadInvoice').on('submit', function(e) {
             e.preventDefault();
 
-            let formData = new FormData(this);
+            let formData = buildInvoiceFormData(this);
             let action = $(this).attr('action');
 
             $.ajax({
@@ -771,7 +928,7 @@ Invoice
             });
         });
 
-        // Approve/Reject/Revise Invoice (Admin)
+        // Approve/Reject Invoice (Admin)
         $(document).on('click', '.approve-invoice, .reject-invoice, .revise-invoice', function(e) {
             e.preventDefault();
             currentInvoiceId = $(this).data('id');
@@ -789,11 +946,11 @@ Invoice
 
                     $('#approve_po_number').text(po.po_number);
                     $('#approve_supplier').html(po.supplier ? '<span class="badge badge-info">' + po.supplier.nama + '</span>' : '-');
-                    $('#approve_po_date').text(po.date ? new Date(po.date).toLocaleDateString('id-ID') : '-');
+                    $('#approve_po_date').text(po.created_at ? new Date(po.created_at).toLocaleDateString('id-ID') : '-');
 
-                    $('#approve_download_invoice').attr('href', `/invoices/${invoice.id}/download-invoice`);
-                    renderSuratJalanDownloadButtons('#approve_surat_jalan_downloads', invoice.id, invoice.surat_jalan_file || []);
-                    $('#approve_download_faktur_pajak').attr('href', `/invoices/${invoice.id}/download-faktur-pajak`);
+                    renderDocumentDownloadButtons('#approve_invoice_downloads', invoice.id, invoice.invoice_file, 'download-invoice');
+                    renderDocumentDownloadButtons('#approve_surat_jalan_downloads', invoice.id, invoice.surat_jalan_file, 'download-surat-jalan');
+                    renderDocumentDownloadButtons('#approve_faktur_pajak_downloads', invoice.id, invoice.faktur_pajak_file, 'download-faktur-pajak');
 
                     $('#approveLoading').hide();
                     $('#approveContent').show();
@@ -851,22 +1008,7 @@ Invoice
             $('#modalRejectReviseKeterangan').modal('show');
         });
 
-        // Revise Invoice
-        $('#btnReviseInvoice').on('click', function() {
-            if (!currentInvoiceId) return;
-
-            currentAction = 'revise';
-            $('#modalRejectReviseKeteranganLabel').html('<i class="fas fa-edit"></i> Revise Invoice');
-            $('#modalRejectReviseHeader').removeClass('bg-danger').addClass('bg-warning');
-            $('#labelKeterangan').html('Catatan Revisi <span class="text-danger">*</span>');
-            $('#helpKeterangan').text('Masukkan catatan revisi (penjelasan apa yang salah dan apa yang harus direvisi)');
-            $('#keterangan').val('');
-            $('#btnSubmitRejectRevise').removeClass('btn-danger').addClass('btn-warning').html('<i class="fas fa-edit"></i> Revise');
-            $('#formRejectReviseInvoice').attr('action', `/invoices/${currentInvoiceId}/revise`);
-            $('#modalRejectReviseKeterangan').modal('show');
-        });
-
-        // Submit Reject/Revise
+        // Submit Reject
         $('#formRejectReviseInvoice').on('submit', function(e) {
             e.preventDefault();
 
@@ -914,6 +1056,8 @@ Invoice
                     let invoice = response.invoice;
                     $('#catatanRevisiText').text(invoice.catatan_revisi || '-');
                     $('#formReviseInvoice').attr('action', `/invoices/${invoiceId}`);
+                    $('#formReviseInvoice')[0].reset();
+                    resetMultiFileInputs('#formReviseInvoice');
                     $('#reviseErrorMessages').addClass('d-none');
                     $('#modalReviseInvoice').modal('show');
                 },
@@ -927,7 +1071,7 @@ Invoice
         $('#formReviseInvoice').on('submit', function(e) {
             e.preventDefault();
 
-            let formData = new FormData(this);
+            let formData = buildInvoiceFormData(this);
             let action = $(this).attr('action');
 
             $.ajax({
@@ -1008,11 +1152,17 @@ Invoice
 
                     // Fill Purchase Order Information
                     $('#invoice_detail_po_number').text(po.po_number || '-');
-                    $('#invoice_detail_date').text(formatDate(po.date));
+                    $('#invoice_detail_date').text(formatDate(po.created_at));
                     $('#invoice_detail_delivery_date').text(formatDate(po.delivery_date));
                     $('#invoice_detail_currency').text(po.currency || '-');
                     $('#invoice_detail_item_count').text(po.items ? po.items.length : 0);
                     $('#invoice_detail_supplier').text(po.supplier ? po.supplier.nama : '-');
+
+                    if (po.shows_dept_head_approval_mark) {
+                        $('#invoice_approvalWatermark').show();
+                    } else {
+                        $('#invoice_approvalWatermark').hide();
+                    }
 
                     // Fill Invoice Information
                     let statusBadge = '';
@@ -1020,12 +1170,10 @@ Invoice
                         statusBadge = '<span class="badge badge-warning">Pending</span>';
                     } else if (invoice.status == 'revised') {
                         statusBadge = '<span class="badge badge-danger">Revised</span>';
-                    } else if (invoice.status == 'ready_for_payment') {
-                        statusBadge = '<span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded">Siap Bayar</span>';
+                    } else if (invoice.status == 'completed' || invoice.status == 'ready_for_payment') {
+                        statusBadge = '<span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded">Completed</span>';
                     } else if (invoice.status == 'paid') {
                         statusBadge = '<span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded">Paid</span>';
-                    } else if (invoice.status == 'completed') {
-                        statusBadge = '<span class="inline-block bg-gray-800 text-white text-xs px-2 py-0.5 rounded">Completed</span>';
                     } else if (invoice.status == 'rejected') {
                         statusBadge = '<span class="badge badge-danger">Rejected</span>';
                     }
@@ -1053,7 +1201,6 @@ Invoice
                                 '<td>' + (index + 1) + '</td>' +
                                 '<td>' + (item.item_number || '-') + '</td>' +
                                 '<td>' + (item.material_code || '-') + '</td>' +
-                                '<td>' + (item.vendor_material || '-') + '</td>' +
                                 '<td>' + (item.description || '-') + '</td>' +
                                 '<td class="text-center">' + (item.quantity || 0) + '</td>' +
                                 '<td class="text-right">' + pricePerUnit + '</td>' +
@@ -1062,24 +1209,25 @@ Invoice
                             );
                         });
                     } else {
-                        itemsBody.append('<tr><td colspan="8" class="text-center">Tidak ada data items</td></tr>');
+                        itemsBody.append('<tr><td colspan="7" class="text-center">Tidak ada data items</td></tr>');
                     }
 
-                    // Set button click handlers for opening documents in new tab
-                    $('#btn_open_invoice').off('click').on('click', function() {
-                        window.open(`/invoices/${invoiceId}/download-invoice`, '_blank');
-                    });
-
-                    renderSuratJalanDownloadButtons('#detail_surat_jalan_downloads', invoiceId, invoice.surat_jalan_file || [], {
-                        buttonClass: 'inline-flex items-center px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded',
+                    let detailButtonOptions = {
+                        buttonClass: 'inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded',
                         singleLabel: 'Buka Dokumen',
                         multipleLabelPrefix: 'Buka Dokumen',
                         iconClass: 'fas fa-external-link-alt'
-                    });
+                    };
 
-                    $('#btn_open_faktur_pajak').off('click').on('click', function() {
-                        window.open(`/invoices/${invoiceId}/download-faktur-pajak`, '_blank');
-                    });
+                    renderDocumentDownloadButtons('#detail_invoice_downloads', invoiceId, invoice.invoice_file, 'download-invoice', detailButtonOptions);
+
+                    renderDocumentDownloadButtons('#detail_surat_jalan_downloads', invoiceId, invoice.surat_jalan_file, 'download-surat-jalan', Object.assign({}, detailButtonOptions, {
+                        buttonClass: 'inline-flex items-center px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded'
+                    }));
+
+                    renderDocumentDownloadButtons('#detail_faktur_pajak_downloads', invoiceId, invoice.faktur_pajak_file, 'download-faktur-pajak', Object.assign({}, detailButtonOptions, {
+                        buttonClass: 'inline-flex items-center px-3 py-2 bg-yellow-500 hover:bg-yellow-600 text-white text-sm rounded'
+                    }));
 
                     // Show content
                     $('#invoiceDetailLoading').hide();

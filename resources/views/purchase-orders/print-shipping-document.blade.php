@@ -142,22 +142,6 @@
             font-weight: bold;
         }
 
-        .footer {
-            margin-top: 30px;
-            display: table;
-            width: 100%;
-            font-size: 10pt;
-        }
-
-        .footer-cell {
-            display: table-cell;
-            width: 33%;
-            text-align: center;
-            border-top: 1px solid #000;
-            padding-top: 30px;
-            height: 50px;
-        }
-
         .notes {
             margin-top: 20px;
             font-size: 9pt;
@@ -261,11 +245,11 @@
                             style="width: 100%; height: 100%; border: 1px solid #000;">
                     </div>
                     <div style="margin-left: 90px;">
-                        <div class="company-name">{{ config('app.company_name', 'PERUSAHAAN') }}</div>
+                        <div class="company-name">{{ $companyInfo['name'] ?? config('app.company_name') }}</div>
                         <div class="company-address">
-                            {{ config('app.company_address', 'Alamat Perusahaan') }}<br>
-                            Phone: {{ config('app.company_phone', '-') }}<br>
-                            Email: {{ config('app.company_email', '-') }}
+                            {{ $companyInfo['address'] ?? '-' }}<br>
+                            Phone: {{ $companyInfo['phone'] ?? '-' }}<br>
+                            Email: {{ $companyInfo['email'] ?? '-' }}
                         </div>
                     </div>
                 </div>
@@ -325,10 +309,6 @@
                     </div>
                 </div>
             </div>
-            <div class="info-row" style="margin-top: 8px;">
-                <span class="info-label" style="width: 100px;">Destination :</span>
-                <span class="info-value">{{ $shippingDocument->purchaseOrder->supplier->alamat ?? 'N/A' }}</span>
-            </div>
         </div>
 
         <!-- Items Table with QR Codes -->
@@ -354,7 +334,7 @@
                     <td class="center" style="font-size: 9pt; font-weight: bold;">{{ $item->purchaseOrderItem->material_code ?? 'N/A' }}</td>
                     <td style="font-size: 9pt;">{{ $item->purchaseOrderItem->description }}</td>
                     <td class="center">{{ $item->quantity_shipped }}</td>
-                    <td class="center" style="font-size: 9pt;">{{ $purchaseOrder->date->format('d.m.Y') }}</td>
+                    <td class="center" style="font-size: 9pt;">{{ $purchaseOrder->created_at ? $purchaseOrder->created_at->format('d.m.Y') : '-' }}</td>
                     <td class="center" style="padding: 2px;">
                         <img src="https://api.qrserver.com/v1/create-qr-code/?size=60x60&data={{ urlencode($item->purchaseOrderItem->material_code ?? 'N/A') }}"
                             alt="QR: {{ $item->purchaseOrderItem->material_code }}"
@@ -377,22 +357,6 @@
             <div>{{ $shippingDocument->notes }}</div>
         </div>
         @endif
-
-        <!-- Footer -->
-        <div class="footer">
-            <div class="footer-cell">
-                <div>Pengiriman</div>
-                <div style="margin-top: 35px;">........................</div>
-            </div>
-            <div class="footer-cell">
-                <div>Diterima Oleh</div>
-                <div style="margin-top: 35px;">........................</div>
-            </div>
-            <div class="footer-cell">
-                <div>Mengetahui</div>
-                <div style="margin-top: 35px;">........................</div>
-            </div>
-        </div>
     </div>
 
     <script>

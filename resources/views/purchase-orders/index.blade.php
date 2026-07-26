@@ -13,9 +13,11 @@ Purchase Order
     <div class="flex flex-wrap -mx-2 mb-4">
         <div class="flex-1 px-2 w-full sm:w-1/2"></div>
         <div class="flex-1 px-2 w-full sm:w-1/2 text-right">
+            @if(in_array($userRole, ['Admin', 'Purchasing']))
             <button class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-lg transition duration-200 transform hover:-translate-y-0.5" data-toggle="modal" data-target="#modalPurchaseOrder">
                 <i class="fas fa-plus mr-2"></i> Tambah Purchase Order
             </button>
+            @endif
         </div>
     </div>
 
@@ -103,7 +105,7 @@ Purchase Order
                                 <tr>
                                     <td class="px-6 py-3 text-sm text-gray-900">{{ ($pendingPurchaseOrders->currentPage() - 1) * $pendingPurchaseOrders->perPage() + $loop->iteration }}</td>
                                     <td class="px-6 py-3 text-sm text-gray-900">{{ $po->po_number }}</td>
-                                    <td class="px-6 py-3 text-sm text-gray-900">{{ $po->date ? $po->date->format('d/m/Y') : '-' }}</td>
+                                    <td class="px-6 py-3 text-sm text-gray-900">{{ $po->created_at ? $po->created_at->format('d/m/Y') : '-' }}</td>
                                     <td class="px-6 py-3 text-sm text-gray-900">
                                         @if($po->supplier)
                                         <span class="badge badge-info">{{ $po->supplier->nama }}</span>
@@ -121,7 +123,7 @@ Purchase Order
                                     <td class="px-6 py-3 text-sm text-gray-900">{{ $po->keterangan ?? '-' }}</td>
                                     <td class="px-6 py-3">
                                         <div class="flex items-center gap-2">
-                                            @if(in_array($userRole, ['Admin', 'Dept. Head']))
+                                            @if($userRole == 'Dept. Head')
                                             <a class="inline-flex items-center px-2 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded approve-po" href="#" data-id="{{ $po->id }}" title="Review & Approve">
                                                 <i class="fas fa-check"></i>
                                             </a>
@@ -134,9 +136,6 @@ Purchase Order
                                                 <i class="fas fa-eye-slash"></i>
                                             </button>
                                             @endif
-                                            <a class="inline-flex items-center px-2 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-semibold rounded edit-po" href="#" data-id="{{ $po->id }}" title="Edit">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
                                             <button class="inline-flex items-center px-2 py-1 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded delete-po" data-id="{{ $po->id }}" title="Hapus" type="button">
                                                 <i class="fas fa-trash"></i>
                                             </button>
@@ -180,7 +179,7 @@ Purchase Order
                                 <tr>
                                     <td>{{ ($ongoingPurchaseOrders->currentPage() - 1) * $ongoingPurchaseOrders->perPage() + $loop->iteration }}</td>
                                     <td>{{ $po->po_number }}</td>
-                                    <td>{{ $po->date ? $po->date->format('d/m/Y') : '-' }}</td>
+                                    <td>{{ $po->created_at ? $po->created_at->format('d/m/Y') : '-' }}</td>
                                     <td>
                                         @if($po->supplier)
                                         <span class="badge badge-info">{{ $po->supplier->nama }}</span>
@@ -242,9 +241,6 @@ Purchase Order
                                                 <i class="fas fa-print"></i>
                                             </a>
                                             @endif
-                                            <a class="inline-flex items-center px-2 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-semibold rounded edit-po" href="#" data-id="{{ $po->id }}" title="Edit">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
                                             <button class="inline-flex items-center px-2 py-1 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded delete-po" data-id="{{ $po->id }}" title="Hapus" type="button">
                                                 <i class="fas fa-trash"></i>
                                             </button>
@@ -287,7 +283,7 @@ Purchase Order
                                 <tr>
                                     <td class="px-6 py-3 text-sm text-gray-900">{{ ($completedPurchaseOrders->currentPage() - 1) * $completedPurchaseOrders->perPage() + $loop->iteration }}</td>
                                     <td class="px-6 py-3 text-sm text-gray-900">{{ $po->po_number }}</td>
-                                    <td class="px-6 py-3 text-sm text-gray-900">{{ $po->date ? $po->date->format('d/m/Y') : '-' }}</td>
+                                    <td class="px-6 py-3 text-sm text-gray-900">{{ $po->created_at ? $po->created_at->format('d/m/Y') : '-' }}</td>
                                     <td class="px-6 py-3 text-sm text-gray-900">
                                         @if($po->supplier)
                                         <span class="badge badge-info">{{ $po->supplier->nama }}</span>
@@ -378,7 +374,7 @@ Purchase Order
                                 <tr>
                                     <td class="px-6 py-3 text-sm text-gray-900">{{ ($rejectedPurchaseOrders->currentPage() - 1) * $rejectedPurchaseOrders->perPage() + $loop->iteration }}</td>
                                     <td class="px-6 py-3 text-sm text-gray-900">{{ $po->po_number }}</td>
-                                    <td class="px-6 py-3 text-sm text-gray-900">{{ $po->date ? $po->date->format('d/m/Y') : '-' }}</td>
+                                    <td class="px-6 py-3 text-sm text-gray-900">{{ $po->created_at ? $po->created_at->format('d/m/Y') : '-' }}</td>
                                     <td class="px-6 py-3 text-sm text-gray-900">
                                         @if($po->supplier)
                                         <span class="badge badge-info">{{ $po->supplier->nama }}</span>
@@ -412,9 +408,6 @@ Purchase Order
                                                 <i class="fas fa-eye-slash"></i>
                                             </button>
                                             @endif
-                                            <a class="inline-flex items-center px-2 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-semibold rounded edit-po" href="#" data-id="{{ $po->id }}" title="Edit">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
                                             <button class="inline-flex items-center px-2 py-1 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded delete-po" data-id="{{ $po->id }}" title="Hapus" type="button">
                                                 <i class="fas fa-trash"></i>
                                             </button>
@@ -440,6 +433,7 @@ Purchase Order
         </div>
     </div>
 
+    @if(in_array($userRole, ['Admin', 'Purchasing']))
     <!-- MODAL TAMBAH PURCHASE ORDER (UPLOAD MULTIPLE PDF) -->
     <div class="modal fade" id="modalPurchaseOrder" tabindex="-1" role="dialog" aria-labelledby="modalPurchaseOrderLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
@@ -462,7 +456,7 @@ Purchase Order
                             <ul id="errorList" class="mt-2 mb-0"></ul>
                         </div>
 
-                        @if(in_array($userRole ?? '', ['Admin', 'Dept. Head']) && isset($suppliers))
+                        @if(isset($suppliers))
                         <div class="form-group">
                             <label for="supplier_id">Supplier <span class="text-danger">*</span></label>
                             <select class="form-control" id="supplier_id" name="supplier_id" required>
@@ -472,11 +466,6 @@ Purchase Order
                                 @endforeach
                             </select>
                             <small class="form-text text-muted">Pilih supplier yang akan menerima purchase order ini</small>
-                        </div>
-                        @elseif($userRole === 'Supplier')
-                        <div class="alert alert-info" role="alert">
-                            <i class="fas fa-info-circle mr-2"></i>
-                            <strong>Informasi:</strong> PO yang Anda upload akan otomatis terassign ke data supplier Anda
                         </div>
                         @endif
 
@@ -498,79 +487,7 @@ Purchase Order
             </div>
         </div>
     </div>
-
-    <!-- MODAL EDIT PURCHASE ORDER -->
-    <div class="modal fade" id="modalEditPurchaseOrder" tabindex="-1" role="dialog" aria-labelledby="modalEditPurchaseOrderLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalEditPurchaseOrderLabel">
-                        <i class="fas fa-edit"></i> Edit Purchase Order
-                    </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-
-                <form id="formEditPurchaseOrder" action="" method="post">
-                    @csrf
-                    @method('PUT')
-                    <div class="modal-body">
-                        <div id="errorMessagesEdit" class="alert alert-danger d-none" role="alert">
-                            <strong>Terjadi Kesalahan!</strong>
-                            <ul id="errorListEdit" class="mt-2 mb-0"></ul>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="edit_po_number">PO Number</label>
-                                    <input type="text" class="form-control" id="edit_po_number" name="po_number" placeholder="Masukkan PO Number" required>
-                                </div>
-                            </div>
-
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="edit_date">Tanggal PO</label>
-                                    <input type="date" class="form-control" id="edit_date" name="date" required>
-                                </div>
-                            </div>
-
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="edit_delivery_date">Delivery Date</label>
-                                    <input type="date" class="form-control" id="edit_delivery_date" name="delivery_date">
-                                </div>
-                            </div>
-
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="edit_currency">Currency</label>
-                                    <select class="form-control" id="edit_currency" name="currency" required>
-                                        <option value="IDR">IDR</option>
-                                        <option value="USD">USD</option>
-                                        <option value="EUR">EUR</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label for="edit_company_address">Company Address</label>
-                                    <textarea class="form-control" id="edit_company_address" name="company_address" rows="2" placeholder="Masukkan alamat company"></textarea>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button type="button" class="inline-flex items-center px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded" data-dismiss="modal">Batal</button>
-                        <button type="submit" class="inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded">Simpan</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+    @endif
 
     <!-- MODAL PREVIEW FILE PDF -->
     <div class="modal fade" id="modalPreviewFile" tabindex="-1" role="dialog" aria-labelledby="modalPreviewFileLabel" aria-hidden="true">
@@ -857,12 +774,14 @@ Purchase Order
 
                 <div class="modal-footer">
                     <button type="button" class="inline-flex items-center px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded" data-dismiss="modal">Batal</button>
+                    @if($userRole == 'Dept. Head' || $userRole == 'Supplier')
                     <button type="button" class="inline-flex items-center px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded" id="btnRejectPO">
                         <i class="fas fa-times mr-2"></i> Reject
                     </button>
                     <button type="button" class="inline-flex items-center px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded" id="btnApprovePO">
                         <i class="fas fa-check mr-2"></i> Approve
                     </button>
+                    @endif
                 </div>
             </div>
         </div>
@@ -986,14 +905,11 @@ Purchase Order
                 setupDateInputMask('#eta');
             });
             // Reset form saat modal dibuka untuk tambah
-            $('#modalPurchaseOrder').on('show.bs.modal', function(e) {
-                let btnTambah = $(e.relatedTarget);
-                if (!btnTambah.hasClass('edit-po')) {
-                    $('#formPurchaseOrder')[0].reset();
-                    $('#formPurchaseOrder').attr('action', '{{ route("purchase-orders.store") }}');
-                    $('#filePreview').html('');
-                    $('#errorMessages').addClass('d-none');
-                }
+            $('#modalPurchaseOrder').on('show.bs.modal', function() {
+                $('#formPurchaseOrder')[0].reset();
+                $('#formPurchaseOrder').attr('action', '{{ route("purchase-orders.store") }}');
+                $('#filePreview').html('');
+                $('#errorMessages').addClass('d-none');
             });
 
             // Preview file yang dipilih
@@ -1088,84 +1004,6 @@ Purchase Order
                 });
             });
 
-            // Edit Purchase Order
-            $(document).on('click', '.edit-po', function(e) {
-                e.preventDefault();
-                let poId = $(this).data('id');
-
-                $.ajax({
-                    url: `/purchase-orders/${poId}/edit`,
-                    type: 'GET',
-                    success: function(response) {
-                        let po = response.purchase_order;
-                        $('#formEditPurchaseOrder')[0].reset();
-                        $('#edit_po_number').val(po.po_number);
-                        $('#edit_date').val(po.date ? po.date.split('T')[0] : '');
-                        $('#edit_delivery_date').val(po.delivery_date ? po.delivery_date.split('T')[0] : '');
-                        $('#edit_currency').val(po.currency);
-                        $('#edit_company').val(po.company || '');
-                        $('#edit_company_number').val(po.company_number || '');
-                        $('#edit_company_address').val(po.company_address || '');
-                        $('#edit_delivery_to').val(po.delivery_to || '');
-                        $('#edit_contact_person').val(po.contact_person || '');
-                        $('#edit_telephone').val(po.telephone || '');
-                        $('#edit_term_of_payment').val(po.term_of_payment || '');
-
-                        $('#formEditPurchaseOrder').attr('action', `/purchase-orders/${poId}`);
-                        $('#errorMessagesEdit').addClass('d-none');
-                        $('#modalEditPurchaseOrder').modal('show');
-                    },
-                    error: function() {
-                        alert('Gagal memuat data Purchase Order');
-                    }
-                });
-            });
-
-            // Submit form edit
-            $('#formEditPurchaseOrder').on('submit', function(e) {
-                e.preventDefault();
-
-                let formData = $(this).serialize();
-                let action = $(this).attr('action');
-
-                $.ajax({
-                    url: action,
-                    type: 'POST',
-                    data: formData + '&_method=PUT',
-                    success: function(response) {
-
-                        $('#modalPurchaseOrder').modal('hide');
-
-                        let message = response.success;
-
-                        if (response.errors && response.errors.length > 0) {
-                            message += ' | Beberapa file gagal: ' + response.errors.join(', ');
-                        }
-
-                        $('#modalSuccessMessage').text(message);
-                        $('#modalSuccess').modal('show');
-
-                        $('#formPurchaseOrder')[0].reset();
-                        $('#filePreview').html('');
-                    },
-                    error: function(xhr) {
-                        if (xhr.status === 422) {
-                            let errors = xhr.responseJSON.errors;
-                            let errorList = $('#errorListEdit');
-                            errorList.html('');
-
-                            $.each(errors, function(key, value) {
-                                $.each(value, function(index, message) {
-                                    errorList.append('<li>' + message + '</li>');
-                                });
-                            });
-
-                            $('#errorMessagesEdit').removeClass('d-none');
-                        }
-                    }
-                });
-            });
-
             // Delete Purchase Order
             $(document).on('click', '.delete-po', function(e) {
                 e.preventDefault();
@@ -1217,16 +1055,16 @@ Purchase Order
 
                         // Fill Purchase Order Information
                         $('#detail_po_number').text(po.po_number || '-');
-                        $('#detail_date').text(formatDate(po.date));
+                        $('#detail_date').text(formatDate(po.created_at));
                         $('#detail_delivery_date').text(formatDate(po.delivery_date));
                         $('#detail_currency').text(po.currency || '-');
                         $('#detail_item_count').text(po.items_count || 0);
                         $('#detail_supplier').text(po.supplier ? po.supplier.nama : '-');
                         $('#detail_created_by').text(po.created_by && po.created_by.name ? po.created_by.name : '-');
-                        $('#detail_company_address').text(po.company_address || '-');
+                        $('#detail_company_address').text(po.resolved_company_address || po.company_address || '-');
 
-                        // Show/hide approval watermark based on status
-                        if (po.status === 'approved') {
+                        // Show/hide approval watermark when Dept. Head has approved
+                        if (po.shows_dept_head_approval_mark) {
                             $('#approvalWatermark').show();
                         } else {
                             $('#approvalWatermark').hide();
@@ -1303,13 +1141,13 @@ Purchase Order
 
                         // Fill Purchase Order Information
                         $('#approve_po_number').text(po.po_number || '-');
-                        $('#approve_date').text(formatDate(po.date));
+                        $('#approve_date').text(formatDate(po.created_at));
                         $('#approve_delivery_date').text(formatDate(po.delivery_date));
                         $('#approve_currency').text(po.currency || '-');
                         $('#approve_item_count').text(po.items_count || 0);
                         $('#approve_supplier').text(po.supplier ? po.supplier.nama : '-');
                         $('#approve_created_by').text(po.created_by && po.created_by.name ? po.created_by.name : '-');
-                        $('#approve_company_address').text(po.company_address || '-');
+                        $('#approve_company_address').text(po.resolved_company_address || po.company_address || '-');
 
                         // Fill Items Table
                         let itemsBody = $('#approve_items_body');
@@ -1450,12 +1288,13 @@ Purchase Order
 
                         // Fill Purchase Order Information
                         $('#approve_po_number').text(po.po_number || '-');
-                        $('#approve_date').text(formatDate(po.date));
+                        $('#approve_date').text(formatDate(po.created_at));
                         $('#approve_delivery_date').text(formatDate(po.delivery_date));
                         $('#approve_currency').text(po.currency || '-');
                         $('#approve_item_count').text(po.items_count || 0);
                         $('#approve_supplier').text(po.supplier ? po.supplier.nama : '-');
-                        $('#approve_company_address').text(po.company_address || '-');
+                        $('#approve_created_by').text(po.created_by && po.created_by.name ? po.created_by.name : '-');
+                        $('#approve_company_address').text(po.resolved_company_address || po.company_address || '-');
 
                         // Fill Items Table
                         let itemsBody = $('#approve_items_body');

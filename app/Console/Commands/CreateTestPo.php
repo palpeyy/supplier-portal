@@ -79,7 +79,6 @@ class CreateTestPo extends Command
                 'quantity' => $itemData['quantity'],
                 'price_per_unit' => $itemData['price_per_unit'],
                 'net_value' => $itemData['net_value'],
-                'quantity_shipped' => 0, // Belum ada yang dikirim
             ]);
         }
 

@@ -56,25 +56,28 @@ class InvoiceApprovedMail extends Mailable
         $attachments = [];
 
         try {
-            // Attachment: Invoice File
-            if ($this->invoice->invoice_file && Storage::disk('public')->exists($this->invoice->invoice_file)) {
-                $attachments[] = Attachment::fromStorageDisk('public', $this->invoice->invoice_file)
-                    ->as('Invoice-' . $this->invoice->purchaseOrder->po_number . '-' . basename($this->invoice->invoice_file));
+            foreach ($this->invoice->filePaths('invoice_file') as $index => $path) {
+                if (Storage::disk('public')->exists($path)) {
+                    $suffix = count($this->invoice->filePaths('invoice_file')) > 1 ? '-' . ($index + 1) : '';
+                    $attachments[] = Attachment::fromStorageDisk('public', $path)
+                        ->as('Invoice' . $suffix . '-' . $this->invoice->purchaseOrder->po_number . '-' . basename($path));
+                }
             }
 
-            // Attachment: Surat Jalan Files
-            foreach ((array) ($this->invoice->surat_jalan_file ?? []) as $index => $path) {
-                if ($path && Storage::disk('public')->exists($path)) {
-                    $suffix = count((array) $this->invoice->surat_jalan_file) > 1 ? '-' . ($index + 1) : '';
+            foreach ($this->invoice->filePaths('surat_jalan_file') as $index => $path) {
+                if (Storage::disk('public')->exists($path)) {
+                    $suffix = count($this->invoice->filePaths('surat_jalan_file')) > 1 ? '-' . ($index + 1) : '';
                     $attachments[] = Attachment::fromStorageDisk('public', $path)
                         ->as('Surat-Jalan' . $suffix . '-' . $this->invoice->purchaseOrder->po_number . '-' . basename($path));
                 }
             }
 
-            // Attachment: Faktur Pajak File
-            if ($this->invoice->faktur_pajak_file && Storage::disk('public')->exists($this->invoice->faktur_pajak_file)) {
-                $attachments[] = Attachment::fromStorageDisk('public', $this->invoice->faktur_pajak_file)
-                    ->as('Faktur-Pajak-' . $this->invoice->purchaseOrder->po_number . '-' . basename($this->invoice->faktur_pajak_file));
+            foreach ($this->invoice->filePaths('faktur_pajak_file') as $index => $path) {
+                if (Storage::disk('public')->exists($path)) {
+                    $suffix = count($this->invoice->filePaths('faktur_pajak_file')) > 1 ? '-' . ($index + 1) : '';
+                    $attachments[] = Attachment::fromStorageDisk('public', $path)
+                        ->as('Faktur-Pajak' . $suffix . '-' . $this->invoice->purchaseOrder->po_number . '-' . basename($path));
+                }
             }
 
             Log::info('Invoice attachments prepared: ' . count($attachments) . ' files', [

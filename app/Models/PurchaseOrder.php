@@ -22,17 +22,56 @@ class PurchaseOrder extends Model
         'keterangan',
         'supplier_id',
         'created_by',
-        'etd',
-        'eta',
         'no_surat_jalan',
     ];
 
     protected $casts = [
         'date' => 'date',
         'delivery_date' => 'date',
-        'etd' => 'date',
-        'eta' => 'date',
     ];
+
+    protected $appends = [
+        'resolved_company_address',
+        'shows_dept_head_approval_mark',
+    ];
+
+    /**
+     * Statuses where Dept. Head has approved the PO (show APPROVED mark in detail/PDF).
+     */
+    public static function deptHeadApprovedStatuses(): array
+    {
+        return ['approved', 'supplier_rejected', 'on_progress', 'received'];
+    }
+
+    public function showsDeptHeadApprovalMark(): bool
+    {
+        return in_array($this->status, self::deptHeadApprovedStatuses(), true);
+    }
+
+    public function getShowsDeptHeadApprovalMarkAttribute(): bool
+    {
+        return $this->showsDeptHeadApprovalMark();
+    }
+
+    /**
+     * Company address for display/print: PO value when valid, else app default.
+     */
+    public static function resolveCompanyAddress(?string $address): string
+    {
+        $normalized = strtolower(trim(preg_replace('/\s+/', ' ', (string) $address)));
+        $invalid = ['', 'please deliver to', 'please deliver to:', 'po number', 'company'];
+
+        if ($address !== null && $normalized !== '' && ! in_array($normalized, $invalid, true) && strlen($address) > 12) {
+            return trim($address);
+        }
+
+        return trim((string) config('app.company_address', '')) ?: '-';
+    }
+
+    public function getResolvedCompanyAddressAttribute(): string
+    {
+        return self::resolveCompanyAddress($this->company_address);
+    }
 
     /**
      * Get the items for the purchase order.
@@ -72,6 +111,17 @@ class PurchaseOrder extends Model
     public function shippingDocuments()
     {
         return $this->hasMany(ShippingDocument::class);
+    }
+
+    /**
+     * Latest surat jalan for this PO (ETD/ETA live on shipping_documents).
+     */
+    public function latestShippingDocument(): ?ShippingDocument
+    {
+        return $this->shippingDocuments()
+            ->orderByDesc('date')
+            ->orderByDesc('id')
+            ->first();
     }
 
     /**

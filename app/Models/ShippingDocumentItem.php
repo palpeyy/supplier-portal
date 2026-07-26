@@ -42,7 +42,7 @@ class ShippingDocumentItem extends Model
 
         // Get total already shipped in confirmed/received documents (excluding this one)
         $alreadyShipped = ShippingDocumentItem::whereHas('shippingDocument', function ($query) {
-            $query->whereIn('status', ['confirmed', 'received']);
+            $query->whereIn('status', PurchaseOrderItem::shippedQuantityStatuses());
         })
             ->where('purchase_order_item_id', $poItem->id)
             ->where('id', '!=', $this->id)

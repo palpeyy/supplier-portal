@@ -218,22 +218,25 @@
                 </div>
             </div>
             <div class="header-center">
-                <div class="title">Shipping Notice</div>
-                <div class="header-info">
-                    <div><span class="header-left-label">No Surat Jalan</span> : {{ $purchaseOrder->no_surat_jalan ?? '-' }}</div>
-                    <div><span class="header-left-label">Supplier Name</span> : {{ $purchaseOrder->supplier->nama ?? '-' }}</div>
-                    <div><span class="header-left-label">Supplier Code</span> : {{ $purchaseOrder->supplier->kode ?? '-' }}</div>
-                    <div><span class="header-left-label">ETD</span> : {{ $purchaseOrder->etd ? \Carbon\Carbon::parse($purchaseOrder->etd)->format('d.m.Y') : '-' }}</div>
-                    <div><span class="header-left-label">ETA</span> : {{ $purchaseOrder->eta ? \Carbon\Carbon::parse($purchaseOrder->eta)->format('d.m.Y') : '-' }}</div>
-                    <div><span class="header-left-label">Destination</span> : </div>
+                <div class="title">{{ $companyInfo['name'] ?? config('app.company_name') }}</div>
+                <div class="header-info" style="font-size: 9pt; line-height: 1.5;">
+                    <div>{{ $companyInfo['address'] ?? '-' }}</div>
+                    <div>Phone: {{ $companyInfo['phone'] ?? '-' }}</div>
+                    <div>Email: {{ $companyInfo['email'] ?? '-' }}</div>
                 </div>
             </div>
             <div class="header-right">
-                <div class="page-info">
-                    <div><strong>Date</strong> : {{ $purchaseOrder->etd ? \Carbon\Carbon::parse($purchaseOrder->etd)->format('d.m.Y') : '-' }}</div>
+                <div class="title" style="font-size: 12pt; text-align: right;">Shipping Notice</div>
+                <div class="header-info">
+                    <div><span class="header-left-label">No Surat Jalan</span> : {{ $latestSj?->no_surat_jalan ?? $purchaseOrder->no_surat_jalan ?? '-' }}</div>
+                    <div><span class="header-left-label">Supplier Name</span> : {{ $purchaseOrder->supplier->nama ?? '-' }}</div>
+                    <div><span class="header-left-label">Supplier Code</span> : {{ $purchaseOrder->supplier->supplier_code ?? '-' }}</div>
+                    <div><span class="header-left-label">ETD</span> : {{ $latestSj?->etd ? $latestSj->etd->format('d.m.Y') : '-' }}</div>
+                    <div><span class="header-left-label">ETA</span> : {{ $latestSj?->eta ? $latestSj->eta->format('d.m.Y') : '-' }}</div>
+                    <div><strong>Date</strong> : {{ $latestSj?->date ? $latestSj->date->format('d.m.Y') : ($purchaseOrder->delivery_date ? $purchaseOrder->delivery_date->format('d.m.Y') : '-') }}</div>
                     <div><strong>Page</strong> : 1 of 1</div>
                 </div>
-                <div style="font-size: 8pt; margin-top: 5px;">
+                <div style="font-size: 8pt; margin-top: 5px; text-align: right;">
                     URL Shipping Notice :<br>
                     <div class="qr-header-small">
                         {!! QrCode::size(60)->generate(route('purchase-orders.print-surat-jalan', $purchaseOrder->id)) !!}
@@ -269,7 +272,7 @@
                     <td>{{ $item->material_code ?? '-' }}</td>
                     <td>{{ $item->description ?? '-' }}</td>
                     <td class="center">{{ $item->quantity ?? 0 }}</td>
-                    <td class="center">{{ $purchaseOrder->date ? \Carbon\Carbon::parse($purchaseOrder->date)->format('d.m.Y') : '-' }}</td>
+                    <td class="center">{{ $purchaseOrder->created_at ? $purchaseOrder->created_at->format('d.m.Y') : '-' }}</td>
                     <td class="qr-cell">
                         <div class="qr-small">
                             {!! QrCode::size(40)->generate($item->material_code ?? '-') !!}
@@ -293,3 +296,4 @@
     </script>
 </body>
 </html>
+

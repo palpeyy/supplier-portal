@@ -83,6 +83,7 @@ Advanced Shipping Notice
                             </thead>
                             <tbody>
                                 @forelse($ongoingPurchaseOrders as $po)
+                                @php $latestSj = $po->latestShippingDocument(); @endphp
                                 <tr>
                                     <td class="px-6 py-3 text-sm text-gray-900">{{ ($ongoingPurchaseOrders->currentPage() - 1) * $ongoingPurchaseOrders->perPage() + $loop->iteration }}</td>
                                     <td class="px-6 py-3 text-sm text-gray-900">
@@ -108,8 +109,8 @@ Advanced Shipping Notice
                                         <span class="text-muted">-</span>
                                         @endif
                                     </td>
-                                    <td class="px-6 py-3 text-sm text-gray-900">{{ $po->etd ? $po->etd->format('d/m/Y') : '-' }}</td>
-                                    <td class="px-6 py-3 text-sm text-gray-900">{{ $po->eta ? $po->eta->format('d/m/Y') : '-' }}</td>
+                                    <td class="px-6 py-3 text-sm text-gray-900">{{ $latestSj?->etd ? $latestSj->etd->format('d/m/Y') : '-' }}</td>
+                                    <td class="px-6 py-3 text-sm text-gray-900">{{ $latestSj?->eta ? $latestSj->eta->format('d/m/Y') : '-' }}</td>
                                     <td class="px-6 py-3">
                                         @if($po->status == 'on_progress')
                                         <span class="inline-block bg-indigo-100 text-indigo-800 text-xs px-2 py-0.5 rounded">On Progress</span>
@@ -187,6 +188,7 @@ Advanced Shipping Notice
                             </thead>
                             <tbody>
                                 @forelse($completedPurchaseOrders as $po)
+                                @php $latestSj = $po->latestShippingDocument(); @endphp
                                 <tr>
                                     <td class="px-6 py-3 text-sm text-gray-900">{{ ($completedPurchaseOrders->currentPage() - 1) * $completedPurchaseOrders->perPage() + $loop->iteration }}</td>
                                     <td class="px-6 py-3 text-sm text-gray-900">
@@ -212,8 +214,8 @@ Advanced Shipping Notice
                                         <span class="text-muted">-</span>
                                         @endif
                                     </td>
-                                    <td class="px-6 py-3 text-sm text-gray-900">{{ $po->etd ? $po->etd->format('d/m/Y') : '-' }}</td>
-                                    <td class="px-6 py-3 text-sm text-gray-900">{{ $po->eta ? $po->eta->format('d/m/Y') : '-' }}</td>
+                                    <td class="px-6 py-3 text-sm text-gray-900">{{ $latestSj?->etd ? $latestSj->etd->format('d/m/Y') : '-' }}</td>
+                                    <td class="px-6 py-3 text-sm text-gray-900">{{ $latestSj?->eta ? $latestSj->eta->format('d/m/Y') : '-' }}</td>
                                     <td class="px-6 py-3">
                                         <span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded">Received</span>
                                     </td>
@@ -311,11 +313,11 @@ Advanced Shipping Notice
 
                     <div id="detailContent" style="display: none;">
                         <!-- Purchase Order Information -->
-                        <div class="card mb-3">
+                        <div class="card mb-3" style="position: relative;">
                             <div class="card-header bg-light">
                                 <h5 class="mb-0"><i class="fas fa-info-circle"></i> Informasi Purchase Order</h5>
                             </div>
-                            <div class="card-body">
+                            <div class="card-body" style="position: relative; padding-bottom: 120px;">
                                 <div class="row">
                                     <div class="col-md-6">
                                         <table class="table table-borderless table-sm">
@@ -366,6 +368,12 @@ Advanced Shipping Notice
                                             </tr>
                                         </table>
                                     </div>
+                                </div>
+
+                                <!-- Approval Watermark -->
+                                <div id="approvalWatermark" style="display: none; position: absolute; bottom: 15px; right: 30px; text-align: right; z-index: 10;">
+                                    <div style="font-size: 28px; font-weight: bold; color: #28a745; opacity: 0.7; letter-spacing: 2px;">APPROVED</div>
+                                    <div style="font-size: 12px; color: #28a745; opacity: 0.7; margin-top: 5px;">by Dept Head</div>
                                 </div>
                             </div>
                         </div>
@@ -489,12 +497,18 @@ Advanced Shipping Notice
                     }
 
                     $('#detail_po_number').text(po.po_number || '-');
-                    $('#detail_date').text(formatDate(po.date));
+                    $('#detail_date').text(formatDate(po.created_at));
                     $('#detail_delivery_date').text(formatDate(po.delivery_date));
                     $('#detail_currency').text(po.currency || '-');
                     $('#detail_item_count').text(po.items_count || 0);
                     $('#detail_supplier').text(po.supplier ? po.supplier.nama : '-');
-                    $('#detail_company_address').text(po.company_address || '-');
+                    $('#detail_company_address').text(po.resolved_company_address || po.company_address || '-');
+
+                    if (po.shows_dept_head_approval_mark) {
+                        $('#approvalWatermark').show();
+                    } else {
+                        $('#approvalWatermark').hide();
+                    }
 
                     let itemsBody = $('#detail_items_body');
                     itemsBody.html('');

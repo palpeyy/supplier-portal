@@ -66,13 +66,6 @@ class ShippingDocument extends Model
     public function updateFulfillment()
     {
         $po = $this->purchaseOrder;
-
-        // Recalculate quantity shipped for each item in this shipping document
-        foreach ($this->items as $item) {
-            $item->purchaseOrderItem->recalculateQuantityShipped();
-        }
-
-        // Update PO fulfillment status
         $po->updateFulfillmentStatus();
 
         return $po;

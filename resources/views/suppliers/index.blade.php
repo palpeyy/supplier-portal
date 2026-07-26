@@ -39,6 +39,7 @@ Manajemen Supplier
                 <thead class="bg-gray-100 border-b border-gray-200">
                     <tr>
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">#</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Kode Supplier</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Nama Supplier</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Alamat</th>
                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">PIC</th>
@@ -52,6 +53,7 @@ Manajemen Supplier
                     @forelse($suppliers as $supplier)
                     <tr class="border-b border-gray-200 hover:bg-gray-50 transition duration-200">
                         <td class="px-6 py-3 text-sm text-gray-600">{{ ($suppliers->currentPage() - 1) * $suppliers->perPage() + $loop->iteration }}</td>
+                        <td class="px-6 py-3 text-sm text-gray-600">{{ $supplier->supplier_code ?? '-' }}</td>
                         <td class="px-6 py-3 text-sm text-gray-600 font-medium">{{ $supplier->nama }}</td>
                         <td class="px-6 py-3 text-sm text-gray-600">{{ $supplier->alamat ?? '-' }}</td>
                         <td class="px-6 py-3 text-sm text-gray-600">{{ $supplier->pic ?? '-' }}</td>
@@ -69,7 +71,7 @@ Manajemen Supplier
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="px-6 py-4 text-center text-gray-600">Tidak ada data supplier</td>
+                        <td colspan="9" class="px-6 py-4 text-center text-gray-600">Tidak ada data supplier</td>
                     </tr>
                     @endforelse
                 </tbody>
@@ -123,9 +125,17 @@ Manajemen Supplier
                     </div>
 
                     <div class="grid grid-cols-1 gap-4">
-                        <div>
-                            <label for="nama" class="block text-gray-700 font-semibold mb-2">Nama Supplier <span class="text-red-600">*</span></label>
-                            <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-600" id="nama" name="nama" placeholder="Masukkan nama supplier" required>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="supplier_code" class="block text-gray-700 font-semibold mb-2">Kode Supplier <span class="text-red-600">*</span></label>
+                                <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-600" id="supplier_code" name="supplier_code" placeholder="Masukkan kode supplier" maxlength="20" required>
+                                <small class="text-gray-500">Maksimal 20 karakter, harus unik</small>
+                            </div>
+
+                            <div>
+                                <label for="nama" class="block text-gray-700 font-semibold mb-2">Nama Supplier <span class="text-red-600">*</span></label>
+                                <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-600" id="nama" name="nama" placeholder="Masukkan nama supplier" required>
+                            </div>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -225,6 +235,7 @@ Manajemen Supplier
                     $('#errorMessages').addClass('hidden');
 
                     // Fill form dengan data supplier
+                    $('#supplier_code').val(response.supplier.supplier_code || '');
                     $('#nama').val(response.supplier.nama);
                     $('#alamat').val(response.supplier.alamat || '');
                     $('#pic').val(response.supplier.pic || '');

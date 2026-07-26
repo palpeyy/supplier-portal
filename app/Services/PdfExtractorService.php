@@ -251,22 +251,27 @@ class PdfExtractorService
     }
 
     /**
-     * Extract Company Address
+     * Extract delivery / company address (Please Deliver To block on PO PDF).
      */
     protected function extractCompanyAddress($text): ?string
     {
-        // Try to extract address after company name
-        $patterns = [
-            '/Company[:\s]*[A-Za-z0-9\s&\.]+\n([A-Za-z0-9\s,\.\-]+)/i',
-        ];
-
-        foreach ($patterns as $pattern) {
-            if (preg_match($pattern, $text, $matches)) {
-                return trim($matches[1]);
+        if (preg_match(
+            '/Please\s+Deliver\s+To\s*:?\s*\r?\n(.+?)(?:\r?\n\s*(?:PO\s+Number|Purchase\s+Order))/is',
+            $text,
+            $matches
+        )) {
+            $lines = preg_split('/\r?\n/', trim($matches[1]));
+            $lines = array_values(array_filter(array_map(
+                static fn (string $line): string => rtrim(trim($line), ','),
+                $lines
+            )));
+            if ($lines !== []) {
+                return implode(', ', $lines);
             }
         }
 
-        return null;
+        $fallback = trim((string) config('app.company_address', ''));
+        return $fallback !== '' ? $fallback : null;
     }
 
     /**
@@ -320,102 +325,179 @@ class PdfExtractorService
     }
 
     /**
-     * Extract Items from table
+     * Extract Items from table.
+     * Supports: single-line tab rows, multi-line SAP rows (00010), and Word-style stacked rows.
      */
     protected function extractItems($text): array
     {
-        $items = [];
-        
-        // Split text into lines
-        $lines = explode("\n", $text);
-        
-        // Look for table headers (Items, Material, Description, Qty, etc.)
-        $inTable = false;
-        $headersFound = false;
-        $headerLineNum = -1;
-        
-        // First pass: find table header
-        foreach ($lines as $lineNum => $line) {
-            $line = trim($line);
-            if (preg_match('/(Items|Item\s*#)|Material|Description|Qty|Quantity|Price|Value/i', $line)) {
-                $headersFound = true;
-                $headerLineNum = $lineNum;
-                break;
-            }
-        }
-        
-        if (!$headersFound) {
+        $lines = array_map('trim', preg_split('/\r?\n/', $text));
+        $headerLineNum = $this->findItemsTableHeaderLine($lines);
+
+        if ($headerLineNum < 0) {
             Log::warning('Table header not found in PDF');
-            return $items;
+
+            return [];
         }
-        
-        // Second pass: extract items starting after header
-        for ($i = $headerLineNum + 1; $i < count($lines); $i++) {
-            $line = trim($lines[$i]);
-            
-            if (empty($line)) {
+
+        $start = $headerLineNum + 1;
+        while ($start < count($lines) && $this->isItemsHeaderContinuation($lines[$start])) {
+            $start++;
+        }
+
+        $items = [];
+        $currentItem = null;
+
+        for ($i = $start; $i < count($lines); $i++) {
+            $line = $lines[$i];
+            if ($line === '') {
                 continue;
             }
-            
-            // Stop if we find footer or total
-            if (preg_match('/Distributor|Footer|Total|Grand\s*Total|Summary/i', $line)) {
+
+            if (preg_match('/^(?:Total|Grand\s*Total|Distributor|Footer|Summary)\b/i', $line)) {
                 break;
             }
-            
-            // Pattern 1: Item number at start (00010, 00020, etc.)
-            // Format: "00010 ASSV10-140 AFTER SALES SHIRT SHORT 14 SIZE SVC 5"
-            if (preg_match('/^(\d{5})\s+(?:([A-Z0-9\-]+)\s+)?(.+?)\s+(\d+)(?:\s+([\d,\.]+))?(?:\s+([\d,\.]+))?$/i', $line, $matches)) {
-                $itemNumber = $matches[1];
-                $materialCode = isset($matches[2]) && !empty(trim($matches[2])) ? trim($matches[2]) : null;
-                $description = trim($matches[3]);
-                $quantity = (int) $matches[4];
-                $pricePerUnit = isset($matches[5]) ? $this->parseNumber($matches[5]) : 0;
-                $netValue = isset($matches[6]) ? $this->parseNumber($matches[6]) : ($pricePerUnit * $quantity);
-                
-                // Clean description - remove trailing numbers that might be quantity
-                $description = preg_replace('/\s+\d+$/', '', $description);
-                
-                $items[] = [
-                    'item_number' => $itemNumber,
-                    'material_code' => $materialCode,
-                    'vendor_material' => null,
-                    'description' => $description,
-                    'quantity' => $quantity,
-                    'price_per_unit' => $pricePerUnit,
-                    'net_value' => $netValue,
-                ];
-            }
-            // Pattern 2: Tab-separated or multiple spaces
-            elseif (preg_match('/^(\d{5})/', $line)) {
-                $parts = preg_split('/\s{3,}|\t/', $line);
-                if (count($parts) >= 3) {
-                    $itemNumber = trim($parts[0]);
-                    $materialCode = isset($parts[1]) && !empty(trim($parts[1])) ? trim($parts[1]) : null;
-                    
-                    // Description might be in multiple parts
-                    $descParts = array_slice($parts, 2, -2); // Skip first 2 and last 2 (qty, price)
-                    $description = implode(' ', $descParts);
-                    
-                    $quantity = isset($parts[count($parts) - 2]) ? (int) preg_replace('/[^0-9]/', '', $parts[count($parts) - 2]) : 0;
-                    $pricePerUnit = isset($parts[count($parts) - 1]) ? $this->parseNumber($parts[count($parts) - 1]) : 0;
-                    $netValue = 0; // Will be calculated later if needed
-                    
-                    if ($quantity > 0) {
-                        $items[] = [
-                            'item_number' => $itemNumber,
-                            'material_code' => $materialCode,
-                            'vendor_material' => null,
-                            'description' => trim($description),
-                            'quantity' => $quantity,
-                            'price_per_unit' => $pricePerUnit,
-                            'net_value' => $pricePerUnit * $quantity,
-                        ];
-                    }
+
+            // Satu baris penuh (tab/spasi): 00010 ASSV014 Deskripsi 5 100,000 500,000
+            if (preg_match('/^(\d{1,5})[\s\t]+([A-Z0-9\-]+)[\s\t]+(.+?)[\s\t]+(\d+)[\s\t]+([\d\.,]+)[\s\t]+([\d\.,]+)\s*$/iu', $line, $m)) {
+                if ($currentItem !== null) {
+                    $items[] = $this->finalizeItem($currentItem);
+                    $currentItem = null;
                 }
+                $items[] = $this->buildItemRow($m[1], $m[2], trim($m[3]), (int) $m[4], $m[5], $m[6]);
+                continue;
+            }
+
+            // Qty + harga + net dalam satu baris: "15 185.000 2.775.000"
+            if ($currentItem !== null && preg_match('/^(\d+)\s+([\d\.,]+)\s+([\d\.,]+)\s*$/', $line, $m)) {
+                $currentItem['quantity'] = (int) $m[1];
+                $currentItem['price_per_unit'] = $this->parseNumber($m[2]);
+                $currentItem['net_value'] = $this->parseNumber($m[3]);
+                $items[] = $this->finalizeItem($currentItem);
+                $currentItem = null;
+                continue;
+            }
+
+            // Harga + net (qty sudah di baris sebelumnya): "95.000 1.900.000"
+            if ($currentItem !== null
+                && (int) ($currentItem['quantity'] ?? 0) > 0
+                && preg_match('/^([\d\.,]+)\s+([\d\.,]+)\s*$/', $line, $m)
+            ) {
+                $currentItem['price_per_unit'] = $this->parseNumber($m[1]);
+                $currentItem['net_value'] = $this->parseNumber($m[2]);
+                $items[] = $this->finalizeItem($currentItem);
+                $currentItem = null;
+                continue;
+            }
+
+            // Qty sendiri: "20"
+            if ($currentItem !== null && preg_match('/^(\d{1,6})$/', $line, $m)) {
+                $currentItem['quantity'] = (int) $m[1];
+                continue;
+            }
+
+            // Awal baris item: "00010 FLT-OIL-001" atau "1 FLT-OIL-001 Deskripsi..."
+            if (preg_match('/^(\d{1,5})\s+([A-Z0-9\-]+)(?:\s+(.+))?$/iu', $line, $m)) {
+                if ($currentItem !== null) {
+                    $items[] = $this->finalizeItem($currentItem);
+                }
+                $description = isset($m[3]) ? trim($m[3]) : '';
+                $quantity = 0;
+                $pricePerUnit = 0.0;
+                $netValue = 0.0;
+
+                if ($description !== '' && preg_match('/^(.+?)\s+(\d+)\s+([\d\.,]+)\s+([\d\.,]+)\s*$/u', $description, $tail)) {
+                    $description = trim($tail[1]);
+                    $quantity = (int) $tail[2];
+                    $pricePerUnit = $this->parseNumber($tail[3]);
+                    $netValue = $this->parseNumber($tail[4]);
+                }
+
+                $currentItem = $this->buildItemRow($m[1], $m[2], $description, $quantity, (string) $pricePerUnit, (string) $netValue);
+
+                if ($quantity > 0 && $pricePerUnit > 0) {
+                    $items[] = $this->finalizeItem($currentItem);
+                    $currentItem = null;
+                }
+
+                continue;
+            }
+
+            // Lanjutan deskripsi
+            if ($currentItem !== null) {
+                $currentItem['description'] = trim(($currentItem['description'] ?? '').' '.$line);
             }
         }
-        
+
+        if ($currentItem !== null) {
+            $items[] = $this->finalizeItem($currentItem);
+        }
+
         return $items;
+    }
+
+    protected function findItemsTableHeaderLine(array $lines): int
+    {
+        foreach ($lines as $lineNum => $line) {
+            if ($line === '') {
+                continue;
+            }
+            if (preg_match('/Items?\s+Material/i', $line) && preg_match('/Description|Qty/i', $line)) {
+                return $lineNum;
+            }
+            if (preg_match('/^Item\s+Material\s+Description/i', $line)) {
+                return $lineNum;
+            }
+        }
+
+        foreach ($lines as $lineNum => $line) {
+            if ($line !== '' && preg_match('/Items?\s+Material/i', $line)) {
+                return $lineNum;
+            }
+        }
+
+        return -1;
+    }
+
+    protected function isItemsHeaderContinuation(string $line): bool
+    {
+        return (bool) preg_match('/^(?:Net\s*Value|Price\s*Per\s*Unit|Qty(?:\s+Price)?)\b/i', $line);
+    }
+
+    protected function buildItemRow(
+        string $itemNumber,
+        string $materialCode,
+        string $description,
+        int $quantity,
+        string|float $pricePerUnit,
+        string|float $netValue
+    ): array {
+        $price = is_numeric($pricePerUnit) ? (float) $pricePerUnit : $this->parseNumber((string) $pricePerUnit);
+        $net = is_numeric($netValue) ? (float) $netValue : $this->parseNumber((string) $netValue);
+
+        return [
+            'item_number' => $itemNumber,
+            'material_code' => $materialCode,
+            'vendor_material' => null,
+            'description' => $description,
+            'quantity' => $quantity,
+            'price_per_unit' => $price,
+            'net_value' => $net > 0 ? $net : ($quantity > 0 && $price > 0 ? $price * $quantity : 0),
+        ];
+    }
+
+    protected function finalizeItem(array $item): array
+    {
+        $qty = (int) ($item['quantity'] ?? 0);
+        $price = (float) ($item['price_per_unit'] ?? 0);
+        $net = (float) ($item['net_value'] ?? 0);
+
+        if ($net <= 0 && $qty > 0 && $price > 0) {
+            $item['net_value'] = $price * $qty;
+        }
+
+        $item['description'] = trim(preg_replace('/\s+/', ' ', (string) ($item['description'] ?? '')));
+
+        return $item;
     }
 
     /**
@@ -471,8 +553,31 @@ class PdfExtractorService
      */
     protected function parseNumber($str): float
     {
-        // Remove commas and other non-numeric except decimal point
+        $str = trim((string) $str);
+        if ($str === '') {
+            return 0.0;
+        }
+
+        // Indonesian thousands with dot: 95.000, 1.900.000
+        if (preg_match('/^\d{1,3}(\.\d{3})+$/', $str)) {
+            return (float) str_replace('.', '', $str);
+        }
+
+        // Thousands with comma: 100,000 / 8,500,000
+        if (preg_match('/^\d{1,3}(,\d{3})+$/', $str)) {
+            return (float) str_replace(',', '', $str);
+        }
+
+        // Decimal comma: 12,50
+        if (preg_match('/,\d{1,2}$/', $str)) {
+            $normalized = str_replace('.', '', $str);
+            $normalized = str_replace(',', '.', $normalized);
+
+            return (float) $normalized;
+        }
+
         $str = preg_replace('/[^0-9\.]/', '', $str);
+
         return (float) $str;
     }
 }

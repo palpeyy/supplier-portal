@@ -8,6 +8,7 @@ use App\Models\PurchaseOrder;
 use App\Models\User;
 use App\Services\InvoiceWorkflowNotificationService;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
@@ -16,8 +17,19 @@ use Illuminate\Support\Str;
 
 class InvoiceController extends Controller
 {
+    private const STATUS_COMPLETED = 'completed';
+
+    /** @deprecated Status lama; tetap dikenali untuk data/backward-compat */
     private const STATUS_READY_FOR_PAYMENT = 'ready_for_payment';
+
     private const STATUS_PAID = 'paid';
+
+    /** Status invoice yang sudah divalidasi Admin (tab Selesai + dashboard). */
+    private const COMPLETED_STATUSES = [
+        self::STATUS_COMPLETED,
+        self::STATUS_READY_FOR_PAYMENT,
+        self::STATUS_PAID,
+    ];
 
     public function __construct(
         private readonly InvoiceWorkflowNotificationService $invoiceNotificationService,
@@ -47,7 +59,7 @@ class InvoiceController extends Controller
     {
         $user = auth()->user();
         $userRole = $user->role->name ?? null;
-        // Workflow dipotong sampai Admin memvalidasi invoice (approve -> ready_for_payment).
+        // Setelah Admin memvalidasi invoice -> status completed (tab Selesai).
         if (in_array($userRole, ['Admin', 'Purchasing'], true)) {
             $ongoingInvoices = Invoice::with('purchaseOrder.supplier', 'purchaseOrder.items')
                 ->whereIn('status', ['pending', 'revised'])
@@ -58,13 +70,10 @@ class InvoiceController extends Controller
                 ->paginate(10, ['*'], 'ongoing_page');
 
             $completedInvoices = Invoice::with('purchaseOrder.supplier', 'purchaseOrder.items')
-                ->whereIn('status', [
-                    'rejected',
-                    // Backward-compat (status lama)
-                    'completed',
-                    self::STATUS_READY_FOR_PAYMENT,
-                    self::STATUS_PAID,
-                ])
+                ->where(function ($q) {
+                    $q->whereIn('status', self::COMPLETED_STATUSES)
+                        ->orWhere('status', 'rejected');
+                })
                 ->whereHas('purchaseOrder', function ($q) use ($user) {
                     $q->where('created_by', $user->id);
                 })
@@ -77,13 +86,10 @@ class InvoiceController extends Controller
                 ->latest();
 
             $completedQuery = Invoice::with('purchaseOrder.supplier', 'purchaseOrder.items')
-                ->whereIn('status', [
-                    'rejected',
-                    // Backward-compat (status lama)
-                    'completed',
-                    self::STATUS_READY_FOR_PAYMENT,
-                    self::STATUS_PAID,
-                ])
+                ->where(function ($q) {
+                    $q->whereIn('status', self::COMPLETED_STATUSES)
+                        ->orWhere('status', 'rejected');
+                })
                 ->latest();
 
             if ($userRole === 'Supplier' && $user->supplier_id) {
@@ -170,42 +176,13 @@ class InvoiceController extends Controller
             return redirect()->back()->with('error', 'Invoice untuk PO ini sudah ada');
         }
 
-        $request->validate([
-            'invoice_file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
-            'surat_jalan_file' => 'required|array|min:1',
-            'surat_jalan_file.*' => 'file|mimes:pdf,jpg,jpeg,png|max:10240',
-            'faktur_pajak_file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
-        ], [
-            'invoice_file.required' => 'File invoice harus diupload',
-            'invoice_file.file' => 'File invoice harus berupa file yang valid',
-            'invoice_file.mimes' => 'File invoice harus berformat PDF, JPG, atau PNG',
-            'invoice_file.max' => 'Ukuran file invoice maksimal 10MB',
-            'surat_jalan_file.required' => 'File surat jalan harus diupload',
-            'surat_jalan_file.array' => 'File surat jalan harus berupa daftar file',
-            'surat_jalan_file.min' => 'Minimal 1 file surat jalan harus diupload',
-            'surat_jalan_file.*.file' => 'File surat jalan harus berupa file yang valid',
-            'surat_jalan_file.*.mimes' => 'File surat jalan harus berformat PDF, JPG, atau PNG',
-            'surat_jalan_file.*.max' => 'Ukuran file surat jalan maksimal 10MB',
-            'faktur_pajak_file.required' => 'File faktur pajak harus diupload',
-            'faktur_pajak_file.file' => 'File faktur pajak harus berupa file yang valid',
-            'faktur_pajak_file.mimes' => 'File faktur pajak harus berformat PDF, JPG, atau PNG',
-            'faktur_pajak_file.max' => 'Ukuran file faktur pajak maksimal 10MB',
-        ]);
+        $request->validate($this->invoiceUploadValidationRules(), $this->invoiceUploadValidationMessages());
 
         DB::beginTransaction();
         try {
-            // Upload invoice file
-            $invoiceFile = $request->file('invoice_file');
-            $invoiceFilename = time() . '_' . Str::random(10) . '_invoice.' . $invoiceFile->getClientOriginalExtension();
-            $invoicePath = $invoiceFile->storeAs('invoices', $invoiceFilename, 'public');
-
-            // Upload surat jalan files
-            $suratJalanPaths = $this->uploadSuratJalanFiles($request->file('surat_jalan_file', []));
-
-            // Upload faktur pajak file
-            $fakturPajakFile = $request->file('faktur_pajak_file');
-            $fakturPajakFilename = time() . '_' . Str::random(10) . '_faktur_pajak.' . $fakturPajakFile->getClientOriginalExtension();
-            $fakturPajakPath = $fakturPajakFile->storeAs('invoices', $fakturPajakFilename, 'public');
+            $invoicePaths = $this->uploadDocumentFiles($this->collectUploadedFiles($request, 'invoice_file'), 'invoice');
+            $suratJalanPaths = $this->uploadDocumentFiles($this->collectUploadedFiles($request, 'surat_jalan_file'), 'surat_jalan');
+            $fakturPajakPaths = $this->uploadDocumentFiles($this->collectUploadedFiles($request, 'faktur_pajak_file'), 'faktur_pajak');
 
             // Create or update invoice
             if ($purchaseOrder->invoice && $purchaseOrder->invoice->status === 'revised') {
@@ -213,20 +190,14 @@ class InvoiceController extends Controller
                 $invoice = $purchaseOrder->invoice;
 
                 // Delete old files
-                if ($invoice->invoice_file && Storage::disk('public')->exists($invoice->invoice_file)) {
-                    Storage::disk('public')->delete($invoice->invoice_file);
-                }
-                if (! empty($invoice->surat_jalan_file)) {
-                    $this->deleteSuratJalanFiles($invoice->surat_jalan_file);
-                }
-                if ($invoice->faktur_pajak_file && Storage::disk('public')->exists($invoice->faktur_pajak_file)) {
-                    Storage::disk('public')->delete($invoice->faktur_pajak_file);
-                }
+                $this->deleteDocumentFiles($invoice->filePaths('invoice_file'));
+                $this->deleteDocumentFiles($invoice->filePaths('surat_jalan_file'));
+                $this->deleteDocumentFiles($invoice->filePaths('faktur_pajak_file'));
 
                 $invoice->update([
-                    'invoice_file' => $invoicePath,
+                    'invoice_file' => $invoicePaths,
                     'surat_jalan_file' => $suratJalanPaths,
-                    'faktur_pajak_file' => $fakturPajakPath,
+                    'faktur_pajak_file' => $fakturPajakPaths,
                     'status' => 'pending',
                     'catatan_revisi' => null,
                 ]);
@@ -234,9 +205,9 @@ class InvoiceController extends Controller
                 // Create new invoice
                 $invoice = Invoice::create([
                     'purchase_order_id' => $purchaseOrder->id,
-                    'invoice_file' => $invoicePath,
+                    'invoice_file' => $invoicePaths,
                     'surat_jalan_file' => $suratJalanPaths,
-                    'faktur_pajak_file' => $fakturPajakPath,
+                    'faktur_pajak_file' => $fakturPajakPaths,
                     'status' => 'pending',
                 ]);
             }
@@ -255,14 +226,14 @@ class InvoiceController extends Controller
             DB::rollBack();
 
             // Delete uploaded files if transaction fails
-            if (isset($invoicePath) && Storage::disk('public')->exists($invoicePath)) {
-                Storage::disk('public')->delete($invoicePath);
+            if (! empty($invoicePaths)) {
+                $this->deleteDocumentFiles($invoicePaths);
             }
             if (! empty($suratJalanPaths)) {
-                $this->deleteSuratJalanFiles($suratJalanPaths);
+                $this->deleteDocumentFiles($suratJalanPaths);
             }
-            if (isset($fakturPajakPath) && Storage::disk('public')->exists($fakturPajakPath)) {
-                Storage::disk('public')->delete($fakturPajakPath);
+            if (! empty($fakturPajakPaths)) {
+                $this->deleteDocumentFiles($fakturPajakPaths);
             }
 
             if ($request->ajax()) {
@@ -312,66 +283,31 @@ class InvoiceController extends Controller
             return redirect()->back()->with('error', 'Invoice ini tidak dalam status revised');
         }
 
-        $request->validate([
-            'invoice_file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
-            'surat_jalan_file' => 'required|array|min:1',
-            'surat_jalan_file.*' => 'file|mimes:pdf,jpg,jpeg,png|max:10240',
-            'faktur_pajak_file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
-        ], [
-            'invoice_file.required' => 'File invoice harus diupload',
-            'invoice_file.file' => 'File invoice harus berupa file yang valid',
-            'invoice_file.mimes' => 'File invoice harus berformat PDF, JPG, atau PNG',
-            'invoice_file.max' => 'Ukuran file invoice maksimal 10MB',
-            'surat_jalan_file.required' => 'File surat jalan harus diupload',
-            'surat_jalan_file.array' => 'File surat jalan harus berupa daftar file',
-            'surat_jalan_file.min' => 'Minimal 1 file surat jalan harus diupload',
-            'surat_jalan_file.*.file' => 'File surat jalan harus berupa file yang valid',
-            'surat_jalan_file.*.mimes' => 'File surat jalan harus berformat PDF, JPG, atau PNG',
-            'surat_jalan_file.*.max' => 'Ukuran file surat jalan maksimal 10MB',
-            'faktur_pajak_file.required' => 'File faktur pajak harus diupload',
-            'faktur_pajak_file.file' => 'File faktur pajak harus berupa file yang valid',
-            'faktur_pajak_file.mimes' => 'File faktur pajak harus berformat PDF, JPG, atau PNG',
-            'faktur_pajak_file.max' => 'Ukuran file faktur pajak maksimal 10MB',
-        ]);
+        $request->validate($this->invoiceUploadValidationRules(), $this->invoiceUploadValidationMessages());
 
         DB::beginTransaction();
         try {
-            $oldInvoicePath = $invoice->invoice_file;
-            $oldSuratJalanPaths = $invoice->surat_jalan_file ?? [];
-            $oldFakturPajakPath = $invoice->faktur_pajak_file;
+            $oldInvoicePaths = $invoice->filePaths('invoice_file');
+            $oldSuratJalanPaths = $invoice->filePaths('surat_jalan_file');
+            $oldFakturPajakPaths = $invoice->filePaths('faktur_pajak_file');
 
-            // Upload invoice file
-            $invoiceFile = $request->file('invoice_file');
-            $invoiceFilename = time() . '_' . Str::random(10) . '_invoice.' . $invoiceFile->getClientOriginalExtension();
-            $invoicePath = $invoiceFile->storeAs('invoices', $invoiceFilename, 'public');
-
-            // Upload surat jalan files
-            $suratJalanPaths = $this->uploadSuratJalanFiles($request->file('surat_jalan_file', []));
-
-            // Upload faktur pajak file
-            $fakturPajakFile = $request->file('faktur_pajak_file');
-            $fakturPajakFilename = time() . '_' . Str::random(10) . '_faktur_pajak.' . $fakturPajakFile->getClientOriginalExtension();
-            $fakturPajakPath = $fakturPajakFile->storeAs('invoices', $fakturPajakFilename, 'public');
+            $invoicePaths = $this->uploadDocumentFiles($this->collectUploadedFiles($request, 'invoice_file'), 'invoice');
+            $suratJalanPaths = $this->uploadDocumentFiles($this->collectUploadedFiles($request, 'surat_jalan_file'), 'surat_jalan');
+            $fakturPajakPaths = $this->uploadDocumentFiles($this->collectUploadedFiles($request, 'faktur_pajak_file'), 'faktur_pajak');
 
             // Update invoice
             $invoice->update([
-                'invoice_file' => $invoicePath,
+                'invoice_file' => $invoicePaths,
                 'surat_jalan_file' => $suratJalanPaths,
-                'faktur_pajak_file' => $fakturPajakPath,
+                'faktur_pajak_file' => $fakturPajakPaths,
                 'status' => 'pending',
                 'catatan_revisi' => null,
             ]);
 
             // Delete old files
-            if ($oldInvoicePath && Storage::disk('public')->exists($oldInvoicePath)) {
-                Storage::disk('public')->delete($oldInvoicePath);
-            }
-            if (! empty($oldSuratJalanPaths)) {
-                $this->deleteSuratJalanFiles($oldSuratJalanPaths);
-            }
-            if ($oldFakturPajakPath && Storage::disk('public')->exists($oldFakturPajakPath)) {
-                Storage::disk('public')->delete($oldFakturPajakPath);
-            }
+            $this->deleteDocumentFiles($oldInvoicePaths);
+            $this->deleteDocumentFiles($oldSuratJalanPaths);
+            $this->deleteDocumentFiles($oldFakturPajakPaths);
 
             DB::commit();
 
@@ -422,7 +358,7 @@ class InvoiceController extends Controller
         }
 
         $invoice->update([
-            'status' => self::STATUS_READY_FOR_PAYMENT,
+            'status' => self::STATUS_COMPLETED,
             'catatan_revisi' => null,
         ]);
 
@@ -432,10 +368,10 @@ class InvoiceController extends Controller
         $this->invoiceNotificationService->notifySupplierOnApproved($invoice->purchaseOrder, $invoice->fresh());
 
         if ($request->ajax()) {
-            return response()->json(['success' => 'Invoice siap diproses pembayaran (Finance sudah diberitahu via email)']);
+            return response()->json(['success' => 'Invoice berhasil divalidasi (status: Completed). Email Finance terkirim.']);
         }
 
-        return redirect()->route('invoices.index')->with('success', 'Invoice berhasil divalidasi dan siap diproses pembayaran (email Finance terkirim)');
+        return redirect()->route('invoices.index')->with('success', 'Invoice berhasil divalidasi (status: Completed). Email Finance terkirim.');
     }
 
     /**
@@ -593,21 +529,9 @@ class InvoiceController extends Controller
     /**
      * Download invoice file
      */
-    public function downloadInvoice(Invoice $invoice)
+    public function downloadInvoice(Request $request, Invoice $invoice)
     {
-        $invoice->loadMissing('purchaseOrder');
-        $this->ensurePurchasingOwnerAccess($invoice);
-        if (!$invoice->invoice_file || !Storage::disk('public')->exists($invoice->invoice_file)) {
-            return redirect()->back()->with('error', 'File invoice tidak ditemukan');
-        }
-
-        $filePath = Storage::disk('public')->path($invoice->invoice_file);
-        $mimeType = Storage::disk('public')->mimeType($invoice->invoice_file);
-
-        return response()->file($filePath, [
-            'Content-Type' => $mimeType,
-            'Content-Disposition' => 'inline; filename="' . basename($invoice->invoice_file) . '"'
-        ]);
+        return $this->downloadDocumentFile($request, $invoice, 'invoice_file', 'File invoice tidak ditemukan');
     }
 
     /**
@@ -615,38 +539,97 @@ class InvoiceController extends Controller
      */
     public function downloadSuratJalan(Request $request, Invoice $invoice)
     {
-        $invoice->loadMissing('purchaseOrder');
-        $this->ensurePurchasingOwnerAccess($invoice);
-
-        $files = $invoice->surat_jalan_file ?? [];
-        if (empty($files)) {
-            return redirect()->back()->with('error', 'File surat jalan tidak ditemukan');
-        }
-
-        $index = (int) $request->query('index', 0);
-        if (! isset($files[$index]) || ! Storage::disk('public')->exists($files[$index])) {
-            return redirect()->back()->with('error', 'File surat jalan tidak ditemukan');
-        }
-
-        $filePath = Storage::disk('public')->path($files[$index]);
-        $mimeType = Storage::disk('public')->mimeType($files[$index]);
-
-        return response()->file($filePath, [
-            'Content-Type' => $mimeType,
-            'Content-Disposition' => 'inline; filename="' . basename($files[$index]) . '"',
-        ]);
+        return $this->downloadDocumentFile($request, $invoice, 'surat_jalan_file', 'File surat jalan tidak ditemukan');
     }
 
     /**
-     * @param  array<int, \Illuminate\Http\UploadedFile>  $files
+     * Download faktur pajak file
+     */
+    public function downloadFakturPajak(Request $request, Invoice $invoice)
+    {
+        return $this->downloadDocumentFile($request, $invoice, 'faktur_pajak_file', 'File faktur pajak tidak ditemukan');
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function invoiceUploadValidationRules(): array
+    {
+        $fileRule = 'file|mimes:pdf,jpg,jpeg,png|max:10240';
+
+        return [
+            'invoice_file' => 'required|array|min:1',
+            'invoice_file.*' => $fileRule,
+            'surat_jalan_file' => 'required|array|min:1',
+            'surat_jalan_file.*' => $fileRule,
+            'faktur_pajak_file' => 'required|array|min:1',
+            'faktur_pajak_file.*' => $fileRule,
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function invoiceUploadValidationMessages(): array
+    {
+        return [
+            'invoice_file.required' => 'File invoice harus diupload',
+            'invoice_file.array' => 'File invoice harus berupa daftar file',
+            'invoice_file.min' => 'Minimal 1 file invoice harus diupload',
+            'invoice_file.*.file' => 'File invoice harus berupa file yang valid',
+            'invoice_file.*.mimes' => 'File invoice harus berformat PDF, JPG, atau PNG',
+            'invoice_file.*.max' => 'Ukuran file invoice maksimal 10MB',
+            'surat_jalan_file.required' => 'File surat jalan harus diupload',
+            'surat_jalan_file.array' => 'File surat jalan harus berupa daftar file',
+            'surat_jalan_file.min' => 'Minimal 1 file surat jalan harus diupload',
+            'surat_jalan_file.*.file' => 'File surat jalan harus berupa file yang valid',
+            'surat_jalan_file.*.mimes' => 'File surat jalan harus berformat PDF, JPG, atau PNG',
+            'surat_jalan_file.*.max' => 'Ukuran file surat jalan maksimal 10MB',
+            'faktur_pajak_file.required' => 'File faktur pajak harus diupload',
+            'faktur_pajak_file.array' => 'File faktur pajak harus berupa daftar file',
+            'faktur_pajak_file.min' => 'Minimal 1 file faktur pajak harus diupload',
+            'faktur_pajak_file.*.file' => 'File faktur pajak harus berupa file yang valid',
+            'faktur_pajak_file.*.mimes' => 'File faktur pajak harus berformat PDF, JPG, atau PNG',
+            'faktur_pajak_file.*.max' => 'Ukuran file faktur pajak maksimal 10MB',
+        ];
+    }
+
+    /**
+     * @return array<int, UploadedFile>
+     */
+    private function collectUploadedFiles(Request $request, string $field): array
+    {
+        $files = $request->file($field);
+
+        if ($files === null) {
+            return [];
+        }
+
+        if ($files instanceof UploadedFile) {
+            return [$files];
+        }
+
+        if (! is_array($files)) {
+            return [];
+        }
+
+        return array_values(array_filter(
+            $files,
+            fn ($file) => $file instanceof UploadedFile && $file->isValid()
+        ));
+    }
+
+    /**
+     * @param  array<int, UploadedFile>  $files
      * @return array<int, string>
      */
-    private function uploadSuratJalanFiles(array $files): array
+    private function uploadDocumentFiles(array $files, string $prefix): array
     {
         $paths = [];
 
-        foreach ($files as $file) {
-            $filename = time() . '_' . Str::random(10) . '_surat_jalan.' . $file->getClientOriginalExtension();
+        foreach ($files as $index => $file) {
+            $extension = $file->getClientOriginalExtension() ?: $file->guessExtension() ?: 'bin';
+            $filename = $prefix . '_' . now()->format('YmdHisv') . '_' . $index . '_' . Str::random(8) . '.' . $extension;
             $paths[] = $file->storeAs('invoices', $filename, 'public');
         }
 
@@ -654,34 +637,39 @@ class InvoiceController extends Controller
     }
 
     /**
-     * @param  array<int, string>|string|null  $paths
+     * @param  array<int, string>  $paths
      */
-    private function deleteSuratJalanFiles(array|string|null $paths): void
+    private function deleteDocumentFiles(array $paths): void
     {
-        foreach ((array) $paths as $path) {
+        foreach ($paths as $path) {
             if ($path && Storage::disk('public')->exists($path)) {
                 Storage::disk('public')->delete($path);
             }
         }
     }
 
-    /**
-     * Download faktur pajak file
-     */
-    public function downloadFakturPajak(Invoice $invoice)
+    private function downloadDocumentFile(Request $request, Invoice $invoice, string $field, string $notFoundMessage)
     {
         $invoice->loadMissing('purchaseOrder');
         $this->ensurePurchasingOwnerAccess($invoice);
-        if (!$invoice->faktur_pajak_file || !Storage::disk('public')->exists($invoice->faktur_pajak_file)) {
-            return redirect()->back()->with('error', 'File faktur pajak tidak ditemukan');
+
+        $files = $invoice->filePaths($field);
+        if (empty($files)) {
+            return redirect()->back()->with('error', $notFoundMessage);
         }
 
-        $filePath = Storage::disk('public')->path($invoice->faktur_pajak_file);
-        $mimeType = Storage::disk('public')->mimeType($invoice->faktur_pajak_file);
+        $index = (int) $request->query('index', 0);
+        if (! isset($files[$index]) || ! Storage::disk('public')->exists($files[$index])) {
+            return redirect()->back()->with('error', $notFoundMessage);
+        }
+
+        $storedPath = $files[$index];
+        $filePath = Storage::disk('public')->path($storedPath);
+        $mimeType = Storage::disk('public')->mimeType($storedPath);
 
         return response()->file($filePath, [
             'Content-Type' => $mimeType,
-            'Content-Disposition' => 'inline; filename="' . basename($invoice->faktur_pajak_file) . '"'
+            'Content-Disposition' => 'inline; filename="' . basename($storedPath) . '"',
         ]);
     }
 }

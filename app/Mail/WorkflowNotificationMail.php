@@ -103,20 +103,16 @@ class WorkflowNotificationMail extends Mailable
             if ($this->module === self::MODULE_INVOICE && $this->invoice && $this->type === 'uploaded') {
                 foreach ([
                     'invoice_file' => 'Invoice',
+                    'surat_jalan_file' => 'Surat-Jalan',
                     'faktur_pajak_file' => 'Faktur-Pajak',
                 ] as $field => $label) {
-                    $path = $this->invoice->{$field};
-                    if ($path && Storage::disk('public')->exists($path)) {
-                        $attachments[] = Attachment::fromStorageDisk('public', $path)
-                            ->as($label . '-' . ($this->purchaseOrder->po_number ?? 'doc') . '-' . basename($path));
-                    }
-                }
-
-                foreach ((array) ($this->invoice->surat_jalan_file ?? []) as $index => $path) {
-                    if ($path && Storage::disk('public')->exists($path)) {
-                        $suffix = count((array) $this->invoice->surat_jalan_file) > 1 ? '-' . ($index + 1) : '';
-                        $attachments[] = Attachment::fromStorageDisk('public', $path)
-                            ->as('Surat-Jalan' . $suffix . '-' . ($this->purchaseOrder->po_number ?? 'doc') . '-' . basename($path));
+                    $paths = $this->invoice->filePaths($field);
+                    foreach ($paths as $index => $path) {
+                        if (Storage::disk('public')->exists($path)) {
+                            $suffix = count($paths) > 1 ? '-' . ($index + 1) : '';
+                            $attachments[] = Attachment::fromStorageDisk('public', $path)
+                                ->as($label . $suffix . '-' . ($this->purchaseOrder->po_number ?? 'doc') . '-' . basename($path));
+                        }
                     }
                 }
             }

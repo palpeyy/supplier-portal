@@ -16,7 +16,6 @@ class PurchaseOrderItem extends Model
         'vendor_material',
         'description',
         'quantity',
-        'quantity_shipped',
         'price_per_unit',
         'net_value',
     ];
@@ -38,11 +37,31 @@ class PurchaseOrderItem extends Model
     }
 
     /**
+     * Statuses that count toward shipped quantity on the PO line.
+     */
+    public static function shippedQuantityStatuses(): array
+    {
+        return ['confirmed', 'approved', 'received'];
+    }
+
+    /**
+     * Total quantity shipped across active shipping documents.
+     */
+    public function getQuantityShippedAttribute(): int
+    {
+        return (int) $this->shippingDocumentItems()
+            ->whereHas('shippingDocument', function ($query) {
+                $query->whereIn('status', self::shippedQuantityStatuses());
+            })
+            ->sum('quantity_shipped');
+    }
+
+    /**
      * Get quantity remaining to be shipped
      */
     public function getQuantityRemainingAttribute()
     {
-        return $this->quantity - ($this->quantity_shipped ?? 0);
+        return max(0, $this->quantity - $this->quantity_shipped);
     }
 
     /**
@@ -72,20 +91,4 @@ class PurchaseOrderItem extends Model
         return $this->quantity_shipped > 0 && $this->quantity_shipped < $this->quantity;
     }
 
-    /**
-     * Recalculate quantity shipped from all shipping documents
-     */
-    public function recalculateQuantityShipped()
-    {
-        $totalShipped = $this->shippingDocumentItems()
-            ->whereHas('shippingDocument', function ($query) {
-                $query->whereIn('status', ['confirmed', 'received']);
-            })
-            ->sum('quantity_shipped') ?? 0;
-
-        $this->quantity_shipped = $totalShipped;
-        $this->save();
-
-        return $totalShipped;
-    }
 }

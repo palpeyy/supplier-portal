@@ -16,7 +16,7 @@
   <!-- =========================
        ROW 0 : STATISTIK RINGKAS
   ========================== -->
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+  <div class="grid grid-cols-1 md:grid-cols-2 {{ $isSupplier ? 'lg:grid-cols-4' : 'lg:grid-cols-5' }} gap-4 mb-6">
     <!-- Card Total PO -->
     <div class="bg-white rounded-lg shadow-md overflow-hidden">
       <div class="bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-4">
@@ -29,11 +29,12 @@
         </div>
       </div>
       <div class="px-6 py-3 border-t border-gray-200">
-        <small class="text-gray-600">Semua Purchase Order</small>
+        <small class="text-gray-600">{{ $isSupplier ? 'Purchase Order Anda' : 'Semua Purchase Order' }}</small>
       </div>
     </div>
 
-    <!-- Card Total Supplier -->
+    @unless($isSupplier)
+    <!-- Card Total Supplier (hanya Admin/internal) -->
     <div class="bg-white rounded-lg shadow-md overflow-hidden">
       <div class="bg-gradient-to-r from-green-500 to-green-600 px-6 py-4">
         <div class="flex items-center justify-between">
@@ -48,6 +49,7 @@
         <small class="text-gray-600">Vendor aktif</small>
       </div>
     </div>
+    @endunless
 
     <!-- Card Total Nilai PO -->
     <div class="bg-white rounded-lg shadow-md overflow-hidden">
@@ -61,7 +63,7 @@
         </div>
       </div>
       <div class="px-6 py-3 border-t border-gray-200">
-        <small class="text-gray-600">Total nilai item</small>
+        <small class="text-gray-600">{{ $isSupplier ? 'Nilai item PO Anda' : 'Total nilai item' }}</small>
       </div>
     </div>
 
@@ -87,7 +89,7 @@
         <div class="flex items-center justify-between">
           <div>
             <p class="text-white text-sm font-semibold">Invoice Selesai</p>
-            <h3 class="text-white text-3xl font-bold mt-2">-</h3>
+            <h3 class="text-white text-3xl font-bold mt-2">{{ $invoiceCompleted }}</h3>
           </div>
           <i class="fas fa-check-circle text-white opacity-20" style="font-size: 3rem;"></i>
         </div>
@@ -106,7 +108,7 @@
       <div class="bg-white rounded-lg shadow-md overflow-hidden">
         <div class="flex items-center bg-gray-50 border-b border-gray-200 px-6 py-4">
           <i class="fas fa-chart-bar mr-2 text-blue-600"></i>
-          <strong class="text-gray-800">Total Transaksi per Vendor</strong>
+          <strong class="text-gray-800">Total Transaksi per Vendor (Invoice Tervalidasi)</strong>
         </div>
         <div class="p-6">
           <canvas id="barVendorChart" height="120"></canvas>
@@ -123,7 +125,7 @@
       <div class="bg-white rounded-lg shadow-md overflow-hidden">
         <div class="flex items-center bg-gray-50 border-b border-gray-200 px-6 py-4">
           <i class="fas fa-chart-line mr-2 text-yellow-600"></i>
-          <strong class="text-gray-800">Tren Purchase Order Bulanan (6 Bulan Terakhir)</strong>
+          <strong class="text-gray-800">Tren PO Diterima Bulanan (6 Bulan Terakhir)</strong>
         </div>
         <div class="p-6">
           <canvas id="lineMonthlyChart" height="90"></canvas>
@@ -150,6 +152,24 @@
   const monthlyLabels = {{ \Illuminate\Support\Js::from($monthlyLabels) }};
   const monthlyTotals = {{ \Illuminate\Support\Js::from($monthlyValues) }};
 
+  function formatRupiahShort(value) {
+    const amount = Number(value) || 0;
+    if (amount >= 1_000_000_000) {
+      return (amount / 1_000_000_000).toFixed(2) + ' M';
+    }
+    if (amount >= 1_000_000) {
+      return (amount / 1_000_000).toFixed(2) + ' Jt';
+    }
+    if (amount >= 1_000) {
+      return (amount / 1_000).toFixed(2) + ' Rb';
+    }
+    return amount.toLocaleString('id-ID');
+  }
+
+  function formatRupiahFull(value) {
+    return 'Rp ' + (Number(value) || 0).toLocaleString('id-ID');
+  }
+
   /* =========================
      BAR CHART
   ========================= */
@@ -158,8 +178,8 @@
     data: {
       labels: vendorLabels.length > 0 ? vendorLabels : ['Tidak ada data'],
       datasets: [{
-        label: 'Total (Rupiah)',
-        data: vendorTotals.length > 0 ? vendorTotals.map(v => v / 1000000000) : [0],
+        label: 'Total Transaksi (Invoice Tervalidasi)',
+        data: vendorTotals.length > 0 ? vendorTotals : [0],
         backgroundColor: [
           '#3b82f6',
           '#10b981',
@@ -183,13 +203,18 @@
         legend: {
           display: true,
           position: 'top'
+        },
+        tooltip: {
+          callbacks: {
+            label: (context) => formatRupiahFull(context.parsed.y)
+          }
         }
       },
       scales: {
         y: {
           beginAtZero: true,
           ticks: {
-            callback: value => value.toFixed(2) + ' M'
+            callback: value => formatRupiahShort(value)
           }
         }
       }
@@ -204,7 +229,7 @@
     data: {
       labels: monthlyLabels.length > 0 ? monthlyLabels : ['Tidak ada data'],
       datasets: [{
-        label: 'Jumlah PO',
+        label: 'Jumlah PO Diterima',
         data: monthlyTotals.length > 0 ? monthlyTotals : [0],
         tension: 0.35,
         fill: true,
